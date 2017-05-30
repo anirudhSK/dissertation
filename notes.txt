@@ -1,0 +1,7 @@
+Section 1. Larger introduction (maybe 20 sides or so) that is entirely self contained. Weave in a case for programmability here, both qualitative and quantitative (based on HotNets 2013). Or move case alone into a separate section.
+Section 2. Background/related work, consolidate rel work from 3, 4, and 5.
+Section 3. Domino
+Section 4. PIFO
+Section 5. Performance queries
+Section 6. Open questions
+Section 7. Conclusion
