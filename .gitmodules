@@ -1,0 +1,9 @@
+[submodule "domino-paper"]
+	path = domino-paper
+	url = git@github.com:packet-transactions/domino-paper.git
+[submodule "pifo-paper"]
+	path = pifo-paper
+	url = git@github.com:programmable-scheduling/pifo-paper.git
+[submodule "perf_query_paper"]
+	path = perf_query_paper
+	url = git@github.com:anirudhsk/perf_query_paper.git
