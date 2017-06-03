@@ -472,8 +472,15 @@ at the
 \par
 \@copyrightnotice
 \par
-\vspace{\baselineskip}
-\includegraphics{signatures.pdf}
+\vskip 3\baselineskip
+\signature{Author}{\@department \\ \@thesisdate}
+\par
+\vfill
+%\unvbox\@titlesupervisor
+\signature{Certified by}{Hari Balakrishnan \\ Fujitsu Professor of Computer Science and Engineering \\ Thesis Supervisor}
+\par
+\vfill
+\signature{Accepted by}{\@chairmanname \\ \@chairmantitle}
 \vfill
 \end{titlepage}}
 
