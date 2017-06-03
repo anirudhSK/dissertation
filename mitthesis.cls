@@ -415,7 +415,7 @@ reserved.\par\permission}}
 %% notice.
 %\ifodd\vithesis \copyrightnoticetext{\copyright\ \@author,
 %\uppercase\expandafter{\romannumeral\@degreeyear}.  All rights reserved.\par\permission}
-\ifodd 1 \copyrightnoticetext{Copyright 2014 Keith Winstein. {\footnotesize \permission}}
+\ifodd 1 \copyrightnoticetext{Copyright 2017 Anirudh Sivaraman Kaushalram. {\footnotesize \permission}}
 %% or just
 %%\@degreeyear}}
 \typeout{Copyright given to author,
@@ -478,6 +478,7 @@ at the
 \vfill
 %\unvbox\@titlesupervisor
 \signature{Certified by}{Hari Balakrishnan \\ Fujitsu Professor of Computer Science and Engineering \\ Thesis Supervisor}
+\signature{Certified by}{Mohammad Alizadeh\\ TIBCO Career Development Assistant Professor \\ Thesis Supervisor}
 \par
 \vfill
 \signature{Accepted by}{\@chairmanname \\ \@chairmantitle}
@@ -540,4 +541,3 @@ This work is licensed
 
 \def\abstract{\subsection*{Abstract}\small\def\baselinestretch{1}\@normalsize}
 \def\endabstract{\par}
-
