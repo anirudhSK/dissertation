@@ -1,3 +1,0 @@
-1. subimport* doesn't work. It interacts badly with lstlistings.
-2. might have to ditch subimport altogether because the tex files need tweaking to render correctly in single spaced thesis format.
-3. Rename "this paper" to "this thesis" or some such.
