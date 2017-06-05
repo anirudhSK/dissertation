@@ -1,0 +1,106 @@
+\begin{table*}[!htbp]
+\begin{scriptsize}
+  \center
+  \begin{tabular}{|p{0.09\textwidth}|p{0.73\textwidth}|p{0.04\textwidth}|}
+      \hline
+      Atom & Atom template & Element depth\\
+\hline
+\pbox{0.1\textwidth}{Write\\Figure~\ref{fig:rw}} &
+{\begin{lstlisting}[style=customctable]
+x = Mux2(pkt_1, Const());
+\end{lstlisting}} &
+1 \\
+
+\hline
+\pbox{0.1\textwidth}{ReadAddWrite (RAW)\\Figure~\ref{fig:raw}} &
+{\begin{lstlisting}[style=customctable]
+x = Opt(x) + Mux2(pkt_1, Const());
+\end{lstlisting}} &
+2 \\
+
+\hline
+\pbox{0.1\textwidth}
+{Predicated\\
+ReadAddWrite (PRAW)\\Figure~\ref{fig:praw}} &
+{\begin{lstlisting}[style=customctable]
+if (rel_op(Opt(x), Mux3(pkt_1, pkt_2, Const()))) {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const());
+}
+\end{lstlisting}} &
+3 \\
+
+\hline
+\pbox{0.1\textwidth}
+{If-Else\\
+ReadAddWrite (IfElseRAW)\\Figure~\ref{fig:ifelseraw}} &
+{\begin{lstlisting}[style=customctable]
+if (rel_op(Opt(x), Mux3(pkt_1, pkt_2, Const()))) {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const());
+} else {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const());
+}
+\end{lstlisting}} &
+3 \\
+
+\hline
+\pbox{0.1\textwidth}
+{Subtract (Sub)\\Figure~\ref{fig:sub}} &
+{\begin{lstlisting}[style=customctable]
+if (rel_op(Opt(x), Mux3(pkt_1, pkt_2, Const()))) {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+} else {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+}
+\end{lstlisting}}&
+4 \\
+
+\hline
+\pbox{0.1\textwidth}
+{Nested Ifs (Nested)\\Figure~\ref{fig:nested}} &
+{\begin{lstlisting}[style=customctable]
+if (rel_op(Opt(x) + Mux2(pkt_1, pkt_2) - Mux2(pkt_1, pkt_2), Const())) {
+ if (rel_op(Opt(x) + Mux2(pkt_1, pkt_2) - Mux2(pkt_1, pkt_2), Const())) {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ } else {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ }
+} else {
+ if (rel_op(Opt(x) + Mux2(pkt_1, pkt_2) - Mux2(pkt_1, pkt_2), Const())) {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ } else {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ }
+}
+\end{lstlisting}} &
+6 \\
+
+\hline
+\pbox{0.1\textwidth}
+{Paired Updates (Pairs)\\Figure~\ref{fig:pairs}} &
+{\begin{lstlisting}[style=customctable]
+if (rel_op(Mux2(x, y) + Mux2(pkt_1, pkt_2) - Mux2(pkt_1, pkt_2), Const())) {
+ if (rel_op(Mux2(x, y) + Mux2(pkt_1, pkt_2) - Mux2(pkt_1, pkt_2), Const())) {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+  y = Opt(y) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ } else {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+  y = Opt(y) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ }
+} else if (rel_op(Mux2(x, y) + Mux2(pkt_1, pkt_2) - Mux2(pkt_1, pkt_2), Const())) {
+ if (rel_op(Mux2(x, y) + Mux2(pkt_1, pkt_2) - Mux2(pkt_1, pkt_2), Const())) {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+  y = Opt(y) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ } else {
+  x = Opt(x) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+  y = Opt(y) + Mux3(pkt_1, pkt_2, Const()) - Mux3(pkt_1, pkt_2, Const());
+ }
+}
+\end{lstlisting}} &
+6 \\
+\hline
+
+  \end{tabular}
+  \end{scriptsize}
+  \caption{SKETCH code for atoms described in Table~\ref{tab:templates}}
+  \label{tab:atom_code}
+\end{table*}
