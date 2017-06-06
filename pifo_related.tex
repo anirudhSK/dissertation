@@ -1,0 +1,97 @@
+\section{Related Work}
+\label{s:related}
+
+\medskip
+\noindent
+\textbf{The Push-in First-out Queue.}
+\an{PIFOs were first introduced as a proof construct to prove that a
+combined input-output queued switch could exactly emulate an output-queued
+switch~\cite{pifo}. We show here that PIFOs can be used as an abstraction for
+programmable scheduling at line rate.}
+
+\medskip
+\noindent
+\textbf{Packet scheduling algorithms.}
+The literature is replete with scheduling algorithms~\cite{pFabric, hpfq,
+stopngo, stfq, lstf, srpt, drr, rcsd} . Yet, line-rate switches support only a
+few: DRR, traffic shaping, and strict priorities. As \S\ref{s:expressive}
+shows, PIFOs allow a line-rate switch to run many of these scheduling
+algorithms, which, so far, have only been run on software routers.
+
+\medskip
+\noindent
+\textbf{Programmable switches.} Recent work has proposed hardware architectures~\cite{tofino, flexpipe,
+xpliant, rmt} and software abstractions~\cite{p4, domino_sigcomm} for
+programmable switches.  While many packet-processing tasks can be programmed on
+these switches, scheduling isn't one of them. Programmable switches can {\em
+assist} a PIFO-based scheduler by providing a programmable ingress pipeline for
+scheduling and shaping transactions, without requiring a dedicated atom
+pipeline inside each PIFO block.  However, they still need PIFOs for
+programmable scheduling.
+
+\medskip
+\noindent
+\textbf{Universal Packet Scheduling (UPS).} UPS~\cite{ups} shares our goal of
+flexible packet scheduling by seeking a single scheduling algorithm that is
+{\em universal} and can emulate any scheduling algorithm. Theoretically, UPS
+finds that the well-known LSTF scheduling discipline~\cite{lstf} is universal
+if packet departure times for the scheduling algorithm to be emulated are known
+up front. Practically, UPS shows that by appropriately initializing slacks, many different scheduling objectives can be
+emulated using LSTF. LSTF is programmable using PIFOs, but the set of schemes
+practically expressible with LSTF is limited. For example, LSTF cannot
+express:
+\begin{CompactEnumerate}
+\item Hierarchical scheduling algorithms such as HPFQ, because it
+  uses only one priority queue.
+\item Non-work-conserving algorithms. For such algorithms LSTF must know the
+  departure time of each packet up-front, which is not practical.
+\item Short-term bandwidth fairness in fair queueing, because LSTF maintains no
+  switch state except one priority queue. As shown in
+  Figure~\ref{fig:sched_trans}, programming a fair queueing algorithm requires us
+  to maintain a virtual time state variable. Without this, a new flow could have
+  arbitrary virtual start times, and be deprived of its fair share indefinitely.
+  UPS provides a fix to this that requires
+  estimating fair shares periodically, which is hard to do in
+  practice.
+\item Scheduling policies that aggregate flows from distinct endpoints into a
+  single flow at the switch. An example is fair queueing across video and web
+  traffic classes, regardless of endpoint.  Such policies require the switch to
+  maintain the state required for fair queueing because no end point sees all the
+  traffic within a class.  However, LSTF cannot maintain and update switch state
+  progammatically.
+\end{CompactEnumerate}
+\an{The restrictions in UPS/LSTF are a result of a limited programming
+model. UPS assumes that switches are fixed and cannot be programmed to modify
+packet fields. Further, it only has a single priority queue.  By using atom
+pipelines to execute scheduling and shaping transactions, and by composing
+multiple PIFOs together, PIFOs express a wider class of scheduling algorithms.}
+
+%\begin{figure}
+%  \centering
+%  \includegraphics[width=0.7\columnwidth]{state_reqd.pdf}
+%  \caption{A switch's scheduling algorithm, such as WFQ, might aggregate flows
+%  from different end hosts into a single flow at the switch for the purpose of
+%  scheduling.}
+%  \label{fig:state}
+%\end{figure}
+
+\medskip
+\noindent
+\textbf{Hardware designs for priority queues.}
+\an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
+pheap}.  However, each P-heap supports traffic belonging to a {\em single} 10
+Gbit/s input port in an input-queued switch and there is a separate P-heap
+instance for each port~\cite{bhagwan}.  This per-port design incurs prohibitive
+area overhead on a shared-memory switch, and prevents sharing of the data
+buffer and binary heap across output ports. Conversely, it isn't easy to
+overlay multiple logical PIFOs over a single P-heap, which would allow the
+P-heap to be shared across ports.}
+%%
+%%\an{
+%%In contrast to a hardware implementation of a generic priority queue as a heap,
+%%our design for the PIFO exploits two domain-specific insights. First, there is
+%%considerable structure in the ranks: ranks within a flow strictly increase with
+%%time.  Second, the packet buffers on shared-memory switches used in datacenters
+%%today are much smaller than those on deep-buffered core routers in the past.
+%%This permits a simpler, albeit less scalable, design relative to heaps.
+%%}

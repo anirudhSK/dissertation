@@ -1,0 +1,62 @@
+\pagebreak
+\section{Discussion}
+\label{s:real_discussion}
+
+Packet scheduling allocates scarce link capacity across contending flows.  This
+allocation services an application or a network-wide objective, e.g., max-min
+fairness (WFQ) or minimum flow completion time (SRPT).  Past work has
+demonstrated significant performance benefits resulting from switch support
+for flexible allocation~\cite{pFabric, baraat, numfabric, nosilverbullet}.
+However, these benefits have remained unrealized, because today
+there isn't a pathway to implementing such schemes.
+PIFOs provide that pathway. They express many scheduling
+algorithms and are implementable at line rate.
+
+How a programmable scheduler will be used is still unclear, but at the very
+least PIFOs present the network as an additional surface for deploying
+resource allocation schemes. No longer will transport protocol designers need
+to restrict themselves to end-host/edge-based solutions to datacenter
+transport.  As an example of a immediate use case for PIFOs, one could run HPFQ
+for traffic isolation, where the classes corresponds to different tenants in a
+datacenter and the flows correspond to all source-destination VM pairs
+belonging to a tenant. This kind of isolation is much harder to provide with
+end-host/edge-based solutions today.
+%The network can be an equal participant in transport protocols
+%rather than a dumb pipe~\cite{e2e}. 
+
+Looking forward, a programmable scheduler on switches could
+simplify packet transport. For instance, pFabric~\cite{pFabric}
+minimizes flow completion times by coupling a simple switch
+scheduler (shortest remaining processing time) with a simple end-host protocol
+(line rate transmission with no congestion control). Other transport mechanisms
+~\cite{packetpair, numfabric} leverage fair queueing in the network to simplify
+transport and make it more predictable.
+
+That said, our current design is only a first step and can be improved in
+several ways.
+\begin{CompactEnumerate}
+%\item Can we develop an abstraction for output rate limiting that provides
+%sensible semantics within the context of a PIFO tree?
+% We considered implementing output rate limiting by providing a small
+%ALU that computes the next time to dequeue from a flow. 
+\item A scheduling tree is more convenient than directly configuring a
+PIFO mesh, but it is still a low-level abstraction. Are there higher
+level abstractions?
+\item Now that we have shown it is feasible, how will programmable scheduling
+be used in practice? This would involve surveying network operators to
+understand how programmable scheduling could benefit them. In turn, this would
+provide valuable design guidance for setting various parameters in our hardware design.
+\item Beyond a few counter examples, we lack a formal characterization of
+algorithms that cannot be implemented using PIFOs. For instance, is there a
+simple, checkable property separating algorithms that can and cannot be
+implemented using PIFOs? Given an algorithm specification, can we
+automatically check if the algorithm can be programmed
+using PIFOs?
+\item \an{Our current design scales to 2048 flows. If allocated evenly across
+64 ports, we could program scheduling across 32 flows at each port. This
+permits per-port scheduling across traffic aggregates (e.g., fair queueing
+across 32 tenants within a server), but not a finer granularity (e.g.,
+5-tuples). Ideally, to schedule at the finest granularity, our design would
+support 60K flows: the physical limit of one flow for each packet. We
+currently support up to 2048. Can we bridge this gap?}
+\end{CompactEnumerate}
