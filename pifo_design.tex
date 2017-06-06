@@ -3,7 +3,7 @@
 
 \begin{figure*}
   \centering
-  \includegraphics[width=\textwidth]{PIFO_figures/switch_pipeline.pdf}
+  \includegraphics[width=\textwidth]{pifo_switch_pipeline.pdf}
   \caption{A 64-port shared memory switch.  Combinational logic and memory are
   shared across ports, both in the pipelines and in the scheduler. The switch
   runs at a clock frequency of 1 GHz.}
@@ -74,14 +74,14 @@ be expressed as Domino programs.  \an{An important restriction in
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{PIFO_figures/pifo_mesh.pdf}
+  \includegraphics[width=\columnwidth]{pifo_pifo_mesh.pdf}
   \caption{Three PIFO blocks in a PIFO mesh}
   \label{fig:mesh}
 \end{figure}
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{PIFO_figures/pifo_block.pdf}
+  \includegraphics[width=\columnwidth]{pifo_pifo_block.pdf}
   \caption{A single PIFO block. Enqueue operations execute transactions in the atom pipeline
   before enqueuing elements into a logical PIFO. Dequeue operations dequeue elements from logical PIFOs
   before looking up their next hop.} 
@@ -91,14 +91,14 @@ be expressed as Domino programs.  \an{An important restriction in
 \begin{figure*}[!t]
   \begin{subfigure}[b]{0.5\textwidth}
   \begin{center}
-  \includegraphics[width=\textwidth]{PIFO_figures/hpfq_logical.pdf}
+  \includegraphics[width=\textwidth]{pifo_hpfq_logical.pdf}
   \caption{Logical PIFO tree for HPFQ}
   \label{fig:hpfq_path}
   \end{center}
   \end{subfigure}
   \begin{subfigure}[b]{0.5\textwidth}
   \begin{center}
-  \includegraphics[width=0.8\textwidth]{PIFO_figures/hpfq_physical.pdf}
+  \includegraphics[width=0.8\textwidth]{pifo_hpfq_physical.pdf}
   \caption{Physical PIFO mesh for HPFQ}
   \label{fig:hpfq_mesh}
   \end{center}
@@ -118,12 +118,12 @@ be expressed as Domino programs.  \an{An important restriction in
 
 \begin{figure*}[!t]
   \begin{subfigure}[b]{0.5\textwidth}
-  \includegraphics[width=\textwidth]{PIFO_figures/hshaping_logical.pdf}
+  \includegraphics[width=\textwidth]{pifo_hshaping_logical.pdf}
   \caption{Logical PIFO tree for Hierarchies with Shaping}
   \label{fig:hshaping_path}
   \end{subfigure}
   \begin{subfigure}[b]{0.5\textwidth}
-  \includegraphics[width=\textwidth]{PIFO_figures/hshaping_physical.pdf}
+  \includegraphics[width=\textwidth]{pifo_hshaping_physical.pdf}
   \caption{Physical PIFO mesh for Hierarchies with Shaping}
   \label{fig:hshaping_mesh}
   \end{subfigure}

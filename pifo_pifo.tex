@@ -53,13 +53,13 @@ p.rank = p.start
 %%% Figure for HPFQ below %%%
 \begin{figure*}
 \begin{subfigure}[b]{.2\textwidth}
-\includegraphics[width=\textwidth]{PIFO_figures/hpfq_example.pdf}
+\includegraphics[width=\textwidth]{pifo_hpfq_example.pdf}
 \caption{Algorithm}
 \label{fig:hpfq_algo}
 \end{subfigure}
 \vrule
 \begin{subfigure}[b]{.3\textwidth}
-\includegraphics[width=\textwidth]{PIFO_figures/hpfq_program.pdf}
+\includegraphics[width=\textwidth]{pifo_hpfq_program.pdf}
 \caption{Scheduling tree}
 \label{fig:hpfq_tree}
 \end{subfigure}
@@ -183,7 +183,7 @@ determines the next packet to schedule.
 %PIFO encoding figure
 \begin{figure}
 \centering
-\includegraphics[width=0.45\textwidth]{PIFO_figures/pifo_tree_encoding.pdf}
+\includegraphics[width=0.45\textwidth]{pifo_pifo_tree_encoding.pdf}
 \caption{PIFO trees encode current scheduling order.}
 \label{fig:pifo_encoding}
 \end{figure}
@@ -217,13 +217,13 @@ order encoded by the tree of PIFOs~(Figure~\ref{fig:pifo_encoding}).
 %%% Figure for hshaping below %%%
 \begin{figure*}
 \begin{subfigure}[b]{0.2\textwidth}
-\includegraphics[width=\textwidth]{PIFO_figures/hshaping_example.pdf}
+\includegraphics[width=\textwidth]{pifo_hshaping_example.pdf}
 \caption{Algorithm}
 \label{fig:hshaping_algo}
 \end{subfigure}
 \vrule
 \begin{subfigure}[b]{0.3\textwidth}
-\includegraphics[width=\textwidth]{PIFO_figures/hshaping_program.pdf}
+\includegraphics[width=\textwidth]{pifo_hshaping_program.pdf}
 \caption{Scheduling tree}
 \label{fig:hshaping_tree}
 \end{subfigure}
@@ -321,7 +321,7 @@ shaping transaction (TBF\_Right) determines when PIFO references for
 Right's scheduling PIFO are released to Root's scheduling PIFO.
 
 \begin{figure}[!t]
-  \includegraphics[width=\columnwidth]{PIFO_figures/shaping_semantics.pdf}
+  \includegraphics[width=\columnwidth]{pifo_shaping_semantics.pdf}
   \caption{\textit{Child's} shaping transaction (1b) {\em defers} enqueue
   into \textit{Parent's} scheduling PIFO (2) until time T.  Blue arrows
   show enqueue paths. Red arrows show dequeue paths.  }

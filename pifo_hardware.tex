@@ -30,7 +30,7 @@ most practical hierarchical schedulers we know of.
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{PIFO_figures/pifo_impl.pdf}
+  \includegraphics[width=\columnwidth]{pifo_pifo_impl.pdf}
   \caption{Block diagram of PIFO block with a flow scheduler and a
    rank store. Logical PIFOs and metadata are not shown for simplicity.}
   \label{fig:pifo_impl}
@@ -151,7 +151,7 @@ still permitted every cycle.
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=\columnwidth]{PIFO_figures/flow_scheduler_hardware.pdf}
+  \includegraphics[width=\columnwidth]{pifo_flow_scheduler_hardware.pdf}
   \caption{Hardware implementation of flow scheduler. Each element in the flow
   scheduler is connected to two > comparators (2 pushes) and one == comparator (1
   pop).}
@@ -160,7 +160,7 @@ still permitted every cycle.
 
 \begin{figure}[!t]
   \centering
-  \includegraphics[width=0.9\columnwidth]{PIFO_figures/2stage_pipeline.pdf}
+  \includegraphics[width=0.9\columnwidth]{pifo_2stage_pipeline.pdf}
   \caption{2-stage pipeline for flow scheduler}
   \label{fig:2stage}
 \end{figure}
