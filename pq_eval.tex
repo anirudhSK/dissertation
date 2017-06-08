@@ -1,0 +1,66 @@
+\section{Evaluation}
+\label{sec:eval}
+
+%TODO: Add a scalable column to table
+\input{examples}
+%The performance of Marple in practice depends on three factors: hardware feasibility, result accuracy, and ease of use.
+%Section~\ref{s:eval:hardware} discusses the required hardware atoms required to perform aggregations at line rate. We show that Marple's silicon requirements are modest and realizable with current technology.
+%Section~\ref{s:eval:traces} presents a Marple aggregation run on traces of both core Internet and datacenter traffic, to demonstrate how the size of the in-memory key-value store affects the number of flows Marple can accurately track.
+%Finally, Section~\ref{s:eval:mininet} presents a case study using Marple to
+%diagnose the root cause of irregular HTTP traffic.
+
+We evaluate \TheSystem along three dimensions. In \Sec{eval:hardware}, we show
+the switch compute resources used for some candidate \TheSystem queries, while
+in \Sec{eval:traces}, we measure the memory-bandwidth tradeoff for the
+key-value store. In \Sec{eval:mininet}, we show an end to end use case of
+\TheSystem by debugging a performance problem, {\em microbursts,} on the P4
+behavioral model.
+
+\input{eval-hardware}
+\input{eval-traces}
+\input{eval-mininet}
+
+%\subsection{[Reach] Redis benchmarking}
+
+%% % Maybe have a list of questions we want to answer to motivate this section
+%% % such as FSCQ, section 7 at SOSP15.
+%% \subsection{Expressiveness}
+%% % TODO: Table for this.
+%% % Which queries can be expressed?
+%% % Which are linear in state?
+
+%% \subsection{Hardware resources for running queries}
+%% % TODO: Write a script for this.
+%% % What's the pipeline depth and width?
+%% % What atoms beyond linear-in-state are required?
+
+%% \subsection{What is the memory requirement?}
+%% % TODO: Write a script for this.
+%% % Run trace-driven simulations on CAIDA + Theo Benson's traces.
+%% % Maybe run on FB data as well?
+%% % Show how linear-in-state significantly reduces memory requirement.
+%% % Alternatively show how it reduces load on the backend server.
+
+%% \subsection{How much traffic does the backend server need to process?}
+
+%% % Bombard REDIS with transactions from our corpus at a certain rate.
+%% % See how many servers we need to process these transactions.
+%% % Exploit the fact that transaction latency can be high so long as transaction throughput is high
+
+%% \subsection{How many servers does this cost in total?}
+
+%% % Get some back of the envelope numbers based on level of aggregation, typical query, REDIS results, exact query etc.
+%% % Want a bottomline number like: for x% additional servers, we can have these useful measurement abilities.
+%% % Maybe elevate to introduction.
+
+%% \subsection{Mininet evaluations}
+
+%% % ex1: TCP client, server.
+%% % UDP workload
+%% % Latency spike
+
+%% % ex2: flowlet size histogram
+
+%% % ex3: how long is a high prio packet blocked because a low prio is currently in transmission?
+
+%% % show graphs for each one of these scenarios.
