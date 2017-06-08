@@ -1,0 +1,34 @@
+\subsection{Hardware compute resources}
+\label{s:eval:hardware}
+\label{sec:eval:hardware}
+
+\Fig{example-perf-queries} shows a number of performance queries
+expressible in \TheSystem. Alongside each query, we show (i) whether the
+aggregations in the query are linear-in-state, (ii) whether the query can be
+scaled by merging correctly with a backing store, and
+(iii) the switch pipeline resources required by the query {\em computations,}
+measured through the pipeline depth (\ie number of stages) and width (\ie
+maximum number of parallel computations per stage).
+
+Many useful queries contain only linear-in-state aggregations, and most of them
+scale to a large number of keys (\Sec{linear-in-state-description}). Notably,
+the flowlet size histogram and lossy connection queries are not scalable,
+despite being linear-in-state. In \Sec{workaround-nonscalable}, we showed how a
+user can rewrite queries to scale on-switch aggregations despite these
+restrictions.
+
+We compute the pipeline's depth and width by compiling each query to a simulator
+of a hardware pipeline, Banzai~\cite{domino_sigcomm}. Banzai is supplied with
+stateless atoms (which compute binary expressions) and one stateful atom. The
+Domino compiler determines whether the input program can be mapped to a pipeline
+with the specified atoms. As expected, all the linear-in-state queries map to a
+pipeline with the multiply-accumulate atom. For the non-linear-in-state queries,
+we use the {\em nested-if} atom from Banzai, which supports state updates
+predicated on the state value.
+
+Almost all queries require a pipeline that is less than ten stages deep; half
+require six or fewer. These pipeline depths are feasible, since some modern
+programmable switches offer 32 stages in each pipeline~\cite{rmt}. The number of
+atoms required per-stage (width) is at most four in almost all cases.  Atom
+circuits occupy small areas relative to the chip overall, so it is feasible to
+fit hundreds of atoms in a switch~\cite{domino_sigcomm}.

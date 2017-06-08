@@ -1,0 +1,367 @@
+\subsection{Handling linear-in-state aggregations}
+\label{sec:linear-in-state-compilation}
+
+The \TheSystem compiler recognizes linear-in-state updates, and keeps
+the necessary auxiliary state to merge these updates correctly with the backing
+store. 
+
+Concretely, the compiler should figure out state updates which have the form $S
+\gets A \cdot S + B$, where $A$ and $B$ are functions of bounded packet
+history. Suppose $A$ and $B$ are functions of the last $k$ packet fields. Then,
+the switch should track (i) the relevant fields of the first and last $k$
+packets, and (ii) the value of $\prod_{i} A_i$ across all state updates after
+the first $k$ packets, to be able to merge each key later. %% Once we determine
+%% states $S$ which are updated in a linear-in-state fashion along with the
+%% corresponding coefficients $A$ and $B$, the rest is straightforward.
+
+%% How to get \TheSystem aggregation functions to run on switch hardware? These
+%% functions involve updates to state on the switch, where the updates are encoded
+%% in the form of assignments (\ie {\ct x = ...})  and branches (\ie {\ct if pred
+%%   {...} else {...}}). Prior work as part of the Domino
+%% language~\cite{domino_sigcomm} studies how to take such programs and configure a
+%% pipeline of stateful computation elements that finish operation within a clock
+%% cycle.
+
+%% However, there are two problems. First, the domino instruction set of stateful
+%% computations isn't sufficient, since none of the proposed stateful atoms encodes
+%% multiplications involving the state---which is necessary for the linear-in-state
+%% updates.
+
+%% Second, adding the multiply-accumulate atom (\Sec{hardware}) alone isn't
+%% sufficient to encode the stateful computations in the multiply-accumulate
+%% atom. Specifically, the coefficients of the linear update can vary depending on
+%% the code paths executed in the aggregation function; this requires a more
+%% complex atom that involves a {\em predicated} linear-in-state update.
+
+%% In the \TheSystem compiler, we retain the simplicity of the multiply-accumulate
+%% atom on hardware, but transform the function to encode linear-in-state updates
+%% explicitly. This enables the Domino compiler to directly implement those state
+%% updates using the multiply-accumulate atom. For our running example, the update
+%% to {\ct count} in function {\ct oos\_count} will be transformed to {\ct count =
+%%   A*count + B}, where {\ct A} and {\ct B} are pre-computed over all code
+%% paths. The resulting function looks like this:
+%% \begin{lstlisting}
+%% def oos_count(count, lastseq, tcpseq, payload_len):
+%%   A = 1; B = 0;
+%%   if lastseq != tcpseq:
+%%     A = 1; B = 1;
+%%   lastseq = tcpseq + payload_len;
+%%   count = A*count + B;
+%% \end{lstlisting}
+%% Observe that the {\ct A} and {\ct B} values thus pre-computed can be reused to
+%% implement the merge operations for the linear-in-state updates
+%% (\Sec{hardware}). Here, we need to 
+
+We solve two problems for each aggregation function: We (i) determine state
+variables which are functions of bounded packet history---configuring the switch
+to track $k$ packet fields; and (ii) detect linear-in-state updates for other
+states---configuring the switch to track $\prod_{i} A_i$. The switch tracks
+these quantities using additional values for each key.
+
+%% While the canonicalized form of a linear-in-state update may be simple to spot,
+%% there are query examples where this form is not apparent. For example, consider
+%% the aggregation function for the TCP out-of-sequence example in \Sec{language}:
+
+%% \begin{lstlisting}
+%% def outofseq(lastseq, oos_count):
+%%   if lastseq != tcpseq:
+%%     oos_count = oos_count + 1
+%%   lastseq = tcpeq + payload_len
+%% \end{lstlisting}
+
+%% The update to {\ct oos\_count} is indeed linear-in-state, where $A$ and $B$ are
+%% functions of the last two packets: $A = 1$ always; $B = 1$ if the last packet's
+%% sequence number (stored in {\ct lastseq}) is equal to the current packet's
+%% sequence number, and $0$ otherwise. Note that this inference relies on
+%% determining that {\ct lastseq}---a state variable in {\ct outofseq}---is itself
+%% just a function of the last two packets.
+
+%% We first show that it is possible to detect when a state is just a function of
+%% bounded packet history, up to a maximum bound. For other stateful updates, we
+%% show how the compiler checks the linearity of the state update, and transforms
+%% the program to precompute the linear update coefficients $A$ and $B$.
+
+\Para{Determining states of bounded packet history.} First, we observe that any
+state {\em all of whose assignments} only depend on values which are themselves
+functions of bounded packet history is also a function of bounded packet
+history. In our running example (\Fig{running-example-code}), {\ct lastseq} is a
+function of bounded packet history because it only depends on packet fields {\ct
+  tcpseq} and {\ct payload\_len}.
+
+However, handling branching in the code, \ie {\ct if (cond) \{ ...\}}
+statements, requires us to generalize the above observation. We check two
+conditions: (i) a state should be bounded in its (implicit or explicit)
+assignments in {\em all} branches of the program; (ii) each branching condition
+{\ct cond} itself should be a function of bounded packet history.
+
+%% For example, since the only assignment to {\ct lastseq} in the example
+%% above involves {\ct tcpseq} and {\ct payload\_len} which are both fields in the
+%% current packet, we conclude that {\ct lastseq} depends only on the current
+%% packet fields.
+
+%% Generalizing this observation to all aggregation functions requires the handling
+%% of branching in the code correctly. We further restrict the conditions for
+%% bounded packet history as follows: (i) variables that aren't assigned in a
+%% branch {\em implicitly retain} their prior value, hence they are not functions
+%% of bounded packet history (\eg see the {\ct timeout} function in
+%% \Fig{example-perf-queries}); (ii) the branching predicate itself should be a
+%% function of bounded packet history (\eg see the TCP non-monotonic packets
+%% example in \Fig{example-perf-queries}).
+
+%% Consider this code snippet that detects whether a flow has
+%% ever experienced a TCP timeout:
+%% \begin{lstlisting}
+%% def detect_timeout(timeout, last_time, tin):
+%%   if tin - last_time > 200ms and tin - last_time < 300ms:
+%%     timeout = 1
+%%   last_time = tin
+%% \end{lstlisting}
+%% Intuitively, it is clear that the {\ct timeout} state variable must be a
+%% function of unbounded packet history, since its value depends on whether any
+%% packet in the connection appeared after a timeout. Even though its assignments
+%% in the program source only use constants (which are degenerate functions of
+%% bounded history), we must also consider the {\em implicit} assignment in the
+%% {\ct else} branch of the code which makes {\ct timeout} retain its prior value.
+
+%% Further, the enclosing sequence of branches to reach an assignment are also
+%% relevant to determine history. For example, consider a code snippet that detects
+%% whether the {\em last} packet of a TCP connection has a value smaller than the
+%% maximum sequence number seen so far:
+%% \begin{lstlisting}
+%% def last_nm(maxseq, nonmonotonic, tcpseq, payload_len):
+%%   if tcpseq < maxseq:
+%%     nonmonotonic = 1 // flag last packet non-monotonic
+%%   else:
+%%     nonmonotonic = 0
+%%     maxseq = tcpseq + payload_len
+%% \end{lstlisting}
+%% Here each assignment to the state variable {\ct nonmonotonic} only uses
+%% constants, but the enclosing branch is taken based on the value of {\ct maxseq},
+%% which is itself not a function of bounded packet history. Hence, {\ct
+%%   nonmonotonic} cannot be correctly determined based on a small bounded history
+%% of packets.
+
+These observations are codified in \Alg{bounded-packet-history}. The algorithm
+assigns each state a {\em history value} corresponding to an upper bound on the
+number of past packets that the state value depends on. We track the history
+separately for each branching {\em context}, \ie the sequence of branches
+enclosing any statement.\footnote{\TheSystem disallows multiple {\ct if...else}
+  statements at the same nesting level, so the enclosing branches uniquely
+  identify code paths.} The algorithm starts with a default large pessimistic
+history value for each state (line \ref{line:curr-hist-init}), and performs a
+fixed-point computation (line \ref{line:fixed-point}).
+%% iterating over the statements of the aggregation function.
+%% For example, the history value of {\ct lastseq} in {\ct oos\_count} is 1,
+%% since it only depends on the last one packet. The history value of a state is
+%% specific to the sequence of branches taken during code execution: we term the
+%% most specific predicate enclosing a statement its {\em context.}\footnote{Our
+%% grammar permits only nested branching, disallowing multiple {\ct if...else}
+%% statements at the same nesting level. So the enclosing predicates uniquely
+%% identify code paths.}
+For each assignment to a state in the aggregation function, the algorithm
+updates the history of that state in the current branching context (lines
+\ref{line:stmt-iteration}-\ref{line:stmt-history-update}). For each branch in
+the aggregation function, the algorithm maintains a new branching context---and
+a history value for the branching context itself
+(lines \ref{line:encounter-branching}-\ref{line:branch-ctx-update-end}).
+  
+%% The algorithm assigns a default maximum bound for all state histories, and
+%% performs a fixed-point computation iterating over the statements of the
+%% aggregation function\footnote{The fixed-point iteration converges because the
+%%   history values can only decrease, and histories are bounded from below at 0.}
+%% (lines \ref{line:curr-hist-init}-\ref{line:fixed-point}). For each statement
+%% that updates a state, the algorithm updates the history value for the state in
+%% the context enclosing the statement through the {\sc update} function (lines
+%% \ref{line:stmt-iteration}-\ref{line:stmt-history-update}). When the algorithm
+%% encounters a branching statement (line \ref{line:encounter-branching}), it
+%% updates the enclosing predicate context as well as the history value for the
+%% context itself (lines
+%% \ref{line:branch-ctx-update-start}-\ref{line:branch-ctx-update-end}).
+
+%% The history value of a state that gets assigned to a field from the current
+%% packet is 1, since it only depends on the last one packet, \eg the {\ct
+%%   last\_time} variable in {\ct detect\_timeout()} above. History values are
+%% specific to the sequence of branches encountered in the program until that
+%% point. We term the most specific predicate enclosing a statement its {\em
+%%   context}. The history value of a state may change through the course of the
+%% function, as assignments update the state, and a state may have different
+%% history values in different contexts.
+
+%% We initialize the history values to a default maximum bound, {\ct MAX\_BOUND},
+%% and a `new' empty history that the algorithm will update (lines
+%% \ref{line:curr-hist-init} and \ref{line:prev-hist-init}).
+
+%% The algorithm iterates through the statements in the function until it reaches a
+%% fixed-point, \ie the history values from the last two iterations match up for
+%% all states and contexts (line \ref{line:fixed-point}). The algorithm is
+%% guaranteed to converge to a fixed point since, as we show later
+%% (\Alg{update-hist}), the history for any state in a given context can only
+%% reduce after each iteration, and there is a lower bound of $0$ on the history
+%% values, \ie when the state has no dependence on packets.
+
+%% In each iteration, the algorithm iterates through the statements of the program
+%% (line \ref{line:stmt-iteration}). For each statement which assigns to a state,
+%% the {\ct update} computes a new history value for the state (line
+%% \ref{line:stmt-history-update}). 
+
+\begin{algorithm}
+  \caption{Detecting states of bounded packet history.}
+  \label{alg:bounded-packet-history}
+  \begin{algorithmic}[1]
+    \State hist = \{state = \{true: max\_bound\}\} \Comment{Init
+      histories.} \label{line:curr-hist-init}
+    \State prevHist = $\{\}$ \Comment{Previous iteration
+      history.} \label{line:prev-hist-init}
+    \Function{detectHistory}{{\cta fun}}
+    \While{hist != prevHist} \label{line:fixed-point}
+    \State prevHist $\gets$ hist \Comment{Store previous iter history.}
+    \State hist $\gets$ \{\}
+    \State ctx $\gets$ true \Comment{Set up enclosing context.}
+    \State ctxHist $\gets$ 0
+    \For{stmt in {\cta fun}}\label{line:stmt-iteration}
+    \If{stmt == {\cta state = f(x1,...,xn)}}
+    \State {\sc update}(state, ctx, x1, ..., xn)\label{line:stmt-history-update}
+    \ElsIf{stmt == {\cta if predicate}}\label{line:encounter-branching}
+    \State save context info (restore on branch exit)\label{line:branch-ctx-update-start}
+    \State newCtx $\gets$ ctx \textbf{and} predicate
+    \State ctxHist $\gets$ {\sc getCtxHist}(ctx, newCtx)
+    \State ctx $\gets$ newCtx\label{line:branch-ctx-update-end}
+    \EndIf
+    \EndFor
+    \EndWhile
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+Now we show precisely how the history values are computed from each statement of
+the aggregation function, in function {\sc update} in
+\Alg{update-hist}. Consider an assignment statement {\ct x = f(xi, ...,
+  xn)}. If any of the {\ct xi} is a function of the last $k$ packets, then {\ct
+  x} is a function of at least the last $k$ packets (if not more). Hence, {\sc
+  update} sets the state history to the maximum of the histories of the
+variables and the context (lines
+\ref{line:used-var-start}-\ref{line:assign-max-hist}). For example, the history
+value for {\ct lastseq} after its assignment in {\ct oos\_count} is the maximum
+of 1 ({\ct tcpseq} and {\ct payload\_len} are functions of the current packet),
+and 0 (for the enclosing outermost context {\ct true}).
+
+To look up the history for a given variable, the function {\sc getCtxHist} in
+\Alg{update-hist} implements a simple dictionary lookup for a state in the
+history of the current iteration. However, a state history may not always be
+found in the current iteration history. For example, at the branching condition
+{\ct lastseq != tcpseq} in the second fixed-point iteration, the state {\ct
+  lastseq} is actually a function of the last {\em two} packets. So, {\sc
+  getCtxHist} increments the history value from the previous iteration (line
+\ref{line:older-history-returned}).
+
+The fixed-point iterations converge because state histories in a context are
+non-increasing. The algorithm returns a bound $k$ on the number of historical
+packets that each state depends on, including possibly max\_bound (line
+\ref{line:curr-hist-init}, \Alg{bounded-packet-history}).
+
+%% Now we turn our attention to the {\sc update} and {\sc getCtxHist} functions,
+%% which are described in \Alg{update-hist}. The {\sc update} function assigns the
+%% maximum of the history values of all used variables ({\ct x1, ..., xn}) and the
+%% statement's context (ctx) to the history value of the state in the enclosing
+%% context (lines \ref{line:used-var-start}-\ref{line:assign-max-hist}). For each
+%% used variable {\ct xi}, the function {\sc getCtxHist} returns a stored history
+%% either from the current iteration (line \ref{line:current-history-returned}) if
+%% the variable has a history in the current iteration. Otherwise, {\sc getCtxHist}
+%% returns a history from the previous iteration (line
+%% \ref{line:older-history-returned}), for which the stored history must be
+%% incremented by one, as the stored value corresponds to the previous packet.
+
+%% The higher-level algorithm (\Alg{bounded-packet-history}) maintains the
+%% enclosing predicate context by updating it every time a branch ({\ct if} or {\ct
+%%   else}) is taken or exited from (lines
+%% \ref{line:branch-ctx-update-start}-\ref{line:branch-ctx-update-end}). We show
+%% just the {\ct if} branch of the algorithm, but the {\ct else} branch is handled
+%% similarly.
+
+%% At the fixed point of \Alg{update-hist}, if the history value for a state is
+%% smaller than the max\_bound, then the state is a function of bounded packet
+%% history. All other states are not functions of bounded packet history.
+
+\begin{algorithm}
+  \caption{Updating history values from assignment.}
+  \label{alg:update-hist}
+  \begin{algorithmic}[1]
+    \Function{update}{state, ctx, x1, ..., xn}
+    \For{xi $\in$ x1, ..., xn}\label{line:used-var-start}
+    \State hi = {\sc getCtxHist}(ctx, xi)
+    \EndFor\label{line:used-var-end}
+    \State hist[state][ctx] $\gets$ max(ctxHist, h1, ...,
+    hn) \label{line:assign-max-hist}
+    \EndFunction
+    \Function{getCtxHist}{ctx, var}
+    \If{var $\in$ hist}
+    \State \textbf{return} hist[var][ctx] \label{line:current-history-returned}
+    \ElsIf{var $\in$ prevHist}
+    \State \textbf{return} prevHist[var][ctx] + 1 \Comment{One pkt
+      older.} \label{line:older-history-returned}
+    \EndIf
+    \EndFunction
+  \end{algorithmic}
+\end{algorithm}
+
+\Para{Determining linear-in-state coefficients.} For each state $S$ that is not
+a function of bounded packet history, we check whether the state updates are
+linear-in-state as follows:\footnote{These checks are sound
+  but incomplete, as they miss updates that {\em simplify} to linear-in-state,
+  \eg $(S^2-1)/(S-1)$.} (i) each update to $S$ is syntactically affine, \ie $S
+\gets A \cdot S + B$ with either $A$ or $B$ possibly zero; and (ii) $A$, $B$ and
+every branch predicate are functions of bounded packet history.
+
+%% \Para{Encoding linear-in-state updates explicitly.} For each state $S$ which is
+%% not a function of bounded packet history, we perform the following checks to
+%% determine if it is updated in a linear-in-state fashion:
+%% \begin{CompactEnumerate}
+%%   \item Every update to $S$ follows a {\em syntactic} affine form: $S \gets B$,
+%%     $S \gets A \cdot S$ or $S \gets A \cdot S + B$, where $A$ and $B$ are
+%%     expressions of only bounded packet history variables.
+%%   \item The enclosing predicate context for an assignment to $S$ involves only
+%%     bounded packet history variables.
+%%   \item Any read from $S$ only updates $S$.
+%% \end{CompactEnumerate}
+
+%% These conditions are conservative, as the syntactic checking condition (1) may
+%% fail to consider state updates that {\em simplify} to linear-in-state updates,
+%% \eg $S \gets (S^2 - 1) / (S + 1)$. Further, there may be other unbounded states
+%% which {\em read} from $S$, which are missed because of condition (3). We do not
+%% consider vector linear-in-state updates in our current compiler. All the
+%% linear-in-state example programs we wrote are recognized by these conservative
+%% checks.
+
+If state $S$ satisfies these conditions, we initialize a new value $S_A$ to 1
+and a packet counter $c$ on inserting a new key. When the counter $c$ crosses
+the packet history bound $k$, we update $S_A$ each time $S$ is updated, as
+follows: $S_A \gets S_A \times A$.\footnote{This stateful update itself can be
+  implemented through a multiply-accumulate atom.} When the key is evicted,
+$S_A$ contains the value of $\prod_i A_i$. The \TheSystem compiler emits the
+code necessary to determine the coefficients from \TheSystem statements that
+update $S$.
+
+%% For our running example, the
+%% accumulation of $S_A$ is performed through the following code fragment:
+
+%% \begin{lstlisting}
+%% def oos_count(count, lastseq, tcpseq, payload_len):
+%%   A = 1; B = 0;
+%%   if lastseq != tcpseq:
+%%     A = 1; B = 1;
+%%   lastseq = tcpseq + payload_len;
+%%   count = A*count + B;
+%% \end{lstlisting}
+
+%% If state $S$ satisfies these conditions, we pull out the linear coefficients of
+%% each update to $S$. We initialize $S_A$ to 1 and $S_B$ to 0, and for each update
+%% $S \gets A \cdot S + B$, we add two statements:
+%% \begin{lstlisting}
+%% S_A = S_A * A
+%% S_B = (A * S_B) + B
+%% \end{lstlisting}
+%% At the end of the program, $S$ is updated in one linear assignment, namely {\ct
+%%   S = S\_A * S + S\_B}. The overall effect of this transformation is that the
+%% Domino compiler can now recognize the linear-in-state updates and use the
+%% multiply-accumulate atom to encode them.
+

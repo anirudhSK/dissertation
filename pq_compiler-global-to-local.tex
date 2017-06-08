@@ -1,0 +1,174 @@
+\subsection{Network-wide to switch-level queries}
+\label{sec:network-to-switch-local}
+
+%%\input{network-to-local-algorithm}
+
+The compiler should partition a network-wide query (\Sec{language}) into a
+switch-level query to generate a switch-specific configuration. We achieve this
+in two steps. First, we determine the switches that contribute tuples to the
+query output stream. Then we determine how to partition aggregation functions
+written over the entire network into switch-local aggregations.
+
+\Para{Determining stream output locations.} It is straightforward to determine
+the locations, \ie set of switches, that contribute tuples to the query output
+stream. The {\ct filter}s are the only operators which restrict the switches
+that contribute tuples. We evaluate the set of switches implied by the {\ct
+  filter} predicate through basic syntactic checks of the form {\ct switch ==
+  X}, and combining the implied sets for more complex predicates using set union
+and intersection. The {\ct zip} operator has outputs that appear at the
+intersection of the locations of its two inputs. The {\ct map} and {\ct groupby}
+operators appear at the same locations as their inputs. Starting from the {\ct
+  \pktlog}, we recursively evaluate the stream locations.
+
+The stream output locations for the running example are shown in
+\Fig{compiler-ast-manipulations}(b). The incoming {\ct \pktlog} appears at {\em
+  all} network switches, but is restricted to just {\ct S1} and {\ct S2} by the
+filter in the query (left branch). These locations are propagated to the root of
+the AST through the {\ct zip} operator.
+
+%% We transform a network-wide AST to a switch-local
+%% AST by annotating the nodes in the AST with an attribute involving the {\ct
+%%   locations} at which the query results may appear.
+%% %%\Alg{global-analysis} computes two values for each node in the query AST.
+%% The location is expressed as a set of switches.
+
+%% It is straightforward to write down the locations where each node in the query
+%% AST must be active, given a list of locations where the operands appear. We
+%% start by assuming that the {\ct \pktlog} appears at all switches in the
+%% network. For the {\ct map} and {\ct groupby} nodes, the resulting location is
+%% the same as the operand; for the {\ct zip} operator, it is the intersection of
+%% the locations of the operands.
+
+%% For a {\ct filter}, the output location may be restricted by the predicate. Let
+%% us suppose the network has switches {\ct S1, ..., S10}. From the {\ct filter}
+%% predicate, we extract a set of switches that is implied by it. For example, a
+%% predicate {\ct switch == S4} implies the location set {\ct \{S4\}}, whereas a
+%% predicate {\ct switch == S1 || switch != S3} implies the locations {\ct \{S1,
+%%   S2, S4, ..., S10\}}, \ie all the switches except {\ct S3}. The final location
+%% of a {\ct filter} query is the intersection of the locations implied by its
+%% predicate and the locations of its operand.
+
+%% A {\ct filter} removes all switches not implied by the defined predicate (line
+%% \ref{line:get-switches}): for example, {\ct filter(switch == 10)} removes all
+%% switches but the switch with identifier 10. Unless the retained set only has one
+%% switch, the {\ct filter} output retains the type of its operand (lines
+%% \ref{line:filter-retains-start}-\ref{line:filter-retains-end}). A {\ct map}
+%% retains its operands' information, as a {\ct map} neither affects the switches
+%% nor type of packet stream processed (line \ref{line:map-return}).
+
+%% A {\ct groupby} stream appears at the same locations as its operand. However, it
+%% converts a multi-switch stream into a single-switch stream (SSS) if the {\ct
+%%   switch} attribute appears in the list of fields by which the stream is
+%% aggregated (line \ref{line:fold-switch}). Otherwise, it checks whether the
+%% stream is aggregated by the unique packet identifier {\ct packetUid}, or
+%% involves an associative function at the top of the query AST (lines
+%% \ref{line:fold-packet} and \ref{line:fold-associative}). If none of these
+%% conditions is true, the algorithm throws an error (line \ref{line:fold-error})
+%% since the conditions for correct aggregation processing are unmet.
+
+%% A {\ct zip} operator simply returns the type of its operands if the operand
+%% types match (SSS/MSS) and SSS otherwise (lines
+%% \ref{line:zip-type-match-start}-\ref{line:zip-type-match-end}). The resulting
+%% stream appears at the intersection of the switches where the operand streams
+%% appear.
+
+\Para{Partition network-wide aggregations.} \TheSystem provides the abstraction
+of a single network-wide input stream of tuples. However, this makes some
+aggregations challenging to implement correctly over a {\em distributed} network
+of switches. For example, consider computing an EWMA over packet latencies,
+processing tuples in the order of packet arrivals {\em across} switches. This
+aggregation cannot be partitioned cleanly over switches, because the
+computation requires accounting for packet interleavings across multiple
+switches.
+
+We simplify our implementation by only allowing aggregations which can be
+cleanly decomposed into independent switch operations, without explicit
+coordination among switches.
+%% and then re-combined. This prevents
+%% users from writing aggregations that depend on processing {\em multiple packets
+%%   across multiple switches} in order. We believe this is not a major restriction
+%% since none of our example aggregations require this.
+Concretely, we only allow aggregation functions which either (i) operate on one
+switch, (ii) operate on one packet (identified by {\ct uid}), or (iii)
+are associative.
+%%
+%% We check three conditions: The aggregation is either (i) by switch (and may
+%% include other aggregation fields), (ii) per-packet, or (iii) an associative
+%% function. 
+
+We label each AST node with an additional attribute, the stream {\em type},
+corresponding to whether its output stream consists of tuples from a single
+switch or multiple switches. Stream type is distinct from stream location: for
+example, a {\ct groupby} aggregating by {\ct switch} produces a stream which has
+the type of a single-switch-stream, though its tuples may appear at multiple
+switches.
+
+Determining and propagating the stream type up an AST is straightforward. The
+base {\ct \pktlog} is a multi-switch-stream. The {\ct filter} or {\ct zip}
+operators produce a single-switch-stream if their output only appears at a
+single switch. The {\ct groupby} produces a single-switch-stream if it
+aggregates by {\ct switch.} In all other cases, the operators retain the stream
+type of their operands. If all {\ct groupby}s either produce
+single-switch-streams or aggregate information per-packet, they can be trivially
+partitioned. If they violate both conditions, they must be declared associative
+by the programmer, using the {\ct assoc} keyword in the definition of the
+aggregation.
+
+The stream types for our running example are shown in
+\Fig{compiler-ast-manipulations}(c). The {\ct filter} produces output streams at
+two switches, hence is still a multi-switch-stream. The {\ct groupby} aggregates
+by {\ct switch} and hence is a single-switch-stream. The output of this process
+is a set of independent switch-level ASTs corresponding to each switch location
+that the AST root operator appears in, \ie {\ct S1, S2}.
+
+
+%% \Para{Recognize aggregations that cannot be distributed over the network.} In
+%% the same pass, we also recognize whether aggregation functions can be faithfully
+%% distributed over multiple switches in the network. Specifically, while the
+%% abstract model of query processing permits writing aggregation functions over
+%% packets appearing at multiple switches, in general this may require out-of-band
+%% communication between the switches.
+
+%% We restrict such out-of-band communication between switches, and simplify our
+%% query implementation by disallowing aggregations that depend on the order of
+%% arrivals of {\em multiple packets} across {\em multiple switches}. We mandate
+%% that all aggregation functions fall into one of three classes:
+%% \begin{enumerate}
+%% \item \label{req:per-switch} aggregation is over multiple packets but a result
+%%   is desired for each switch;
+%% \item \label{req:per-packet} aggregation is over multiple switches but a result
+%%   is desired for each packet; or
+%% \item \label{req:associative} the aggregation operation is associative and at
+%%   the root of the query AST.
+%% \end{enumerate}
+
+%% We recognize whether aggregation functions adhere to these restrictions by
+%% annotating each query AST node with a second attribute, namely the {\em type} of
+%% the output stream: whether the result of the operator should be treated as a
+%% stream seen at just one switch, or at multiple switches. Note that the stream
+%% type is distinct from the stream location. A query performing a {\ct groupby}
+%% using the {\ct switch} field may produce a stream appearing at all network
+%% switches, but the output stream only appears on one switch as far as operators
+%% consuming the stream are concerned.
+
+%% We can recursively determine the type of query AST nodes to verify conditions
+%% (\ref{req:per-switch}) and (\ref{req:per-packet}) above. We start with the fact
+%% that the {\ct \pktlog} is a multi-switch-stream. It is only transformed to a
+%% single-switch-stream on recursing through the query AST under two
+%% circumstances: \begin{enumerate}
+%% \item A {\ct groupby} operator aggregates the input stream by {\ct switch}; or
+%% \item A {\ct filter} or {\ct zip} operator produces a result whose location only
+%%   contains one switch.
+%% \end{enumerate}
+%% Given a type annotation for each node in the query AST, it is straightforward to
+%% check conditions on aggregations involving only a single switch or a single
+%% packet.
+
+%% However, checking associativity (condition \ref{req:associative}) is difficult
+%% in practice. We take the programmer's aid by requiring that such functions
+%% prefix the keyword {\ct assoc} to the definition of the aggregation function.
+
+%% The result of the transformations in this section is a network-wide query AST
+%% with switch locations annotated on the root of the AST, from which we can easily
+%% produce query ASTs for each switch. In \ngs{figure forthcoming}, we show the
+%% annotated query AST for the running example.

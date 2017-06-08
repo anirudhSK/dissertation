@@ -1,0 +1,97 @@
+\subsection{Emitting code in P4 and Domino}
+\label{sec:emitting-p4-domino-code}
+
+The last pass of the compiler emits P4 and Domino code through a common
+intermediate representation consisting of a list of imperative statements, where
+each statement takes one of the following forms: (i) ternary assignment ({\ct
+  result = predicate ?  expression : expression}), (ii) predicate assignment
+({\ct result = predicate}); or (iii) expression assignment ({\ct result =
+  expression}). Here the {\ct result} could be a state or a packet variable, and
+the expressions and predicates are written over states and packets. It is
+conceptually straightforward to print code from this intermediate representation
+into P4 actions and Domino programs.
+
+Each operator emits some operator-specific code, along with a {\em valid bit}
+that denotes whether the result it produces is considered valid for the next
+operator to consume. For each operator in the pipeline from
+\Sec{pipeline-layout}, we emit code in the intermediate representation above, as
+follows.
+
+For {\ct filter} operators, the compiler emits a predicate assignment that
+assigns the valid bit to the conjunction of the filter predicate and the valid
+bit of its operand. The {\ct map} operator results in one expression assignment
+corresponding to each expression computed by the {\ct map}, and a valid bit
+assignment to the operand's valid bit. The {\ct zip} operator results in
+emitting a predicate assignment that sets the conjunction of the validity bits
+of its operands to its valid bit. The {\ct groupby} operator proceeds only if
+its operand is valid, but in addition {\em flattens} the aggregation function
+into straight-line code consisting of ternary assignments through a standard
+if-conversion procedure~\cite{if-conversion}.
+
+\ngs{figure containing some p4 output for the running example; domino pipeline.}
+
+%% Within each stage of the pipeline, code for the query operator is emitted in a
+%% form that is amenable to compilation by a backend compiler to target the p4
+%% behavioral model and the Banzai machine. Abstractly, this emitted code has an
+%% syntactic form corresponding to simple assignment statements in P4\_16 and
+%% domino, along with use of the ternary operator ({\ct ?}) to mimic the effect of
+%% branches. The call to {\sc codeGen} in line \ref{line:config-gen-Q} in
+%% \Alg{pipeline-construction} emits this code for each query operator.
+
+%% Each stage also emits code to the P4 behavioral model or Banzai through the {\sc
+%%   codeGen} function (line \ref{line:config-gen-Q}), which generates an {\em
+%%   imperative program} as an action for each stage. The imperative program
+%% evaluates a predicate (for {\ct filter}s and {\ct zip}s) or computes a new
+%% expression (for {\ct map}s). These {\em stateless} programs are easily
+%% implemented through switch match-action configurations. We defer a detailed
+%% discussion of the code generation to \Sec{emitting-p4-domino-code}.
+
+%% In \Alg{stage-config-gen}, we show how {\sc codeGen} outputs code for each
+%% query operator. It is necessary to detect when the output of any stage is {\em
+%%   valid}, in addition to performing the actions associated with the
+%% operator. The presence of a {\em valid bit} on a packet for each query operand
+%% ensures that the stateful aggregations do not update the state for packets that
+%% are previously filtered out.
+
+%% The {\ct filter} operator emits code that sets a valid bit on the packet only if
+%% (1) its operand itself provides a valid result, and (2) the packet matches the
+%% {\ct filter} predicate (line \ref{line:filter-both-valid}). Setting the valid
+%% bit is its only action. Similarly, {\ct zip} sets the valid bit based on the
+%% validity of its inputs alone (line \ref{line:zip-both-valid}).
+
+%% The {\ct map} and {\ct groupby} operators perform more computation in addition
+%% to setting valid bits, but only if the operand is valid (lines
+%% \ref{line:map-compute-only-if-valid} and
+%% \ref{line:groupby-compute-only-if-valid}). While the {\ct map} operation always
+%% produces a valid result when the operand is valid, the {\ct groupby} is also
+%% restricted by the presence of {\ct emit()} in the encountered code paths during
+%% execution (line \ref{line:groupby-emit}). The function {\sc FLATTEN} processes
+%% the code supplied in the query aggregation function {\ct fun} to a form that is
+%% permissible for the P4 backend compiler and domino. We elide the details.
+
+%% \begin{algorithm}
+%%   \caption{Emit query code for single operator.}
+%%   \label{alg:stage-config-gen}
+%%   \begin{algorithmic}[1]
+%%     \Function{codeGen}{{\cta Q}}
+%%     \State pipe $\gets$ [] \Comment{New pipe stage with no instructions.}
+%%     \If{{\cta Q} == {\cta filter(R, pred)}}
+%%       \State pipe += ({\cta Q\_valid} $\gets$ {\cta pred} \textbf{and} {\cta R\_valid})
+%%       \label{line:filter-both-valid}
+%%     \ElsIf{{\cta Q} == {\cta map(R, expr, field)}}
+%%       \State pipe += ({\cta Q\_valid} $\gets$ {\cta R\_valid})
+%%       \State pipe += (\textbf{if} {\cta R\_valid} \textbf{then} {\cta field} $\gets$ {\cta expr})
+%%       \label{line:map-compute-only-if-valid}
+%%     \ElsIf{{\cta Q} == {\cta groupby(R, aggFields, fun)}}
+%%       \State pipe += (\textbf{if} {\cta R\_valid} \textbf{then} {\sc flatten}({\cta fun}))
+%%       \label{line:groupby-compute-only-if-valid}
+%%       \State pipe += ({\cta Q\_valid} $\gets$ {\cta R\_valid} \textbf{and} {\ct emit()})
+%%       \label{line:groupby-emit}
+%%     \ElsIf{{\cta Q} == {\cta zip(R, S)}}
+%%       \State pipe += ({\cta Q\_valid} $\gets$ {\cta R\_valid} \textbf{and} {\cta S\_valid})
+%%       \label{line:zip-both-valid}
+%%     \EndIf
+%%     \State \textbf{return} pipe
+%%     \EndFunction
+%%   \end{algorithmic}
+%% \end{algorithm}
