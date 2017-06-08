@@ -1,0 +1,51 @@
+\begin{figure}[!t]
+\centering
+\resizebox{\textwidth/2}{!}{%
+\begin{tabular}{ll}
+\hline
+
+\textbf{Construct} &
+\textbf{Description} \\
+
+\hline
+\hline
+
+{\ct \pktlog} &
+Stream of packet performance metadata. \\
+
+\hline
+
+{\ct filter(R, pred)} &
+Output tuples in {\ct R} satisfying predicate {\ct pred}. \\
+
+\hline
+
+{\ct map(R, [exprs],} &
+Evaluate expressions over fields of {\ct R}, emitting \\
+
+{\ct \ \ [fields])} &
+tuples with new fields. \\
+
+\hline
+
+{\ct groupby(R, } &
+Evaluate function {\ct fun} over the input stream {\ct R} \\
+
+{\ct \ \ [fields], fun)} &
+partitioned by {\ct fields}, producing tuples on {\ct emit().} \\
+
+\hline
+
+{\ct zip(R, S)} &
+Merge fields in incoming {\ct R} and {\ct S} tuples.\\
+
+%% &
+%% are both valid. \\
+
+\hline
+
+\end{tabular}
+}
+\caption{Summary of \TheSystem language constructs.}
+\label{fig:language-constructs-table}
+\end{figure}
