@@ -1,13 +1,13 @@
 \section{A Machine Model for Line-rate Switches}
 \label{s:absmachine}
-\begin{figure*}[!t]
+\begin{figure}[!t]
   \includegraphics[width=\textwidth]{domino_banzai.pdf}
   \caption{\absmachine models the ingress or egress pipeline of a
   programmable switch. An atom corresponds to an action in a match-action
   table. Internally, an atom contains local state and a digital circuit 
   modifying this state. Figure~\ref{fig:atom} details an atom.}
   \label{fig:switch}
-\end{figure*}
+\end{figure}
 
 \absmachine is a machine model for programmable line-rate switches that serves
 as the compiler target for \pktlanguage.  \absmachine is inspired by recent
