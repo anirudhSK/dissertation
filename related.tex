@@ -1,5 +1,20 @@
 \chapter{Related Work}
 \label{chap:related}
+
+Recent academic work~\cite{rmt} and commercial router chips~\cite{tofino,
+flexpipe, xpliant} have considered the problem of building routers that are
+both fast and programmable. The P4 programming language~\cite{p4} has emerged
+as an industry effort towards a standard programming language for these chips.
+To the extent that we can glean from publicly available documents, these chips
+provide flexibility on only two counts: recognizing user-specific header
+formats and programmatically manipulating packet headers for functions such as
+forwarding, tunneling, and access control. In particular, they do not provide
+the programmability required to implement the grayed-out algorithms in
+Figure~\ref{fig:router_evolution}.  These algorithms require the ability to
+programmatically manipulate router state on every packet, the ability to
+program which packet a router link must transmit next, and the ability to
+program what statistics a router must measure.
+
 \input{domino_related}
 \input{pifo_related}
 \input{pq_related}
