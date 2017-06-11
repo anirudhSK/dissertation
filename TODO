@@ -6,6 +6,7 @@
 6. Consider using oneside for a tighter finish
 7. Rename NetAMA to Marple in figures
 8. Expand on each of the three projects in the introduction to make it self contained.
-9. Write out conclusion. Broadly four subsections:
-Lessons Learned, Broader Impact, Limitations and Future Work.
+8a. Break out limitations into a separate section
+9. Write out conclusion. Broadly three subsections:
+Lessons Learned and Broader Impact, and Future Work, and Closing Thoughts?
 10. Consider using the term streaming algorithms instead of data-plane algorithms?
