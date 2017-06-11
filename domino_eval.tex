@@ -296,21 +296,22 @@ switches will have the highest density of useful stateful functionality
 squeezed into a critical path budget of 1 clock cycle.
 
 \begin{table}[!t]
-  \begin{scriptsize}
-    \begin{tabular}{|p{0.09\textwidth}|p{0.29\textwidth}|p{0.02\textwidth}|}
+  \centering
+  \begin{small}
+    \begin{tabular}{|p{0.18\textwidth}|p{0.61\textwidth}|p{0.06\textwidth}|}
   \hline
   Atom & Circuit & Min. delay (ps) \\
   \hline
-  Read/Write & \centering\includegraphics[width=0.2\textwidth]{domino_rw.pdf} & 176 \\
+  Read/Write & \centering\includegraphics[width=0.4\textwidth]{domino_rw.pdf} & 176 \\
   \hline
-  ReadAddWrite (RAW) & \centering\includegraphics[width=0.25\textwidth]{domino_raw.pdf} & 316\\
+  ReadAddWrite (RAW) & \centering\includegraphics[width=0.5\textwidth]{domino_raw.pdf} & 316\\
   \hline
   \pbox{0.1\textwidth}
   {Predicated\\
-  ReadAddWrite (PRAW)} & \centering\includegraphics[width=0.3\textwidth]{domino_pred_raw.pdf}  & 393 \\
+  ReadAddWrite (PRAW)} & \centering\includegraphics[width=0.6\textwidth]{domino_pred_raw.pdf}  & 393 \\
   \hline
   \end{tabular}
-\end{scriptsize}
+\end{small}
 \caption{An atom's minimum critical-path delay increases with circuit depth.
 Mux is a multiplexer. RELOP is a relational operation (>, <, ==, !=). {\tt x}
 is a state variable. {\tt pkt.f1} and {\tt pkt.f2} are packet fields. {\tt
