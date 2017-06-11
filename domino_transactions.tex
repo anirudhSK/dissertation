@@ -1,8 +1,8 @@
 \section{Packet transactions}
 \label{s:transactions}
 
-\begin{figure*}[!t]
-\begin{subfigure}{0.5\textwidth}
+\begin{figure}[!t]
+\begin{subfigure}{0.6\textwidth}
 \begin{small}
 \begin{lstlisting}[style=customc]
 #define NUM_FLOWLETS    8000
@@ -43,16 +43,15 @@ void flowlet(struct Packet pkt) {
 \caption{Flowlet switching written in \pktlanguage}
 \label{fig:flowlet_code}
 \end{subfigure}
-%
-%
 \begin{subfigure}{0.4\textwidth}
-\includegraphics[width=0.9\columnwidth]{domino_pipe.pdf}
+\includegraphics[width=\columnwidth]{domino_pipe.pdf}
 \caption{6-stage \absmachine pipeline for flowlet
 switching.  Control flows from top to bottom. Stateful atoms are in grey.}
 \label{fig:flowlet_pipeline}
 \end{subfigure}
 \caption{Programming flowlet switching in \pktlanguage}
-\end{figure*}
+\vspace{-0.35in}
+\end{figure}
 
 A programmer programs a data-plane algorithm by writing it as
 a packet transaction in \pktlanguage (Figure~\ref{fig:flowlet_code}).  The
