@@ -78,9 +78,14 @@ routers were just minicomputers with special forwarding software. However,
 since the mid 90s, growing demands for higher link speeds, fueled by the
 Internet's explosive growth, have meant that the fastest routers tend to be
 built out of dedicated hardware, specialized to packet forwarding. Further, the
-performance of these routers is between 10 and 100 $\times$ more than software
-routers. However, as we have been saying so far, these routers tend to
-fixed-function and can not be programmed in the field unlike software routers.
+performance of these routers is between 10 and 100 $\times$ better than
+software routers. However, because these routers are built of specialized
+hardware, they tend to be fixed-function and can not be programmed in the field
+unlike software routers. While recent work in software-defined
+networking~\cite{openflow} and programmable data planes~\cite{rmt, flexpipe,
+xpliant, tofino} has made such fast routers flexible to some degree, these
+solutions are still not sufficient to express the algorithms shown in
+Figure~\ref{fig:router_algos}.
 
 \begin{figure}
 \centering
