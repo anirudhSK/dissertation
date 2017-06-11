@@ -1,39 +1,40 @@
 \section{Evaluation}
 \label{s:eval}
-\begin{table*}[!t]
-  \begin{tabular}{|p{0.15\textwidth}|p{0.34\textwidth}|p{0.08\textwidth}|p{0.09\textwidth}|p{0.07\textwidth}|p{0.06\textwidth}|p{0.03\textwidth}|}
+\begin{table}[!t]
+\begin{small}
+  \begin{tabular}{|p{0.15\columnwidth}|p{0.34\columnwidth}|p{0.12\columnwidth}|p{0.09\columnwidth}|p{0.09\columnwidth}|p{0.07\columnwidth}|p{0.04\columnwidth}|}
 \hline
-Algorithm & Stateful operations & Most expressive atom & \# of stages, max. atoms/stage & Ingress or Egress Pipeline? & Domino LOC & P4 LOC\\
+Algorithm & Stateful operations & Most expressive atom required & \# of stages, max. atoms/stage & Ingress or Egress Pipeline? & Domino LOC & P4 LOC\\
 \hline
-\pbox{0.16\textwidth}{Bloom filter\\(3 hash functions)} & \pbox{0.54\textwidth}{Test/Set membership bit on every packet.} & Write & 4, 3 & Either & 29 & 104 \\
+Bloom filter (3 hash functions) & Test/Set membership bit on every packet. & Write & 4, 3 & Either & 29 & 104 \\
 \hline
-\pbox{0.16\textwidth}{Heavy Hitters~\cite{opensketch}\\(3 hash functions)} & Increment Count-Min Sketch~\cite{cormode} on every packet. & RAW & 10, 9 & Either & 35 & 192 \\
+Heavy Hitters~\cite{opensketch} (3 hash functions) & Increment Count-Min Sketch~\cite{cormode} on every packet. & RAW & 10, 9 & Either & 35 & 192 \\
 \hline
 Flowlets~\cite{flowlets} & Update saved next hop if flowlet threshold is exceeded. & PRAW & 6, 2 & Ingress & 37 & 107 \\
 \hline
-RCP~\cite{rcp} & \pbox{0.34\textwidth}{Accumulate RTT sum if\\RTT is under maximum allowable RTT.} & PRAW & 3, 3 & Egress & 23 & 75 \\
+RCP~\cite{rcp} & Accumulate RTT sum if RTT is under maximum allowable RTT. & PRAW & 3, 3 & Egress & 23 & 75 \\
 \hline
-\pbox{0.16\textwidth}{Sampled\\NetFlow~\cite{sampled_nflow}} & \pbox{0.47\textwidth}{Sample a packet if packet count reaches N;\\Reset count to 0 when it reaches N.} & IfElseRAW & 4, 2 & Either  & 18 & 70 \\
+Sampled NetFlow~\cite{sampled_nflow} & Sample a packet if packet count reaches N;Reset count to 0 when it reaches N. & IfElseRAW & 4, 2 & Either  & 18 & 70 \\
 \hline
 HULL~\cite{hull} & Update counter for virtual queue. & Sub & 7, 1 & Egress & 26 & 95 \\
 \hline
-\pbox{0.16\textwidth}{Adaptive\\Virtual Queue~\cite{avq}} & Update virtual queue size and virtual capacity & Nested & 7, 3 & Ingress & 36 & 147 \\
+Adaptive Virtual Queue~\cite{avq} & Update virtual queue size and virtual capacity & Nested & 7, 3 & Ingress & 36 & 147 \\
 \hline
-\pbox{0.16\textwidth}{Priority computation for weighted fair queueing~\cite{pifo_sigcomm}} & Compute packet's virtual start time using finish time of last packet in that flow. & Nested & 4, 2 & Ingress & 29 & 87 \\
+Priority computation for weighted fair queueing~\cite{pifo_sigcomm} & Compute packet's virtual start time using finish time of last packet in that flow. & Nested & 4, 2 & Ingress & 29 & 87 \\
 \hline
-\pbox{0.16\textwidth}{DNS TTL change tracking~\cite{dns_change}} & Track number of changes in announced TTL for each domain & Nested & 6,3 & Ingress & 27 & 119 \\
+DNS TTL change tracking~\cite{dns_change} & Track number of changes in announced TTL for each domain & Nested & 6,3 & Ingress & 27 & 119 \\
 \hline
-CONGA~\cite{conga} & \pbox{0.34\textwidth}{Update best path's utilization/id if we see a better path.\\
-                                           Update best path utilization alone if it changes.}  & Pairs & 4, 2 & Ingress & 32 & 89\\
+CONGA~\cite{conga} & Update best path's utilization/id if we see a better path. Update best path utilization alone if it changes.  & Pairs & 4, 2 & Ingress & 32 & 89\\
 \hline
 %trTCM~\cite{trTCM} & Update token counts for each token bucket & Doesn't map & 7, 3 & Either \\
 %\hline
-CoDel~\cite{codel} & \pbox{0.34\textwidth}{Update:\\Whether we are marking or not.\\Time for next mark.\\Number of marks so far.\\Time at which min. queueing delay will exceed target.}& Doesn't map & 15, 3 & Egress & 57 & 271\\
+CoDel~\cite{codel} & Update: Whether we are marking or not, time for next mark, number of marks so far, time at which min. queueing delay will exceed target. & Doesn't map & 15, 3 & Egress & 57 & 271\\
 \hline
 \end{tabular}
+\end{small}
 \caption{Data-plane algorithms}
 \label{tab:algos}
-\end{table*}
+\end{table}
 
 We evaluate \pktlanguage's expressiveness by using it to program several
 data-plane algorithms (Table~\ref{tab:algos}), and comparing it to writing them
