@@ -166,8 +166,9 @@ combining both stateless and stateful atoms for all our targets is at most 1.1\%
 modest price for the programmability it provides.
 }
 \begin{table}[!t]
-  \begin{scriptsize}
-  \begin{tabular}{|p{0.13\textwidth}|p{0.18\textwidth}|p{0.04\textwidth}|p{0.02\textwidth}|}
+  \centering
+  \begin{small}
+  \begin{tabular}{|p{0.26\textwidth}|p{0.36\textwidth}|p{0.08\textwidth}|p{0.04\textwidth}|}
     \hline
     Atom & Description & Area (\si{\micro\metre\squared}) at 1 GHz & Min. delay (ps) \\
     \hline
@@ -188,7 +189,7 @@ modest price for the programmability it provides.
     Paired updates (Pairs) & Same as Nested, but allow updates to a pair of state variables, where predicates can use both state variables. & 5997 & 606 \\
     \hline
   \end{tabular}
-  \end{scriptsize}
+  \end{small}
   \caption{Atom areas and minimum critical-path delays in a 32-nm
   standard-cell library.  All atoms meet timing at 1 GHz. Each of the seven
   compiler targets contains 300 instances of one of the seven stateful atoms (Read/Write to Pairs)
