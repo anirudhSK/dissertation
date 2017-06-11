@@ -1,10 +1,7 @@
 \chapter{Introduction}
 \label{chap:intro}
 
-% Also maybe add the benefits to network equipment vendors because of programmability.
-%TODO: Diagram of smart end points and dumb routers
-%TODO: Maybe diagrams of each of the three contributions?
-
+\section{Background}
 Computer networks have two classes of elements: the \textit{end hosts} that
 generate packets and the \textit{routers}\footnote{We use the term router to
 refer to both routers and switches in this disseration.} that forward packets
@@ -96,28 +93,32 @@ then, however, the fastest routers have been built out of dedicated hardware.}
 \label{fig:router_evolution}
 \end{figure}
 
+\section{Primary Contributions}
+
 This dissertation considers the problem of building routers that are both fast
 (\ie approaching the speed of the fastest fixed-function routers today), while
 also being programmable. In particular, my thesis is that it is possible to
 design router hardware that is both fast and programmable, as long as we
 restrict ourselves to specific classes of router functionality. It is this
 specificity that allows us to resolve this tension between programmability and
-performance; indeed, the programmability provided by our designs is much more
-restrictive than a Turing-complete processor. The challenge here is to pick
+performance; indeed, our designs provide a much more restricted form of
+programmability than a Turing-complete processor. The challenge here is to pick
 classes of router functionality that are actually practically useful to network
-operators.
+operators, broad enough to cover a range of current and future use cases within
+that class, yet narrow enough to permit a high-speed hardware implementation.
 
 This dissertation will describe high-speed programmable hardware designs and
-their corresponding programming models in software that target three classes of
-router functionality: stateful data-plane algorithms, packet scheduling, and
-scalable network measurement. We describe each below.
+their corresponding programming models in software that target three such
+classes of router functionality: stateful data-plane algorithms, packet
+scheduling, and scalable network measurement.
 
-\section{Stateful Data-Plane Algorithms}
-Domino is a system to program \textit{data-plane algorithms} on high-speed
-router hardware. Data-plane algorithms operate on a sequeunce of packets, doing
-a bounded amount of work per packet and manipulating a bounded amount of router
-state in the process.  They include algorithms for managing the router's
-buffer, load balancing, and in-network congestion control.
+\subsection{Stateful Data-Plane Algorithms}
+Domino (Chapter~\ref{chap:domino}) is a system to program \textit{data-plane
+algorithms} on high-speed router hardware. Data-plane algorithms operate on a
+sequeunce of packets, doing a bounded amount of work per packet and
+manipulating a bounded amount of router state in the process.  They include
+algorithms for managing the router's buffer, load balancing, and in-network
+congestion control.
 
 High-speed data-plane programming poses two challenges: (1) what hardware instructions are required to support programmable state modification at the router’s line rate and (2) what is the right programming model? In addressing each challenge, Domino makes two new contributions.
 
@@ -127,7 +128,7 @@ counter or an atomic test-and-set. Atoms are atomic in that all state updated
 by an atom is visible to the next packet arriving at the atom in the next clock
 cycle.
 
-Second, \textit{Packet transactions} provide a programming model. A packet
+Second, \textit{Packet Transactions} provide a programming model. A packet
 transaction is an atomic and isolated block of code capturing an algorithm’s
 logic. It provides the semantics that any visible state is equivalent to a
 serial execution of packet transactions in the order of packet arrival—akin to
@@ -137,9 +138,17 @@ semantics shield programmers from the hardware’s parallelism, instead enlistin
 a compiler to transform a serial packet transaction to a parallel atom
 pipeline.
 
-P4 [2], an emerging packet-processing language, has adopted packet transactions. P4 programmers can now use an @atomic annotation around a block of statements to specify that the block must execute atomically.
+Together, atoms and packet transactions allow us to program several algorithms
+from Figure~\ref{fig:router_algos} (\eg the Adaptive Virtual Queue~\cite{AVQ}
+active queue management algorithm, the CONGA~\cite{conga} load balancing
+algorithm, bloom filters for measurement, and count-min sketches for detecting
+heavy hitters) on speeds approaching high-speed routers for the first time. P4
+[2], a packet-processing language that is emerging as an industry standard for
+programming router chips, has adopted packet transactions.  P4 programmers can
+now use an @atomic annotation around a block of statements to specify that the
+block must execute atomically.
 
-\section{Packet Scheduling}
+\subsection{Packet Scheduling}
 
 Packet scheduling is an important determinant of network performance. The
 choice of scheduling algorithm is tied to a network’s overarching goals. For
@@ -155,23 +164,60 @@ such an abstraction. They exploit the fact that in many practical schedulers,
 the relative order of packets that are already buffered does not change in
 response to new packet arrivals. Put differently, when a packet arrives, it can
 be pushed into the right location based on a packet priority (push in), but
-packets can always be dequeued from the head (first out). The PIFO abstraction is simple: a priority queue of packets with a small program to assign each packet its priority. Yet, by flexibly programming a packet’s priority assignment, a network operator can use the PIFO abstraction to program a variety of previously proposed scheduling algorithms.
-
+packets can always be dequeued from the head (first out). The PIFO abstraction
+is simple: a priority queue of packets with a small program to assign each
+packet its priority. Yet, by flexibly programming a packet’s priority
+assignment, a network operator can use the PIFO abstraction to program a
+variety of previously proposed scheduling algorithms. So far, these algorithms
+could only be run in simulation or on slower speed software routers.
+%TODO: Could improve flow here.
 A single PIFO expresses many schedulers, e.g., token bucket shaping, weighted
 fair queueing, and strict priority scheduling. Further, PIFOs can be combined
-to express hierarchical schedulers. PIFOs are feasible in hardware: a hardware
-design for a programmable 5-level hierarchical scheduler costs less than 4\%
-additional chip area.
+to express hierarchical schedulers. Finally, PIFOs are feasible in hardware: a
+hardware design for a programmable 5-level hierarchical scheduler costs less
+than 4\% additional chip area.
 
-\section{Scalable network measurement}
+\subsection{Scalable network measurement}
 
 \textit{Performance Queries} provide a query language and supporting router
 hardware for network performance measurement queries. As examples, an operator
 could ask for flows with a high degree of packet reordering or a moving average
-of packet latencies for each flow. Our query language is modeled after SQL, but
-allows order-dependent aggregation (e.g., an exponentially weighted moving
-average over packet latencies), while SQL only supports order-independent
-aggregates like counts and averages. The router hardware to support these
-queries is a programmable key-value store in the router’s ASIC. The keys
-represent flows, while the values store and programmatically update per-flow
-state on every packet.
+of packet latencies for each flow. Our query language allows order-dependent
+aggregation (e.g., an exponentially weighted moving average over packet
+latencies), while traditional query languages (\eg SQL) only supports
+order-independent aggregates like counts and averages. The router hardware to
+support these queries is a programmable key-value store in the router’s ASIC.
+The keys represent flows, while the values store and programmatically update
+per-flow state (\eg counters or a moving average filter) on every packet.
+
+At the heart of our this key-value store is a technique to scalably aggregate
+information across packets belonging to a flow, while scaling to a large number
+of flows. We formally characterize the set of state update functions that allow
+us to scalably implement aggregations across a large number of flows.
+% TODO: The paragraph above needs work
+
+\section{Towards a world of programmable networks}
+
+The results in this dissertation point towards a world of programmable
+networks, where routers within a network are \textit{told} what to do by their
+operators, without the router vendors telling their operators what they can
+support. In such a setting, operators could customize networks as they see fit.
+They could program additional features that give them performance benefits.
+More interestingly, they could remove needless features from their router,
+allowing them to simplify their routers' feature sets, which in turn would ease
+troubleshooting when things go wrong.
+
+Besides the benefits to network operators, a programmable router chip set has
+benefits for router vendors as well. Router vendors can now add new features in
+firmware and sell different versions of the firmware to different market
+segments. Further, when bugs arise, it is much easier to fix these bugs in
+firmware, as opposed to redoing the hardware design for the router (which could
+easily take a year). It also allows them to respond to new requests from
+network operators in a period of days as opposed to years.
+
+Whether the specific classes of programmability this dissertation provides will
+be sufficient and future proof remains to be seen, but we are encouraged by the
+fact that the hardware designs proposed here support a wide range of existing
+use cases and several new use cases that we had not anticipated initially. We
+hope these results provide guidance to router chip manufacturers when designing
+hardware for programmable routers.
