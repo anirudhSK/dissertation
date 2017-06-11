@@ -1,4 +1,5 @@
 1. Rename occurences of "this paper" to "this thesis".
+2. Rename switch to router everywhere.
 3. Check that citations to PIFO cite the correct SIGCOMM 17 paper, not the older 1999 JSAC paper.
 4. Move the NetAMA proofs into the appendix instead of a separate TR.
 5. Make chapter summaries more matter of fact and less philosophical
