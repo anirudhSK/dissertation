@@ -109,21 +109,69 @@ operators.
 
 This dissertation will describe high-speed programmable hardware designs and
 their corresponding programming models in software that target three classes of
-router functionality.
-\begin{CompactEnumerate}
-\item Domino (\S\ref{chap:domino}) allows us to program \textit{streaming
-algorithms} on high-speed router hardware. Streaming algorithms are algorithms
-that operate on a sequeunce of packets, doing a bounded amount of work per
-packet and manipulating a bounded amount of router state in the process. They
-include algorithms for managing the router's buffer, load balancing, and
-in-network congestion control.
-\item Push-In First-Out Queues (\S\ref{chap:pifo}) allow us to program \textit{
-scheduling algorithms}. These include classical schedulers such as Weighted
-Fair Queueing~\cite{wfq}, Shortest Remaining Processing Time~\cite{srpt}, and
-Hierarchical Packet Fair Queueing~\cite{hpfq}.
-\item Performance Queries (\S\ref{chap:perf_query}) allow us to express a wide
-variety of network performance measurement questions on high-speed router hardware. As an example, an operator could ask for a per-flow moving average of the
-queueing latency on a particular network hop.
-\end{CompactEnumerate}
+router functionality: stateful data-plane algorithms, packet scheduling, and
+scalable network measurement. We describe each below.
 
-%TODO: Do I need to describe the three contributions in more detail?
+\section{Stateful Data-Plane Algorithms}
+Domino is a system to program \textit{data-plane algorithms} on high-speed
+router hardware. Data-plane algorithms operate on a sequeunce of packets, doing
+a bounded amount of work per packet and manipulating a bounded amount of router
+state in the process.  They include algorithms for managing the router's
+buffer, load balancing, and in-network congestion control.
+
+High-speed data-plane programming poses two challenges: (1) what hardware instructions are required to support programmable state modification at the router’s line rate and (2) what is the right programming model? In addressing each challenge, Domino makes two new contributions.
+
+First, \textit{Atoms} capture a router’s instruction set. They specify atomic
+units of packet processing provided by the router hardware, e.g., an atomic
+counter or an atomic test-and-set. Atoms are atomic in that all state updated
+by an atom is visible to the next packet arriving at the atom in the next clock
+cycle.
+
+Second, \textit{Packet transactions} provide a programming model. A packet
+transaction is an atomic and isolated block of code capturing an algorithm’s
+logic. It provides the semantics that any visible state is equivalent to a
+serial execution of packet transactions in the order of packet arrival—akin to
+an infinitely fast single-threaded router. Packet transactions are expressive
+and capture many important data-plane algorithms. Further, their serial
+semantics shield programmers from the hardware’s parallelism, instead enlisting
+a compiler to transform a serial packet transaction to a parallel atom
+pipeline.
+
+P4 [2], an emerging packet-processing language, has adopted packet transactions. P4 programmers can now use an @atomic annotation around a block of statements to specify that the block must execute atomically.
+
+\section{Packet Scheduling}
+
+Packet scheduling is an important determinant of network performance. The
+choice of scheduling algorithm is tied to a network’s overarching goals. For
+instance, an algorithm that divides link capacity fairly is ideal in a
+multi-tenant setting, while the shortest remaining processing time algorithm is
+ideal for a single tenant who desires low flow completion time. Today’s routers
+provide a fixed set of scheduling algorithms and do not allow an operator to
+program scheduling to suit their needs.
+
+Routers lack programmable scheduling because there is no single abstraction to
+express many scheduling algorithms. Push In First Out Queues (PIFOs) provide
+such an abstraction. They exploit the fact that in many practical schedulers,
+the relative order of packets that are already buffered does not change in
+response to new packet arrivals. Put differently, when a packet arrives, it can
+be pushed into the right location based on a packet priority (push in), but
+packets can always be dequeued from the head (first out). The PIFO abstraction is simple: a priority queue of packets with a small program to assign each packet its priority. Yet, by flexibly programming a packet’s priority assignment, a network operator can use the PIFO abstraction to program a variety of previously proposed scheduling algorithms.
+
+A single PIFO expresses many schedulers, e.g., token bucket shaping, weighted
+fair queueing, and strict priority scheduling. Further, PIFOs can be combined
+to express hierarchical schedulers. PIFOs are feasible in hardware: a hardware
+design for a programmable 5-level hierarchical scheduler costs less than 4\%
+additional chip area.
+
+\section{Scalable network measurement}
+
+\textit{Performance Queries} provide a query language and supporting router
+hardware for network performance measurement queries. As examples, an operator
+could ask for flows with a high degree of packet reordering or a moving average
+of packet latencies for each flow. Our query language is modeled after SQL, but
+allows order-dependent aggregation (e.g., an exponentially weighted moving
+average over packet latencies), while SQL only supports order-independent
+aggregates like counts and averages. The router hardware to support these
+queries is a programmable key-value store in the router’s ASIC. The keys
+represent flows, while the values store and programmatically update per-flow
+state on every packet.
