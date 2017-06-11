@@ -1,6 +1,13 @@
 \chapter{Related Work}
 \label{chap:related}
 
+We now survey related work beginning with work that is related to the broader
+goals of this dissertation, and then focus on work that is related to specific
+chapters.
+
+\medskip
+\noindent
+\textbf{Programmable and fast routers.}
 Recent academic work~\cite{rmt} and commercial router chips~\cite{tofino,
 flexpipe, xpliant} have considered the problem of building routers that are
 both fast and programmable. The P4 programming language~\cite{p4} has emerged
@@ -15,6 +22,231 @@ programmatically manipulate router state on every packet, the ability to
 program which packet a router link must transmit next, and the ability to
 program what statistics a router must measure.
 
-\input{domino_related}
-\input{pifo_related}
-\input{pq_related}
+\medskip
+\noindent
+\textbf{Abstract machines for line-rate switches.}
+The closest work related to the \absmachine machine model is
+NetASM~\cite{netasm}. NetASM is an abstract machine and intermediate
+representation (IR) for programmable data planes that is portable across
+network devices: FPGAs, virtual switches, and line-rate switches.  \absmachine
+is a low-level machine model for line-rate switches alone and can be used as a
+NetASM target. Because of its role as a low-level machine model, \absmachine
+models practical constraints required for line-rate operation
+(\S\ref{s:atomConstraints}) that an IR like NetASM doesn't have to. For
+instance, \absmachine machines don't permit sharing state between atoms and use
+atom templates to limit computations that can happen at line rate.
+
+\medskip
+\noindent
+\textbf{End-host-centric programmability.}
+Eden~\cite{eden} provides a programmable data plane using commodity switches by
+programming end hosts alone. \pktlanguage targets programmable switches that
+provide more flexibility relative to an end-host-only solution. For instance,
+\pktlanguage allows us to program in-network congestion control and AQM
+schemes, which are beyond Eden's capabilities.  Tiny Packet Programs
+(TPP)~\cite{tpp} allow end hosts to embed small programs in packet headers,
+which are then executed by the switch. TPPs use a restricted instruction set to
+facilitate switch execution; we show that switch instructions must and can be
+substantially richer (Table~\ref{tab:templates}) for stateful data-plane
+algorithms.
+%%
+%%Software routers~\cite{routebricks, click} and network processors~\cite{ixp4xx}
+%%are flexible, but at least 10$\times$--100$\times$ slower than programmable
+%%switches~\cite{xpliant, tofino}.  FPGA-based platforms like the Corsa DP
+%%6440~\cite{corsa}, which supports an aggregate capacity of 640 Gbit/s, are
+%%faster, but still 5$\times$--10$\times$ slower than programmable
+%%switches~\cite{tofino, xpliant}.
+
+\medskip
+\noindent
+\textbf{Programming languages for networks.} Many programming languages target
+the network control plane~\cite{frenetic, maple}. \pktlanguage focuses on the
+data plane. Several DSLs target the data plane. Click~\cite{click} uses C++ for
+packet processing on software routers. packetC~\cite{packetc}, Intel's
+auto-partitioning C compiler~\cite{intel_uiuc_pldi}, and Microengine
+C~\cite{microenginec} target network processors. \pktlanguage's C-like syntax
+and sequential semantics are inspired by these DSLs. However, because it
+targets line-rate switches, \pktlanguage is more constrained. For instance,
+because compiled programs run at line rate, \pktlanguage forbids loops, and
+because \absmachine has no shared state, \pktlanguage has no synchronization
+constructs.
+
+% TODO: Not sure if the below paragraph should be here.
+\medskip
+\noindent
+\textbf{Compiling to programmable routers.}
+Jose et al.~\cite{lavanya_compiler} focus on compiling P4 programs to
+programmable data planes such as the RMT and FlexPipe architectures. Their work
+focuses only on compiling stateless data-plane tasks such as forwarding and
+routing, while the \pktlanguage compiler handles stateful data-plane
+algorithms.
+
+\medskip
+\noindent
+\textbf{Stateful packet-processing abstractions.}
+SNAP~\cite{snap} programs stateful data-plane algorithms using a network
+transaction: an atomic block of code that treats the entire network as one
+switch~\cite{onebigswitch}. It then uses a compiler to translate network
+transactions into rules on each switch. SNAP needs a compiler to compile these
+switch-local rules to a switch's pipeline, and can use \pktlanguage for this
+purpose. FAST~\cite{fast} provides switch support and software abstractions for
+state machines. \absmachine's atoms support more general stateful processing
+beyond state machines that enable a much wider class of data-plane algorithms.
+
+\medskip
+\noindent
+\textbf{The Push-in First-out Queue.}
+\an{PIFOs were first introduced as a proof construct to prove that a
+combined input-output queued switch could exactly emulate an output-queued
+switch~\cite{pifo}. We show here that PIFOs can be used as an abstraction for
+programmable scheduling at line rate.}
+
+%TODO
+%%\medskip
+%%\noindent
+%%\textbf{Packet scheduling algorithms.}
+%%The literature is replete with scheduling algorithms~\cite{pFabric, hpfq,
+%%stopngo, stfq, lstf, srpt, drr, rcsd} . Yet, line-rate switches support only a
+%%few: DRR, traffic shaping, and strict priorities. As \S\ref{s:expressive}
+%%shows, PIFOs allow a line-rate switch to run many of these scheduling
+%%algorithms, which, so far, have only been run on software routers.
+
+%%\medskip
+%%\noindent
+%%\textbf{Programmable switches.} Recent work has proposed hardware architectures~\cite{tofino, flexpipe,
+%%xpliant, rmt} and software abstractions~\cite{p4, domino_sigcomm} for
+%%programmable switches.  While many packet-processing tasks can be programmed on
+%%these switches, scheduling isn't one of them. Programmable switches can {\em
+%%assist} a PIFO-based scheduler by providing a programmable ingress pipeline for
+%%scheduling and shaping transactions, without requiring a dedicated atom
+%%pipeline inside each PIFO block.  However, they still need PIFOs for
+%%programmable scheduling.
+
+\medskip
+\noindent
+\textbf{Universal Packet Scheduling (UPS).} UPS~\cite{ups} shares our goal of
+flexible packet scheduling by seeking a single scheduling algorithm that is
+{\em universal} and can emulate any scheduling algorithm. Theoretically, UPS
+finds that the well-known LSTF scheduling discipline~\cite{lstf} is universal
+if packet departure times for the scheduling algorithm to be emulated are known
+up front. Practically, UPS shows that by appropriately initializing slacks, many different scheduling objectives can be
+emulated using LSTF. LSTF is programmable using PIFOs, but the set of schemes
+practically expressible with LSTF is limited. For example, LSTF cannot
+express:
+\begin{CompactEnumerate}
+\item Hierarchical scheduling algorithms such as HPFQ, because it
+  uses only one priority queue.
+\item Non-work-conserving algorithms. For such algorithms LSTF must know the
+  departure time of each packet up-front, which is not practical.
+\item Short-term bandwidth fairness in fair queueing, because LSTF maintains no
+  switch state except one priority queue. As shown in
+  Figure~\ref{fig:sched_trans}, programming a fair queueing algorithm requires us
+  to maintain a virtual time state variable. Without this, a new flow could have
+  arbitrary virtual start times, and be deprived of its fair share indefinitely.
+  UPS provides a fix to this that requires
+  estimating fair shares periodically, which is hard to do in
+  practice.
+\item Scheduling policies that aggregate flows from distinct endpoints into a
+  single flow at the switch. An example is fair queueing across video and web
+  traffic classes, regardless of endpoint.  Such policies require the switch to
+  maintain the state required for fair queueing because no end point sees all the
+  traffic within a class.  However, LSTF cannot maintain and update switch state
+  progammatically.
+\end{CompactEnumerate}
+\an{The restrictions in UPS/LSTF are a result of a limited programming
+model. UPS assumes that switches are fixed and cannot be programmed to modify
+packet fields. Further, it only has a single priority queue.  By using atom
+pipelines to execute scheduling and shaping transactions, and by composing
+multiple PIFOs together, PIFOs express a wider class of scheduling algorithms.}
+
+%\begin{figure}
+%  \centering
+%  \includegraphics[width=0.7\columnwidth]{state_reqd.pdf}
+%  \caption{A switch's scheduling algorithm, such as WFQ, might aggregate flows
+%  from different end hosts into a single flow at the switch for the purpose of
+%  scheduling.}
+%  \label{fig:state}
+%\end{figure}
+
+\medskip
+\noindent
+\textbf{Hardware designs for priority queues.}
+\an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
+pheap}.  However, each P-heap supports traffic belonging to a {\em single} 10
+Gbit/s input port in an input-queued switch and there is a separate P-heap
+instance for each port~\cite{bhagwan}.  This per-port design incurs prohibitive
+area overhead on a shared-memory switch, and prevents sharing of the data
+buffer and binary heap across output ports. Conversely, it isn't easy to
+overlay multiple logical PIFOs over a single P-heap, which would allow the
+P-heap to be shared across ports.}
+%%
+%%\an{
+%%In contrast to a hardware implementation of a generic priority queue as a heap,
+%%our design for the PIFO exploits two domain-specific insights. First, there is
+%%considerable structure in the ranks: ranks within a flow strictly increase with
+%%time.  Second, the packet buffers on shared-memory switches used in datacenters
+%%today are much smaller than those on deep-buffered core routers in the past.
+%%This permits a simpler, albeit less scalable, design relative to heaps.
+%%}
+
+\Para{Endpoint-based monitoring.} Owing to limited switch support for
+measurement, many systems monitor network performance from endpoints
+alone~\cite{netpoirot, minlan-snap, dapper-sosr, trumpet, azure-smartnic}.
+While endpoint solutions are necessary for application context (\eg socket
+calls), they are inadequate to debug all network problems. A real network needs
+both endpoint and switch-based systems because each sees something the other
+cannot.
+
+\Para{Switch-based monitoring.} Traditionally, switch-based monitoring has
+focused on per-flow counts, not performance measurement. For example,
+NetFlow~\cite{netflow} and sFlow~\cite{sflow} provide traffic summaries
+through flow and packet sampling. Packet-capture systems~\cite{cisco-span,
+niksun, netsight, everflow, pathdump, path_query} collect entire packets or
+digests. These approaches sample extensively to lower collection
+overheads, and are useful for posthoc traffic analysis. However, neither
+approach captures details of {\em performance} phenomena (\eg TCP incast) as
+specified by a flexible language like \TheSystem.
+
+\Para{Sketches.} Sketches~\cite{univmon, flowradar, counterbraids, dream} and
+earlier work on programmable switch measurements~\cite{progme, opensketch}
+provide traffic volume statistics using summary data structures on switches.
+Unlike sketches, \TheSystem does not have an accuracy-memory tradeoff, since
+counting is linear-in-state and counters can be measured accurately. Instead,
+\TheSystem trades off memory size with cache eviction rate (\Sec{eval}).
+\TheSystem also allows users to perform a broader set of aggregations with full
+accuracy.
+
+%% \TheSystem also enables users
+%% to perform other more general aggregations without losing accuracy.
+
+%
+%With INT alone, performance information may be lost, since packets carrying the
+%INT data may be dropped on the way to endpoints.
+
+\Para{Recent router support for measurement.}
+In-band Network Telemetry (INT)~\cite{int, tpp} exposes queue lengths to
+endpoints by stamping it on the packet itself. \TheSystem builds on INT and
+provides flexible filters and aggregations {\em directly in switches}.
+\TheSystem's data aggregation in switches saves the bandwidth needed to collect
+INT data distributed over many endpoints.  In addition, the Tetration chip
+provides flow-level telemetry, exposing a fixed set of metrics including
+latency, window and packet size variation, and a ``burst
+measurement''~\cite{tetration-telemetry}. In contrast, \TheSystem provides
+programmable aggregation functions and aggregation levels.%% , \eg port
+%% versus flow-level.
+
+\Para{Network query languages.} Prior network query languages~\cite{gigascope,
+frenetic, path_query, streaming-monitoring} allow users to ask questions
+primarily about traffic volumes and count statistics, since their input data is
+collected using NetFlow and match-action rule counters~\cite{openflow}. In
+contrast, \TheSystem enables asking expressive {\em performance} questions on
+data collected with purpose-built switch hardware. \TheSystem shares some
+functional and relational constructs with Gigascope~\cite{gigascope} and
+Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
+switch.
+
+\Para{Language-directed computer design.}
+Our hardware design process is inspired by early efforts on language-directed
+computer design~\cite{language-directed-computer-design, ditzel_patterson,
+soar}, aimed at designing efficient hardware to support expressive high-level
+languages.
