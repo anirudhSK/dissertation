@@ -183,14 +183,15 @@ behavior.  An example is an ALU with a restricted set of primitive operations
 %the clock-cycle requirement.
 
 \begin{figure}[h]
-  \begin{subfigure}{0.4\columnwidth}
-  \includegraphics[width=\textwidth]{domino_circuit.pdf}
+  \begin{subfigure}{0.5\columnwidth}
+  \centering
+  \includegraphics[width=0.5\textwidth]{domino_circuit.pdf}
   \caption{Circuit for the atom}
   \label{fig:alu_diag}
   \end{subfigure}
-  \hspace{0.05\columnwidth}
-  \begin{subfigure}{0.55\columnwidth}
-  \begin{lstlisting}
+  \hspace{0.1\columnwidth}
+  \begin{subfigure}{0.3\columnwidth}
+  \begin{lstlisting}[belowskip=-0.8 \baselineskip]
   bit choice = ??;
   int constant = ??;
   if (choice) {
@@ -199,6 +200,7 @@ behavior.  An example is an ALU with a restricted set of primitive operations
     x = x - constant;
   }
   \end{lstlisting}
+  \hspace{0.1\columnwidth}
   \caption{Atom template}
   %Each ``??(n)'' represents a hole that can be filled in with values in $[0, 2^n -1]$.}
   \label{fig:alu_in_sketch}
