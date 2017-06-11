@@ -5,9 +5,7 @@ We now survey related work beginning with work that is related to the broader
 goals of this dissertation, and then focus on work that is related to specific
 chapters.
 
-\medskip
-\noindent
-\textbf{Programmable and fast routers.}
+\Para{Programmable and fast routers.}
 Recent academic work~\cite{rmt} and commercial router chips~\cite{tofino,
 flexpipe, xpliant} have considered the problem of building routers that are
 both fast and programmable. The P4 programming language~\cite{p4} has emerged
@@ -22,9 +20,7 @@ programmatically manipulate router state on every packet, the ability to
 program which packet a router link must transmit next, and the ability to
 program what statistics a router must measure.
 
-\medskip
-\noindent
-\textbf{Abstract machines for line-rate switches.}
+\Para{Abstract machines for line-rate switches.}
 The closest work related to the \absmachine machine model is
 NetASM~\cite{netasm}. NetASM is an abstract machine and intermediate
 representation (IR) for programmable data planes that is portable across
@@ -36,9 +32,7 @@ models practical constraints required for line-rate operation
 instance, \absmachine machines don't permit sharing state between atoms and use
 atom templates to limit computations that can happen at line rate.
 
-\medskip
-\noindent
-\textbf{End-host-centric programmability.}
+\Para{End-host-centric programmability.}
 Eden~\cite{eden} provides a programmable data plane using commodity switches by
 programming end hosts alone. \pktlanguage targets programmable switches that
 provide more flexibility relative to an end-host-only solution. For instance,
@@ -57,9 +51,7 @@ algorithms.
 %%faster, but still 5$\times$--10$\times$ slower than programmable
 %%switches~\cite{tofino, xpliant}.
 
-\medskip
-\noindent
-\textbf{Programming languages for networks.} Many programming languages target
+\Para{Programming languages for networks.} Many programming languages target
 the network control plane~\cite{frenetic, maple}. \pktlanguage focuses on the
 data plane. Several DSLs target the data plane. Click~\cite{click} uses C++ for
 packet processing on software routers. packetC~\cite{packetc}, Intel's
@@ -72,18 +64,14 @@ because \absmachine has no shared state, \pktlanguage has no synchronization
 constructs.
 
 % TODO: Not sure if the below paragraph should be here.
-\medskip
-\noindent
-\textbf{Compiling to programmable routers.}
+\Para{Compiling to programmable routers.}
 Jose et al.~\cite{lavanya_compiler} focus on compiling P4 programs to
 programmable data planes such as the RMT and FlexPipe architectures. Their work
 focuses only on compiling stateless data-plane tasks such as forwarding and
 routing, while the \pktlanguage compiler handles stateful data-plane
 algorithms.
 
-\medskip
-\noindent
-\textbf{Stateful packet-processing abstractions.}
+\Para{Stateful packet-processing abstractions.}
 SNAP~\cite{snap} programs stateful data-plane algorithms using a network
 transaction: an atomic block of code that treats the entire network as one
 switch~\cite{onebigswitch}. It then uses a compiler to translate network
@@ -93,9 +81,7 @@ purpose. FAST~\cite{fast} provides switch support and software abstractions for
 state machines. \absmachine's atoms support more general stateful processing
 beyond state machines that enable a much wider class of data-plane algorithms.
 
-\medskip
-\noindent
-\textbf{The Push-in First-out Queue.}
+\Para{The Push-in First-out Queue.}
 \an{PIFOs were first introduced as a proof construct to prove that a
 combined input-output queued switch could exactly emulate an output-queued
 switch~\cite{pifo}. We show here that PIFOs can be used as an abstraction for
@@ -122,9 +108,7 @@ programmable scheduling at line rate.}
 %%pipeline inside each PIFO block.  However, they still need PIFOs for
 %%programmable scheduling.
 
-\medskip
-\noindent
-\textbf{Universal Packet Scheduling (UPS).} UPS~\cite{ups} shares our goal of
+\Para{Universal Packet Scheduling (UPS).} UPS~\cite{ups} shares our goal of
 flexible packet scheduling by seeking a single scheduling algorithm that is
 {\em universal} and can emulate any scheduling algorithm. Theoretically, UPS
 finds that the well-known LSTF scheduling discipline~\cite{lstf} is universal
@@ -168,9 +152,7 @@ multiple PIFOs together, PIFOs express a wider class of scheduling algorithms.}
 %  \label{fig:state}
 %\end{figure}
 
-\medskip
-\noindent
-\textbf{Hardware designs for priority queues.}
+\Para{Hardware designs for priority queues.}
 \an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
 pheap}.  However, each P-heap supports traffic belonging to a {\em single} 10
 Gbit/s input port in an input-queued switch and there is a separate P-heap
