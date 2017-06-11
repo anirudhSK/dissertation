@@ -135,7 +135,7 @@ support distinct read and write addresses every clock cycle.
 
 \begin{figure}
 \newcommand{\sep}{~|~}
-\begin{scriptsize}
+\begin{small}
 \begin{eqnarray*}
 l \in \text{literals} \quad v \in \text{variables} \quad &bop& \in \text{binary ops} \quad
 uop \in \text{unary ops} \\
@@ -155,7 +155,7 @@ sv \in \text{state var inits} &::=& v = e \sep sv~;~sv \\
 %
 p \in \text{\pktlanguage programs} &::=& \{ d ; sv; t \}
 \end{eqnarray*}
-\end{scriptsize}
+\end{small}
 \caption{\pktlanguage grammar. Type annotations (void, struct, int, and Packet) are elided for simplicity.}
 \label{fig:grammar}
 \end{figure}
