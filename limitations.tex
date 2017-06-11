@@ -1,0 +1,45 @@
+\chapter{Limitations}
+\label{chap:limitations}
+
+%generic limitations: actual chip/silicon implementation
+%\section{Limitations of all three systems}: actual chip implementation
+%\input{domino_discussion}
+%\input{pifo_discussion}
+%NetAMA discussion
+\begin{CompactEnumerate}
+\item Our compiler doesn't aggressively optimize. For instance, it is possible
+to fuse two stateful codelets incrementing two independent counters into the
+same instance of the Pairs atom. However, by carrying out a one-to-one mapping
+from codelets to the atoms implementing them, our compiler precludes these
+optimizations.  Developing an {\em optimizing} compiler for packet transactions
+is an area for future work.
+
+\item Supporting multiple packet transactions in \pktlanguage also requires
+further work. When a switch executes multiple transactions, there may be
+opportunities for inter-procedural analysis~\cite{dragonbook}, which goes
+beyond compiling individual transactions and looks at multiple transactions
+together.  For instance, the compiler could detect computations common to
+multiple transactions and execute them only once.
+
+\item Finally, we have a manual design process for atoms.  Formalizing this
+design process and automating it into an atom-design tool would be useful for
+switch designers. For instance, given a corpus of data-plane algorithms, can we
+automatically mine this corpus for stateful and stateless codelets, and design
+an atom (or atoms) that captures the computations required by some (or all) of
+them?
+
+\item Beyond a few counter examples, we lack a formal characterization of
+algorithms that cannot be implemented using PIFOs. For instance, is there a
+simple, checkable property separating algorithms that can and cannot be
+implemented using PIFOs? Given an algorithm specification, can we
+automatically check if the algorithm can be programmed
+using PIFOs?
+
+\item Our current PIFO design scales to 2048 flows. If allocated evenly across
+64 ports, we could program scheduling across 32 flows at each port. This
+permits per-port scheduling across traffic aggregates (e.g., fair queueing
+across 32 tenants within a server), but not a finer granularity (e.g.,
+5-tuples). Ideally, to schedule at the finest granularity, our design would
+support 60K flows: the physical limit of one flow for each packet. We currently
+support up to 2048. Can we bridge this gap?
+\end{CompactEnumerate}
