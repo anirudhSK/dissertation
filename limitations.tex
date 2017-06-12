@@ -2,52 +2,63 @@
 \label{chap:limitations}
 
 One major limitation shared by all three systems is that we do not have silicon
-implementations of any of them. Instead, we evaluated them using a combination
-of simulation and microbenchmarks. We briefly considered an FPGA implementation
-on the NetFPGA platform~\cite{netfpga}, but decided against it because the
-relative areas consumed by router subsystems on an FPGA do not accurately
-reflect the relative area consumptions on a router ASIC.  That said, we paid
-careful attention to keeping the hardware designs simple, clearly articulated
-the interfaces between the different hardware blocks, and evaluated the area
-consumed by our hardware designs by synthesizing them to a recent transistor
-library. We hope that the results here make a strong case for router chip
-manufacturers to design router chips that support the systems in this
-dissertation.
+implementations of any of them. Instead, we evaluated these systems using a
+combination of simulation and microbenchmarks. We briefly considered an FPGA
+implementation on the NetFPGA platform~\cite{netfpga}, but decided against it
+because the relative areas consumed by router subsystems on an FPGA do not
+accurately reflect the relative area consumptions on a router ASIC.  That said,
+we paid careful attention to keeping the hardware designs simple, clearly
+articulated the interfaces between the different hardware blocks, and evaluated
+the area consumed by our hardware designs by synthesizing them to a recent
+transistor library. We hope that the results here make a strong case for router
+chip manufacturers to design router chips that support the systems in this
+dissertation. We now discuss limitations of each of the three projects.
 
-\begin{CompactEnumerate}
-\item Our compiler doesn't aggressively optimize. For instance, it is possible
-to fuse two stateful codelets incrementing two independent counters into the
-same instance of the Pairs atom. However, by carrying out a one-to-one mapping
-from codelets to the atoms implementing them, our compiler precludes these
-optimizations.  Developing an {\em optimizing} compiler for packet transactions
-is an area for future work.
+\section{Domino}
+\label{sec:domino_limitations}
+The \pktlanguage compiler doesn't aggressively optimize, instead focusing on
+generating sub-optimal, but correct pipeline configuration. For instance, it is
+possible to fuse two stateful codelets incrementing two independent counters
+into the same instance of the Pairs atom. However, by carrying out a one-to-one
+mapping from codelets to the atoms implementing them, our compiler precludes
+these optimizations.  Developing an {\em optimizing} compiler for packet
+transactions is an area for future work.
 
-\item Supporting multiple packet transactions in \pktlanguage also requires
-further work. When a switch executes multiple transactions, there may be
+Supporting multiple packet transactions in \pktlanguage also requires further
+work, especially because any real program running on a router is likely to
+execute multiple transaction, each on a subset of the packets seen by the
+router. When a switch executes multiple transactions, there may be
 opportunities for inter-procedural analysis~\cite{dragonbook}, which goes
 beyond compiling individual transactions and looks at multiple transactions
 together.  For instance, the compiler could detect computations common to
 multiple transactions and execute them only once.
 
-\item Finally, we have a manual design process for atoms.  Formalizing this
-design process and automating it into an atom-design tool would be useful for
-switch designers. For instance, given a corpus of data-plane algorithms, can we
-automatically mine this corpus for stateful and stateless codelets, and design
-an atom (or atoms) that captures the computations required by some (or all) of
-them?
+Finally, we have a manual and ad hoc design process for atoms.  Formalizing
+this design process and automating it into an atom-design tool would be useful
+for designers of router instruction sets. For instance, given a corpus of
+data-plane algorithms, can we automatically mine this corpus for recurring
+patterns of state and packet header modification, and design an atom (or atoms)
+that captures these computation patterns?
 
-\item Beyond a few counter examples, we lack a formal characterization of
-algorithms that cannot be implemented using PIFOs. For instance, is there a
-simple, checkable property separating algorithms that can and cannot be
-implemented using PIFOs? Given an algorithm specification, can we
-automatically check if the algorithm can be programmed
+\section{Push-In First-Out Queues}
+\label{sec:pifo_limitations}
+
+Beyond a few counter examples, we lack a formal characterization of the
+scheduling algorithms that cannot be implemented using Push-In First-Out Queues
+(PIFOs). For instance, is there a simple, checkable property separating
+algorithms that can and cannot be implemented using PIFOs? Given an algorithm
+specification, can we automatically check if the algorithm can be programmed
 using PIFOs?
 
-\item Our current PIFO design scales to 2048 flows. If allocated evenly across
-64 ports, we could program scheduling across 32 flows at each port. This
-permits per-port scheduling across traffic aggregates (e.g., fair queueing
-across 32 tenants within a server), but not a finer granularity (e.g.,
-5-tuples). Ideally, to schedule at the finest granularity, our design would
-support 60K flows: the physical limit of one flow for each packet. We currently
-support up to 2048. Can we bridge this gap?
-\end{CompactEnumerate}
+Our current PIFO design scales to 2048 flows. If allocated evenly across 64
+ports in a 64 port 10G router, we could program scheduling across 32 flows at
+each port. This permits per-port scheduling across traffic aggregates (e.g.,
+fair queueing across 32 tenants within a server), but not a finer granularity
+(\eg 5-tuples). Ideally, to schedule at the finest granularity, our design
+would support the physical limit of one flow for each packet. We currently
+support only up to 2048 flow, while we can support up to 60K packets. Can we
+bridge this gap between the number of flows and the number of packets?
+
+%TODO: Some limitations sound like future work
+%TODO: Maybe enumerate limitations?
+%TODO: Write out limitations for perf queries
