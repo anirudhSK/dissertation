@@ -1,11 +1,19 @@
 \chapter{Limitations}
 \label{chap:limitations}
 
-%generic limitations: actual chip/silicon implementation
-%\section{Limitations of all three systems}: actual chip implementation
-%\input{domino_discussion}
-%\input{pifo_discussion}
-%NetAMA discussion
+One major limitation shared by all three systems is that we do not have silicon
+implementations of any of them. Instead, we evaluated them using a combination
+of simulation and microbenchmarks. We briefly considered an FPGA implementation
+on the NetFPGA platform~\cite{netfpga}, but decided against it because the
+relative areas consumed by router subsystems on an FPGA do not accurately
+reflect the relative area consumptions on a router ASIC.  That said, we paid
+careful attention to keeping the hardware designs simple, clearly articulated
+the interfaces between the different hardware blocks, and evaluated the area
+consumed by our hardware designs by synthesizing them to a recent transistor
+library. We hope that the results here make a strong case for router chip
+manufacturers to design router chips that support the systems in this
+dissertation.
+
 \begin{CompactEnumerate}
 \item Our compiler doesn't aggressively optimize. For instance, it is possible
 to fuse two stateful codelets incrementing two independent counters into the
