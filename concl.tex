@@ -4,8 +4,27 @@
 % Packet transactions in P4
 % There is considerable value to domain-specific hw/sw co-design with the end of Moore's law
 
-% Unify discussions for Domino, PIFO, and Performance Queries into two sections:% limitations and future work.
-% I think we should remove the term discussion henceforth. It's so generic.
-
 %\section{Future work}
-% Future work: instruction set design, x86 tax of networking
+% Future work (use this to talk about future work in general, not just future work as pertains to each of the three projects)
+% 1. instruction set design,
+% 2. x86 tax of networking,
+% 3. exception handling,
+% 4. software engineering for routers,
+% 5. trying out ideas on emerging prog. routers,
+% 6. approximate semantics (ref. UW paper),
+%%\begin{CompactEnumerate}
+%%\item Packet transactions provide the first transactional semantics
+%%for line-rate packet processing. These semantics make it easier to
+%%reason about correctness and performance, but they exclude algorithms that cannot run at
+%%line rate while respecting these semantics. Are weaker semantics sensible? One possibility is approximating
+%%transactional semantics by only processing a sampled packet stream.
+%%This provides an increased time budget for each packet in the sampled stream, potentially allowing
+%%the packet to be {\em recirculated} through the pipeline multiple times
+%%for packet processing.
+%%
+% 7. average-case design for routers.
+% 8. A middle plane for networking.
+% 9. A community emerging around P4.
+% 10. A platform for design-space exploration of routers, maybe as a platform for router hardware research.
+% 11. Network architecture in the age of programmable routers.
+% 12. SmartNICs 
