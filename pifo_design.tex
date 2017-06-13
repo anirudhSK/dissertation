@@ -7,12 +7,12 @@
   \caption{A 64-port shared memory switch.  Combinational logic and memory are
   shared across ports, both in the pipelines and in the scheduler. The switch
   runs at a clock frequency of 1 GHz.}
-  \label{fig:switch}
+  \label{pifo_fig:switch}
 \end{figure*}
 
 We now present a hardware design for a programmable scheduler based on PIFOs.
 We target shared-memory switches such as Broadcom's Trident II~\cite{trident2}
-(Figure~\ref{fig:switch}). In these switches, a parser feeds packets from all
+(Figure~\ref{pifo_fig:switch}). In these switches, a parser feeds packets from all
 ports into a shared ingress pipeline, after which they enter a shared scheduler
 and a similarly shared egress pipeline. To reduce chip area, combinational
 logic and memory for packet processing are shared across ports, both in the
@@ -26,7 +26,7 @@ frequency.
 We first describe how scheduling and shaping transactions can be implemented
 (\S\ref{ss:transactions}). Then, we show how a tree of PIFOs can be realized
 using a full mesh of PIFO blocks by appropriately interconnecting these blocks
-(\S\ref{ss:mesh}). We also describe how a compiler (\S\ref{ss:compiler}) could
+(\S\ref{ss:mesh}). We also describe how a compiler (\S\ref{pifo_ss:compiler}) could
 automatically configure this mesh from a scheduling tree.
 
 \subsection{Scheduling and shaping transactions}
@@ -185,7 +185,7 @@ operation (enqueue, dequeue, transmit), the PIFO block for the next operation,
 and any arguments the operation needs.
 
 \subsection{Compiling from a scheduling tree to a PIFO mesh}
-\label{ss:compiler}
+\label{pifo_ss:compiler}
 
 \an{A programmer should not have to manually configure a PIFO mesh. Instead, a
 compiler translates from a scheduling tree to a PIFO mesh configuration implementing that tree.  While we haven't prototyped

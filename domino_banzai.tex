@@ -6,7 +6,7 @@
   programmable switch. An atom corresponds to an action in a match-action
   table. Internally, an atom contains local state and a digital circuit 
   modifying this state. Figure~\ref{fig:atom} details an atom.}
-  \label{fig:switch}
+  \label{domino_fig:switch}
 \end{figure}
 
 \absmachine is a machine model for programmable line-rate switches that serves
@@ -19,7 +19,7 @@ These processing units, called {\em atoms}, model atomic operations
 that are natively supported by a programmable line-rate switch.
 
 \subsection{Background: Programmable switches}
-Packets arriving at a switch~(top half of Figure~\ref{fig:switch}) are parsed
+Packets arriving at a switch~(top half of Figure~\ref{domino_fig:switch}) are parsed
 by a programmable parser that turns packets into header fields. These header
 fields are first processed by an ingress pipeline consisting of match-action
 tables arranged in stages. Processing a packet at a stage may modify its header
@@ -54,7 +54,7 @@ switch.
 
 \subsection{The \absmachine machine model}
 
-\absmachine (the bottom half of Figure~\ref{fig:switch}) models
+\absmachine (the bottom half of Figure~\ref{domino_fig:switch}) models
 the ingress or egress switch pipeline.  It models the
 computation within a match-action table in a stage (i.e., the action half of
 the match-action table), but not how packets are matched (e.g., direct or
@@ -219,7 +219,7 @@ tables per stage, and memory per stage in programmable switch
 architectures~\cite{lavanya_compiler}.
 
 \subsection{What can \absmachine not do?}
-\label{ss:limitations}
+\label{domino_ss:limitations}
 
 \absmachine is a good fit for data-plane algorithms that modify a small set of
 packet headers and carry out small amounts of computation per packet.

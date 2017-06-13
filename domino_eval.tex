@@ -46,7 +46,7 @@ run at line rate, we design a concrete set of \absmachine machines
 feasible in hardware because their atoms incur modest chip area overhead.
 We use the \pktlanguage compiler to compile the algorithms in
 Table~\ref{tab:algos} to the targets in
-Table~\ref{tab:templates}~(\S\ref{ss:compiler}).  We conclude with some lessons
+Table~\ref{tab:templates}~(\S\ref{domino_ss:compiler}).  We conclude with some lessons
 for programmable switch design~(\S\ref{ss:lessons}).
 
 \subsection{Expressiveness}
@@ -198,7 +198,7 @@ modest price for the programmability it provides.
 \end{table}
 
 \subsection{Compiling \pktlanguage programs to \absmachine machines}
-\label{ss:compiler}
+\label{domino_ss:compiler}
 We now consider every target from Table~\ref{tab:templates}\footnote{Because
 every target is uniquely identified by its stateful atom type, we use the two
 interchangeably.}, and every data-plane algorithm from Table~\ref{tab:algos} to
