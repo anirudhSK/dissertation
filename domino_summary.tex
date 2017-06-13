@@ -1,13 +1,12 @@
-\section{Conclusion}
-\label{s:conclusion}
-This paper presented \pktlanguage, a C-like imperative language that allows
+\section{Summary}
+\label{s:domino_summary}
+
+This chapter focused on \pktlanguage, a C-like imperative language that allows
 programmers to write packet-processing code using packet transactions, which
 are sequential code blocks that are atomic and isolated from other such code
 blocks. The \pktlanguage compiler compiles packet transactions to hardware
-configurations for \absmachine, which is a machine model based on programmable line-rate switch
-architectures~\cite{flexpipe, xpliant, tofino}. Our results suggest that it is
-possible to have both the convenience of a familiar programming model and the
-performance of a line-rate switch, provided that the algorithm can indeed run
-at line rate.  Packet-processing languages are still in their infancy; we hope
-these results will prompt further work on programming abstractions for
-high-performance packet-processing hardware.
+configurations for \absmachine, which is a machine model based on programmable
+line-rate router architectures~\cite{flexpipe, xpliant, tofino}. Our results
+suggest that it is possible to have both the convenience of a familiar
+programming model and the performance of a line-rate router, provided that the
+algorithm can indeed run at line rate.
