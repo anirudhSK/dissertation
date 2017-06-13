@@ -42,15 +42,23 @@ algorithms, this tool would automatically mine the corpus for recurring motifs
 of state and packet header modification. A router hardware engineer could then
 design hardware for atoms that capture these motifs.
 
-\section{Push-In First-Out Queues}
+\section{PIFOs}
 \label{sec:pifo_limitations}
 
+Our programming model for scheduling based on PIFOs is a scheduling tree with
+scheduling and shaping transactions. While the scheduling tree makes it
+\textit{possible} to program new scheduling algorithms using PIFOs, it does not
+make it \textit{easy}. We have found that it requires considerable effort to
+program new scheduling algorithms using scheduling trees.  In other words,
+scheduling trees are still a low-level abstraction. We need to raise the level
+of abstraction if we hope to make programmable scheduling more broadly
+accessible to network operators.
+
 Beyond a few counter examples, we lack a formal characterization of the
-scheduling algorithms that cannot be implemented using Push-In First-Out Queues
-(PIFOs). For instance, is there a simple, checkable property separating
-algorithms that can and cannot be implemented using PIFOs? Given an algorithm
-specification, can we automatically check if the algorithm can be programmed
-using PIFOs?
+scheduling algorithms that cannot be implemented using PIFOs. For instance, is
+there a simple, checkable property separating algorithms that can and cannot be
+implemented using PIFOs? Given an algorithm specification, can we automatically
+check if the algorithm can be programmed using PIFOs?
 
 Our current PIFO design scales to 2048 flows. If these 2048 flows are allocated
 evenly across 64 ports in a 64 port 10G router, we could program scheduling
@@ -63,14 +71,24 @@ while we can support up to 60K packets.  More design work is required to close
 this gap between the number of flows and the number of packets and realize an
 idealized PIFO.
 
-%%\item A scheduling tree is more convenient than directly configuring a
-%%PIFO mesh, but it is still a low-level abstraction. Are there higher
-%%level abstractions?
-
-%TODO: Do "additional implementation concerns" from pifo_hardware.tex move here?
 %TODO: Do something about the stuff at the top of pifo_discussion.tex. It's not used anywhere right now.
 
-\section{Performance Queries}
+\section{Performance queries}
 \label{sec:pq_limitations}
 
-%TODO: Write out limitations for perf queries
+The major limitation of performance queries is that the latest value of the
+aggregated state is not available in the data plane, and is only accessible to
+software reading the backing store. This manifests itself most when using the
+emit keyword in our programs, which requires access to the latest value of the
+aggregated state in the data plane. Currently, we handle such queries by not
+evicting those entries from a key-value store if the state stored in those
+entries is emitted to another query downstream. But not evicting keys severely
+limits the scalability of the key-value store because all keys must fit within
+the small on-chip cache. This is unavoidable if we want access to the latest
+value of state during emits.
+
+A similar scalability limitation affects queries that are not linear-in-state
+because there is no way to evict key-value pairs while still guaranteeing
+correctness if the query is not linear-in-state. In practice, we have found
+that it is possible to rewrite measurement functionality in such a way that the
+resulting query is linear-in-state.
