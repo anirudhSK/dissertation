@@ -5,9 +5,9 @@
 %% The details of the on-chip cache
 %% and backing store depend on the type traffic that passes through the switch.
 
-In this section, we evaluate our key-value store design by running \TheSystem on
-traces from both core Internet and data center switches to answer the following
-questions:
+In this section, we evaluate our key-value store design by running \TheSystem
+on traces from both core Internet and data center switches to answer the
+following questions:
 \begin{CompactEnumerate}
 \item What is a good size for the on-chip key value store?
 \item How to equip the backing store to handle evictions?
@@ -77,7 +77,7 @@ the 8-way associative cache comes within 2\% of this optimum, suggesting that it
 is a good compromise: it avoids the hardware complexity of a full LRU without
 compromising much on eviction rate. 
 Second, the percentage of packets that result in an eviction at the target cache size of 32 Mbits is $\approx6\%$ for core internet switches. For the typical workload described above, this corresponds to an eviction rate of 1.67M packets per second. This is within the capabilities of multi-core scale-out key-value stores~\cite{redis_benchmark, memcached_benchmark, redis_vs_memcached, redis_vs_memcached_update}.
-Third, the university datacenter setting, which is a target use case for Marple,
+Third, the university datacenter setting, which is a target use case for \TheSystem,
 demands extremely little from the backing store since it has fewer unique keys
 and thus fewer evictions, requiring it to sustain only 2500 packets per
 second. A single processor core can handle this load. Additionally, a shorter
