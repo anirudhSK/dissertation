@@ -3,14 +3,15 @@
 
 Existing research into programmable and fast routers has looked at programming
 the router's parser~\cite{glen_parsing} and its match-action
-pipeline~\cite{rmt, domino}. But, so far, it has been considered off-limits to
-program the packet scheduler---in part because the desired algorithms are so
-varied, and because the scheduler sits at the heart of the shared packet buffer
-where timing requirements are tightest.  It has been widely assumed too hard to
-find a useful abstraction that can also be implemented in fast hardware. PIFOs
-appear to be a very promising abstraction: they include a variety of existing
-algorithms, and allow us to express new ones. Further, they can be implemented
-at line rate with modest chip area overhead.
+pipeline~\cite{rmt, domino_sigcomm}. But, so far, it has been considered
+off-limits to program the packet scheduler---in part because the desired
+algorithms are so varied, and because the scheduler sits at the heart of the
+shared packet buffer where timing requirements are tightest.  It has been
+widely assumed too hard to find a useful abstraction that can also be
+implemented in fast hardware. PIFOs appear to be a very promising abstraction:
+they include a variety of existing algorithms, and allow us to express new
+ones. Further, they can be implemented at line rate with modest chip area
+overhead.
 
 We believe the most exciting consequence will be the creation of many new
 schedulers, invented by network operators, iterated and refined, then deployed
