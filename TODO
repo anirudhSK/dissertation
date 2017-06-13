@@ -1,13 +1,14 @@
 1. Rename occurences of "this paper" to "this thesis".
 2. Rename switch to router everywhere.
-3. Check that citations to PIFO cite the correct SIGCOMM 17 paper, not the older 1999 JSAC paper.
 4. Move the NetAMA proofs into the appendix instead of a separate TR.
-5. Make chapter summaries more matter of fact and less philosophical
 7. Rename NetAMA to Marple in figures
-8. Expand on each of the three projects in the introduction to make it self contained.
-10. Consider using the term streaming algorithms instead of data-plane algorithms?
 4. Fix the Domino code transformation diagrams. 
 2. Read the *_intro.tex and trim as much as possible.
 0. Write an acks.tex
-6. Consider using oneside for a tighter finish
-7. Dangling refs
+8. Expand on each of the three projects in the introduction to make it self contained.
+* Maybe move text from pifo hotnets into the main text of the dissertation?
+3. Check that citations to PIFO cite the correct SIGCOMM 17 paper, not the older 1999 JSAC paper. (DONE)
+5. Make chapter summaries more matter of fact and less philosophical (DONE)
+10. Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
+6. Consider using oneside for a tighter finish (IGNORE)
+7. Dangling refs (DONE)
