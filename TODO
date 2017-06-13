@@ -10,3 +10,5 @@
 9. Write out conclusion. Broadly three subsections:
 Lessons Learned and Broader Impact, and Future Work, and Closing Thoughts?
 10. Consider using the term streaming algorithms instead of data-plane algorithms?
+4. Fix the Domino code transformation diagrams. 
+2. Read the *_intro.tex and trim as much as possible.
