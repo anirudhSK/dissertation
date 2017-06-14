@@ -66,16 +66,16 @@ transactions (\S\ref{ss:multiple}).
 \subsection{\pktlanguage by example}
 \label{ss:flowlet}
 
-We use flowlet routering~\cite{flowlets} as our running example. Flowlet
-routering is a load-balancing algorithm that sends bursts of packets, called
+We use flowlet switching~\cite{flowlets} as our running example. Flowlet
+switching is a load-balancing algorithm that sends bursts of packets, called
 flowlets, from a TCP flow on a randomly chosen next hop, provided the bursts
 are separated by a large enough time interval to ensure packets do not arrive
 out of order at a TCP receiver. For ease of exposition, we use only the source
 and destination ports in the hash function that randomly computes the next hop
-for flowlet routering.
+for flowlet switching.
 %it is easy to extend it to the full 5-tuple.
 
-Figure~\ref{fig:flowlet_code} shows flowlet routering in \pktlanguage and
+Figure~\ref{fig:flowlet_code} shows flowlet switching in \pktlanguage and
 demonstrates its core language constructs. All packet processing happens in the
 context of a packet transaction (the function \texttt{flowlet} starting at line
 17). The function's argument type {\tt Packet} declares the fields in a packet
