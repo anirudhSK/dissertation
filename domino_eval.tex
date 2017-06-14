@@ -21,7 +21,7 @@ HULL~\cite{hull} & Update counter for virtual queue. & Sub & 7, 1 & Egress & 26 
 \hline
 Adaptive Virtual Queue~\cite{avq} & Update virtual queue size and virtual capacity & Nested & 7, 3 & Ingress & 36 & 147 \\
 \hline
-Priority computation for weighted fair queueing~\cite{pifo_sigcomm} & Compute packet's virtual start time using finish time of last packet in that flow. & Nested & 4, 2 & Ingress & 29 & 87 \\
+Priority computation for weighted fair queueing (Chapter~\ref{chap:pifo}) & Compute packet's virtual start time using finish time of last packet in that flow. & Nested & 4, 2 & Ingress & 29 & 87 \\
 \hline
 DNS TTL change tracking~\cite{dns_change} & Track number of changes in announced TTL for each domain & Nested & 6,3 & Ingress & 27 & 119 \\
 \hline
@@ -52,12 +52,12 @@ for programmable router design~(\S\ref{ss:lessons}).
 \subsection{Expressiveness}
 \label{ss:expressiveness}
 
-We program several data-plane
-algorithms (Table~\ref{tab:algos}) using \pktlanguage. These algorithms
-encompass data-plane traffic engineering, in-network congestion control, active
-queue management, network security, and measurement. We also used \pktlanguage
-to express the priority computation for programming scheduling using
-push-in first-out queues~\cite{pifo_sigcomm}.
+We program several data-plane algorithms (Table~\ref{tab:algos}) using
+\pktlanguage. These algorithms encompass data-plane traffic engineering,
+in-network congestion control, active queue management, network security, and
+measurement. We also used \pktlanguage to express the priority computation for
+programming scheduling using push-in first-out queues, as described later in
+Chapter~\ref{chap:pifo}.
 
 In all these cases, the algorithms are already available as blocks of
 imperative code from online sources; translating them to \pktlanguage syntax
