@@ -366,7 +366,7 @@ every clock cycle, and each input port could reside in any of the ingress
 pipelines. Similarly, each egress pipeline requires a new packet every clock
 cycle, resulting in multiple dequeues every clock cycle.
 
-A full-fledged design for multi-pipeline routers is beyond this paper, but our
+We leave a full-fledged design for multi-pipeline routers to future work, but our
 current design facilitates a multi-pipeline implementation. A rank store
 supporting multiple pipelines is similar to the data buffer of multi-pipeline
 routers today. Building a flow scheduler to support multiple enqueues/dequeues

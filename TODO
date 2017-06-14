@@ -1,9 +1,11 @@
-* Rename occurences of "this paper" to "this thesis".
-* Rename switch to router everywhere.
 * Move the NetAMA proofs into the appendix instead of a separate TR.
-* Read the *_intro.tex and trim as much as possible.
+* Read the entire dissertation and trim as much as possible.
 * Write an acks.tex
 * Decide whether we are calling it Marple or NetAMA for real.
+
+* Rewrite portions of text that refer to the Domino paper
+* Rename occurences of "this paper" to "this thesis". DONE
+* Rename switch to router everywhere. DONE
 * Use non-title case for all sections. DONE
 * Expand each of the three projects in the introduction to make it self contained. DONE
 * Fix the Domino code transformation diagrams. DONE
