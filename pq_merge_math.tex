@@ -61,7 +61,7 @@ How does one update the iterated function stored on the switch? The vertices of 
 Each vertex has an outgoing edge corresponding to every possible packet. For a given packet $p$, the iterated function $f_i$ has an edge to the function $f_j$ satisfying $f(f_i(s), p) = f_j(s)$ for all $s$.
 The closure graph thus has the following property: given a sequence of packets $\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th step, follow the edge corresponding to each packet $p_i$. The ending vertex of this process is the iterated function that captures the effect of this packet sequence on any starting state. We say that this ending vertex is the result of \emph{updating the iterated function} by the given sequence of packets. To update the iterated function stored on the switch given a new packet, simply follow the edge labeled with that packet.
 
-\begin{theorem}[Submission Theorem 4.1]
+\begin{theorem}[Theorem 4.3.1]
 A merge function exists to successfully merge an aggregation function $f$, providing it can use up to $n2^n$ auxiliary bits.
 \end{theorem}
 \begin{proof}
@@ -74,7 +74,7 @@ As an example, consider a simple counter, where $f(s, p) = s + 1$ and $s_0 = 0$.
 
 In general, requiring $n2^n$ bits is typically infeasible for even moderate values of $n$. This is where the linear-in-state and associative conditions come in. We show that either of these conditions is enough to require only $O(n)$ auxiliary bits of space.
 
-\begin{theorem}[Submission Theorem 4.2]
+\begin{theorem}[Theorem 4.3.2]
  Aggregation functions that are either linear-in-state or associative have a merge function that uses only $O(n)$ auxiliary bits.
 \end{theorem}
 \begin{proof}
@@ -93,7 +93,7 @@ def nonmt(maxseq, count, tcpseq):  if maxseq > tcpseq:
     maxseq = tcpseq  nm_q = groupby(pktstream, 5tuple, nonmt);
 \end{verbatim}
 
-\begin{theorem}[Submission Theorem 4.3]
+\begin{theorem}[Theorem 4.3.3]
 The TCP-non-monotonic function requires at least $n2^n$ auxiliary bits to merge.
 \end{theorem}
 \begin{proof}
@@ -116,7 +116,7 @@ There are $2^{n2^n}$ such packet sequences, meaning that the closure graph has a
 
 Now we turn to the question: given an aggregation function, how easy is it to compute a merge function that uses the minimal number of auxiliary bits? Since we know that the minimal number of bits is $\log |G(f)|$, we can construct $G(f)$. This approach is extremely inefficient, but it works. 
 
-\begin{theorem}[Submission Theorem 4.4]
+\begin{theorem}[Theorem 4.3.4]
 Given an aggregation function $f$, an algorithm exists to compute a merge function using the minimal number of auxiliary bits.
 \end{theorem}
 \begin{proof}
@@ -177,7 +177,7 @@ However, it is likely intractable. We'll show this by showing that it is hard to
  simple action of \emph{verifying}
 that a \emph{given} merge function successfully merges a given aggregation function.
 
-\begin{theorem}[Submission Theorem 4.5]
+\begin{theorem}[Theorem 4.3.5]
 Given a merge function $m$ and aggregation function $f$, verifying that $m$ successfully
 merges $f$ is co-NP hard.\footnote{co-NP is made up of problems
 that are complements of problems in NP.}
