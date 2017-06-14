@@ -1,39 +1,13 @@
-\documentclass[10pt]{article}
-
-\usepackage{hyperref}
-\usepackage{fullpage, graphicx, color, transparent, colortbl}
-\usepackage[usenames, dvipsnames]{xcolor}
-\usepackage{textcomp}
-\usepackage{amsmath}
-\usepackage{amsfonts}
-\usepackage{amsthm}
-\newtheorem{theorem}{Theorem}[]
-\newtheorem{lemma}{Lemma}[theorem]
-
-\def\compactify{\itemsep=0pt \topsep=0pt \partopsep=0pt \parsep=0pt}
-\let\latexusecounter=\usecounter
-\newenvironment{CompactItemize}
-  {\def\usecounter{\compactify\latexusecounter}
-   \begin{itemize}}
-  {\end{itemize}\let\usecounter=\latexusecounter}
-\newenvironment{CompactEnumerate}
-  {\def\usecounter{\compactify\latexusecounter}
-   \begin{enumerate}}
-  {\end{enumerate}\let\usecounter=\latexusecounter}
-
-\title{Understanding mergeability}
-
-\begin{document}
-\maketitle
+\chapter{Understanding mergeability}
+\label{s:app:merge}
 
 %\section{Some notation}
 %$\{0, 1\} \mbox{: The boolean domain}$ \\
 %$\{0, 1\}^{k} \mbox{: The domain of k-bit vectors}$
 %
 
-This document is a supplement to the 2017 SIGCOMM submission entitled
-``Language-Directed Hardware Design for Network Performance Monitoring'',
-providing proofs for the theorems outlined in Section 4.4.
+This appendix is a supplement to Chapter~\ref{chap:perf_query} and provides
+proofs for the theorems outlined in \S\ref{sec:aggregation}.
 
 \section{The problem}
 
