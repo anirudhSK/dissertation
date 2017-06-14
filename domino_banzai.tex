@@ -1,25 +1,25 @@
-\section{A machine model for line-rate switches}
+\section{A machine model for line-rate routers}
 \label{s:absmachine}
 \begin{figure}[!t]
   \includegraphics[width=\textwidth]{domino_banzai.pdf}
   \caption{\absmachine models the ingress or egress pipeline of a
-  programmable switch. An atom corresponds to an action in a match-action
+  programmable router. An atom corresponds to an action in a match-action
   table. Internally, an atom contains local state and a digital circuit 
   modifying this state. Figure~\ref{fig:atom} details an atom.}
-  \label{domino_fig:switch}
+  \label{domino_fig:router}
 \end{figure}
 
-\absmachine is a machine model for programmable line-rate switches that serves
+\absmachine is a machine model for programmable line-rate routers that serves
 as the compiler target for \pktlanguage.  \absmachine is inspired by recent
-programmable switch architectures such as Barefoot Networks' Tofino~\cite{tofino},
+programmable router architectures such as Barefoot Networks' Tofino~\cite{tofino},
 Intel's FlexPipe~\cite{flexpipe}, and Cavium's XPliant Packet
 Architecture~\cite{xpliant}. \absmachine abstracts these architectures and
 extends them with stateful processing units to implement data-plane algorithms.
 These processing units, called {\em atoms}, model atomic operations
-that are natively supported by a programmable line-rate switch.
+that are natively supported by a programmable line-rate router.
 
-\subsection{Background: programmable switches}
-Packets arriving at a switch~(top half of Figure~\ref{domino_fig:switch}) are parsed
+\subsection{Background: programmable routers}
+Packets arriving at a router~(top half of Figure~\ref{domino_fig:router}) are parsed
 by a programmable parser that turns packets into header fields. These header
 fields are first processed by an ingress pipeline consisting of match-action
 tables arranged in stages. Processing a packet at a stage may modify its header
@@ -29,8 +29,8 @@ queued. Once the scheduler dequeues the packet, it is processed by a
 similar egress pipeline before it is transmitted.
 
 To reduce chip area, there is only one ingress and one egress pipeline.  This
-single pipeline is shared across all switch ports and handles aggregate traffic
-belonging to all ports, at all packet sizes.  For instance, a 64-port switch
+single pipeline is shared across all router ports and handles aggregate traffic
+belonging to all ports, at all packet sizes.  For instance, a 64-port router
 with a line rate of 10 Gbit/s per port and a minimum packet size of 64 bytes
 needs to process around a billion packets per second, after accounting for
 minimum inter-packet gaps~\cite{rmt}.  Equivalently, the pipeline runs at 1
@@ -42,20 +42,20 @@ Having to process a packet every clock cycle in each stage constrains
 the operations that can be performed on each packet. In particular, any packet
 operation that modifies state visible to the next packet {\em must} finish
 execution in a single clock cycle (\S\ref{ss:atoms} shows why). Because
-of this restriction, programmable switching chips provide a small set of
+of this restriction, programmable routering chips provide a small set of
 processing units or primitives for manipulating packets and state in a stage,
 unlike software routers. These primitives determine which algorithms
-run on the switch at line rate.
+run on the router at line rate.
 
 The challenge for us is to develop primitives that allow a broad range of
 data-plane algorithms to be implemented, and to build a compiler to map a
 user-friendly description of an algorithm to the primitives provided by a
-switch.
+router.
 
 \subsection{The \absmachine machine model}
 
-\absmachine (the bottom half of Figure~\ref{domino_fig:switch}) models
-the ingress or egress switch pipeline.  It models the
+\absmachine (the bottom half of Figure~\ref{domino_fig:router}) models
+the ingress or egress router pipeline.  It models the
 computation within a match-action table in a stage (i.e., the action half of
 the match-action table), but not how packets are matched (e.g., direct or
 ternary). \absmachine does not model packet parsing and assumes
@@ -81,13 +81,13 @@ Atoms in this vector modify mutually exclusive sections of the same packet
 header in parallel in every clock cycle, and process a new packet header every
 clock cycle.
 
-In addition to packet headers, atoms may modify persistent state on the switch
+In addition to packet headers, atoms may modify persistent state on the router
 to implement stateful data-plane algorithms. To support such algorithms at
 line-rate, the atoms for a \absmachine machine need to be substantially richer
 (Table~\ref{tab:templates}) than the simple RISC-like stateless instruction
-sets for programmable switches today~\cite{rmt}. We explain why below.
+sets for programmable routers today~\cite{rmt}. We explain why below.
 
-Suppose we need to atomically increment a switch counter to count packets. One
+Suppose we need to atomically increment a router counter to count packets. One
 approach is hardware support for three simple single-cycle operations:
 \textit{read} the counter from memory in the first clock cycle, \textit{add}
 one in the next, and \textit{write} it to memory in the third.  This approach,
@@ -97,7 +97,7 @@ the counter from 0 to 1 by executing its read, add, and write at clock cycles
 increment the counter again from 0 to 1, when it should be incremented to 2.
 
 Locks over the shared counter are a potential solution.  However, locking
-causes packet $B$ to wait during packet $A$'s increment, and the switch no
+causes packet $B$ to wait during packet $A$'s increment, and the router no
 longer sustains the line rate of one packet every clock cycle. CPUs employ
 micro-architectural techniques such as operand forwarding for this
 problem. But these techniques still suffer pipeline stalls, which prevents
@@ -111,7 +111,7 @@ back to implement other stateful atomic operations at line rate.
 Unlike stateful atomic operations, stateless atomic operations are easier to
 support with simple packet-field arithmetic.  Consider, for
 instance, the operation {\tt pkt.f1 = pkt.f2 + pkt.f3 - pkt.f4}.  This
-operation does not modify any persistent switch state and only accesses packet
+operation does not modify any persistent router state and only accesses packet
 fields. It can be implemented atomically by using two atoms: one atom to add
 fields f2 and f3 in one pipeline stage, and another to subtract f4 from the
 result in the next. An instruction set designer can provide {\em simple}
@@ -126,11 +126,11 @@ An atom is represented by a body of sequential code that captures the atom's
 behavior. It may also contain internal state local to the atom. An atom
 completes execution of this entire body of code, modifying a packet and any
 internal state before processing the next packet. The designer of a
-programmable switch would develop these atoms, and expose them to a switch
-compiler as the programmable switch's instruction set, e.g.,
+programmable router would develop these atoms, and expose them to a router
+compiler as the programmable router's instruction set, e.g.,
 Table~\ref{tab:templates}.
 
-Using this representation, a switch counter that wraps around at a
+Using this representation, a router counter that wraps around at a
 value of 100 can be written as the atom:\footnote{We use {\tt p.x} to
   represent field {\tt x} within a packet {\tt p} and {\tt x} to
   represent a state variable {\tt x} that persists across packets.}
@@ -179,7 +179,7 @@ behavior.  An example is an ALU with a restricted set of primitive operations
 %and experiment with \absmachine machines with different atoms.
 
 %As programmable
-%switches evolve, we expect that atoms will evolve as well, but constrained by
+%routers evolve, we expect that atoms will evolve as well, but constrained by
 %the clock-cycle requirement.
 
 \begin{figure}[h]
@@ -215,7 +215,7 @@ behavior.  An example is an ALU with a restricted set of primitive operations
 \textbf{Resource limits.} We also limit the number of atoms in each stage
 (\textit{pipeline width}) and the number of stages in the pipeline
 (\textit{pipeline depth}). This is similar to limits on the number of stages,
-tables per stage, and memory per stage in programmable switch
+tables per stage, and memory per stage in programmable router
 architectures~\cite{lavanya_compiler}.
 
 \subsection{What can \absmachine not do?}
@@ -224,7 +224,7 @@ architectures~\cite{lavanya_compiler}.
 \absmachine is a good fit for data-plane algorithms that modify a small set of
 packet headers and carry out small amounts of computation per packet.
 Data-plane algorithms like deep packet inspection and WAN optimization require
-a switch to parse and process the packet payload as well---effectively parsing
+a router to parse and process the packet payload as well---effectively parsing
 a large ``header'' consisting of each byte in the payload. This is challenging
 at line rates of 1 GHz, and such algorithms are best left to CPUs~\cite{e2}.
 Some algorithms require complex computations, but not on every packet, e.g., a

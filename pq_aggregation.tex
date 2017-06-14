@@ -1,11 +1,11 @@
 \section{Scalable aggregation at line rate}
 \label{sec:aggregation}
- High-speed switches typically feature an ingress and egress pipeline shared
+ High-speed routers typically feature an ingress and egress pipeline shared
 across multiple ports, running at a 1 GHz clock rate to support up to a billion
 64-Byte
 packets per second of aggregate capacity~\cite{rmt}.  To handle state updates
 from packets arriving at 1 GHz, the key-value store for aggregations must be
-available in SRAM on the switch ASIC.  However, SRAM on an ASIC is limited,
+available in SRAM on the router ASIC.  However, SRAM on an ASIC is limited,
 restricting the size of an on-chip key-value store to a few Mbits (10K flows).
 
 In principle, we could scale to a larger number of flows by making the on-chip
@@ -14,15 +14,15 @@ designs, cache misses require accessing off-chip DRAM with non-deterministic
 latencies~\cite{unpredictable_cache} to read off the stored state. Because the
 aggregation operation requires the value read out to update it, the
 entire operation incurs
-non-deterministic latencies. This results in stalls in the switch
-pipeline. Unfortunately, pipeline stalls affect the switch's ability to provide
+non-deterministic latencies. This results in stalls in the router
+pipeline. Unfortunately, pipeline stalls affect the router's ability to provide
 guarantees on line rate packet processing (10-100G) on all ports.
-%% Switch pipelines are designed for the worst-case: they support line
+%% Router pipelines are designed for the worst-case: they support line
 %% rate (10 G or 100 G) on all ports at close to the smallest packet size. Pipeline
-%% stalls can affect the switch pipeline's ability to provide such worst-case
+%% stalls can affect the router pipeline's ability to provide such worst-case
 %% guarantees.\footnote{One could question this worst-case mindset, but we take it
 %%   as a given because it obviates the need for performance profiling and has been
-%%   the predominant design for the fastest switches for many years.}
+%%   the predominant design for the fastest routers for many years.}
 
 \begin{figure}
 \centering
@@ -107,7 +107,7 @@ aggregation function can be implemented scalably without losing accuracy.
 However, if the {\ct groupby} uses an {\ct emit} to pass tuples to another
 query, it cannot be implemented scalably. An {\ct emit()} outputs the current state
 of the aggregation function, which assumes the current state is always
-available in the switch's on-chip cache. This is only possible if flows are
+available in the router's on-chip cache. This is only possible if flows are
 never evicted, effectively shrinking the key-value store to its on-chip cache
 alone.
 
@@ -181,7 +181,7 @@ and should not increase with the number of packets.
 %denote the header fields contained within the bounded packet history (this is a bounded constant number of bits).
 %An \emph{aggregation function} is any function with signature $S \times P \rightarrow S$, essentially a fold function.
 When merging state $s$ in the on-chip cache with state $s_d$ in the
-backing store, the switch may
+backing store, the router may
 need to maintain and send auxiliary state $a$ for the backing store to perform
 the merge correctly. For example, in the EWMA example, the value $(1-\alpha)^N$
 is auxiliary state. Then, a \emph{merge function} $m$ for an aggregation
@@ -241,10 +241,10 @@ Hence, no polynomial time algorithm exists unless P=NP.
 We optimize our stateful hardware design for linear-in-state queries and break
 it down into five components.  Each component is well-known and our main
 contribution is in putting them together to implement stateful queries.
-Overall, the primary design choice for a switch designer is how much memory to
+Overall, the primary design choice for a router designer is how much memory to
 provision for the on-chip cache, which we evaluate in \Sec{eval}. We now
 discuss each component in detail.
-%Figure~\ref{fig:pipeline} shows where each components is located within a switch pipeline.
+%Figure~\ref{fig:pipeline} shows where each components is located within a router pipeline.
 %TODO: add figure if space permits.
 
 \textbf{The on-chip cache} is a hash table where each row in the hash table
@@ -259,18 +259,18 @@ common in processors~\cite{intel_opt_manual}. This cache eviction policy is
 close to an ideal but impractical policy that evicts the least recently used
 (LRU) flow across the whole table (\Sec{eval}).
 %
-Within a switch pipeline stage, the on-chip cache has a logical interface
+Within a router pipeline stage, the on-chip cache has a logical interface
 similar to an exact-match match-action table: namely, each packet matches into
 the table using a key extracted from the packet header, and the corresponding
-action is executed by the switch.
+action is executed by the router.
 %
 In addition, the cache adds and removes entries using the LRU policy.
 %% piggybacking evicted entries on the packet itself.
 %
-Because of their similar interfaces, an on-switch hash table can be used as
+Because of their similar interfaces, an on-router hash table can be used as
 a path to
 incremental deployment.
-%% Within a switch pipeline stage,
+%% Within a router pipeline stage,
 %% the on-chip cache has the same wiring interface to the remaining pipeline stages as a
 %% traditional match-action table.
 %TODO: Anirudh. Last sentence is a bit vague. Not sure how to fix it.
@@ -278,7 +278,7 @@ incremental deployment.
 \textbf{The off-chip backing store} is a scale-out key-value store such as
 REDIS running on dedicated collection servers within the network. As
 \Sec{eval} shows, the number of measurement servers required to support
-typical eviction rates from the switch's on-chip cache is small.%%  fraction of
+typical eviction rates from the router's on-chip cache is small.%%  fraction of
 %%  the cost
 %% of the network.
 %TODO: Remove this if eval does not show this.
@@ -296,7 +296,7 @@ register, which is read by a packet arriving at that stage, then carried with
 the packet, and finally written into the next stage. Once values from the last
 $k$ packets have been read into packet fields, $\boldsymbol{A}$ and
 $\boldsymbol{B}$ can be computed using the stateless instructions provided by
-programmable switch architectures~\cite{rmt, domino_sigcomm}.
+programmable router architectures~\cite{rmt, domino_sigcomm}.
 
 \textbf{Carrying out the linear-in-state operation.} Once $\boldsymbol{A}$ and
 $\boldsymbol{B}$ are known, we use a multiply-and-accumulate (MAC)
@@ -304,7 +304,7 @@ instruction~\cite{mac} to compute $\boldsymbol{A} \cdot \boldsymbol{S} +
 \boldsymbol{B}$. 
 This instruction is very cheap to implement: our circuit synthesis experiments
 show that a MAC instruction meets timing at 1 GHz and occupies about 2000
-\si{\micro\metre\squared} in a recent 32-nm transistor library. A switching
+\si{\micro\metre\squared} in a recent 32-nm transistor library. A routering
 chip with an area of a few hundred \si{\milli\meter\squared} can easily support
 a few hundred MAC instructions.
 
@@ -315,7 +315,7 @@ for our non linear-in-state queries.
 %TODO: Reconfig. in LRU? Maybe this is not even required ...
 
 %We leave the question of
-%designing hardware for multi-pipeline switches to future work.
+%designing hardware for multi-pipeline routers to future work.
 
 %TODO: Domino doesn't implement the entirety of the hardware design.  Maybe I
 %should do that to round out the store and say we have implemented the hardware

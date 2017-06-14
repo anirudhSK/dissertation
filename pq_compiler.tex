@@ -1,18 +1,18 @@
 \section{Query compiler}
 \label{sec:compiler}
 
-Our query compiler transforms a \TheSystem query to target two switch backend
+Our query compiler transforms a \TheSystem query to target two router backend
 targets: (1) P4 behavioral model~\cite{p4-bmv2} configured by emitting
 P4~\cite{p4}, and (2) Banzai machine model, configured by emitting
-Domino~\cite{domino_sigcomm}. The emitted code configures a switch pipeline,
+Domino~\cite{domino_sigcomm}. The emitted code configures a router pipeline,
 where each stage is a match-action table~\cite{openflow} or our key-value store.
 
 A preliminary pass of the compiler over the input query converts the query to an
 abstract syntax tree (AST) of functional operators. The compiler then
 \begin{enumerate}
-\item produces switch-local ASTs from a global AST
-  (\Sec{network-to-switch-local});
-\item produces \pfs and Domino pipeline configurations from switch-level ASTs
+\item produces router-local ASTs from a global AST
+  (\Sec{network-to-router-local});
+\item produces \pfs and Domino pipeline configurations from router-level ASTs
   (\Sec{pipeline-layout}); and
 \item recognizes linear-in-state aggregation functions, setting up
   auxiliary state for merging later (\Sec{linear-in-state-compilation}).
@@ -28,11 +28,11 @@ def oos_count(count, lastseq, tcpseq, payload_len):
   lastseq = tcpseq + payload_len
 
 tcps    = filter((*\pktlog{}*), proto == TCP
-                 and (switch == S1 or switch == S2));
+                 and (router == S1 or router == S2));
 tslots  = map((*\pktlog{}*), tin/epoch_size, epoch);
 joined  = zip(tcps, tslots);
 oos     = groupby(joined,
-                  [(*\codeftuple{}*), switch, epoch],
+                  [(*\codeftuple{}*), router, epoch],
                   oos_count);
 \end{lstlisting}
 }
@@ -53,13 +53,13 @@ oos     = groupby(joined,
   \]
 \caption{Compiler manipulations of the Abstract Syntax Tree (AST) for the
   running example (\Sec{compiler}). (a) Operator AST. (b) Stream
-  location. (c) Stream type (single/multi-switch).}
+  location. (c) Stream type (single/multi-router).}
 \label{fig:compiler-ast-manipulations}
 \end{figure}
 
 We use the query shown in \Fig{running-example-code} as a running example to
 illustrate the details in the compiler. The query counts the number of
-out-of-sequence TCP packets over each time epoch, measured at two switches {\ct
+out-of-sequence TCP packets over each time epoch, measured at two routers {\ct
   S1} and {\ct S2} in the network.
 
 The compiler begins by parsing the query into an Abstract Syntax Tree (AST) that

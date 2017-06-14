@@ -12,18 +12,18 @@ endpoint network stack~\cite{minlan-snap, dapper-sosr, pathdump, trumpet} or
 end-to-end probes~\cite{pingmesh} to diagnose performance problems.  While
 endpoints provide application context, they lack visibility to localize
 performance problems in links deep in the network. For example, it is
-challenging to localize queue buildup to a particular switch, or pinpoint
+challenging to localize queue buildup to a particular router, or pinpoint
 traffic causing the queue buildup, forcing operators to infer the network-level
 root causes indirectly~\cite{pingmesh}.
 %% Endpoints only see the end-to-end symptom of a
 %% problem, not its root cause (\eg it is challenging to attribute high end-to-end
-%% latency to queue buildup on a particular switch queue). Some
+%% latency to queue buildup on a particular router queue). Some
 %% systems\cite{pingmesh, netsight} infer root causes by combining endpoint
 %% measurements, but combining endpoint measurements requires network bandwidth to
 %% stream endpoint information to collection servers.
 
-Switch-based monitoring could allow operators to diagnose problems with more
-direct visibility into performance statistics. However, traditional switch
+Router-based monitoring could allow operators to diagnose problems with more
+direct visibility into performance statistics. However, traditional router
 mechanisms like sampling~\cite{netflow, sflow}, mirroring~\cite{cisco-span,
   netsight, everflow} and counting~\cite{cormode, univmon} are limited in enabling
 performance monitoring.
@@ -32,7 +32,7 @@ Sampling and mirroring miss events of interest as it is infeasible to collect
 information on all packets, while counters only track traffic volume
 statistics. None of these mechanisms provides relevant performance data, like
 queueing delays.
-%% Switches provide traffic information through packet sampling (\eg
+%% Routers provide traffic information through packet sampling (\eg
 %% NetFlow~\cite{netflow}, sflow~\cite{sflow}), packet mirroring (\eg
 %% SPAN~\cite{cisco-span}), and counting~\cite{cormode}. These mechanisms do not
 %% expose performance information like queue depths, making performance diagnoses
@@ -40,9 +40,9 @@ queueing delays.
 
 %endpoint vs. end host
 Some upcoming technologies recognize the need for better performance monitoring
-using switches. In-band network telemetry~\cite{int} writes queueing delays
+using routers. In-band network telemetry~\cite{int} writes queueing delays
 experienced by a packet on the packet itself, allowing endpoints to localize
-delay spikes. The Tetration switching chip~\cite{tetration-telemetry} provides a
+delay spikes. The Tetration routering chip~\cite{tetration-telemetry} provides a
 `flow cache' that measures flow-level performance metrics.
 %
 These metrics are useful, but they are exposed at a fixed granularity, and
@@ -52,32 +52,32 @@ variation, \ie jitter.
 %% While these efforts expose useful performance information, they only compute a
 %% fixed set of flow-level performance metrics.  Given the ever-changing needs of
 %% operators, fixed hardware invariably falls short of an operator's needs.
-%% Because hardware redesign is expensive,  it is worthwhile building switch
+%% Because hardware redesign is expensive,  it is worthwhile building router
 %% measurement {\em primitives} that support programmable performance diagnoses as
 %% opposed to measurement {\em functionality} that supports a useful---but
 %% fixed--set of diagnoses. While we share this goal with programmable
-%% switches~\cite{xpliant, tofino, flexpipe, corsa}, today's programmable switch
+%% routers~\cite{xpliant, tofino, flexpipe, corsa}, today's programmable router
 %% architectures only support programmable parsing~\cite{gibb_parsing}, header
 %% processing~\cite{rmt, domino} and scheduling~\cite{pifo}.
 % not fine-grained programmable measurement. 
 
 Operator requirements are ever-changing, and redesigning hardware is
-expensive. We believe that the trajectory of adding fixed-function switch
+expensive. We believe that the trajectory of adding fixed-function router
 monitoring piecemeal is unsustainable. Instead, we should build performance
 monitoring {\em primitives} that can be flexibly reused for a variety of
 operator needs.
 %% Given the
 %% ever-changing needs of operators, fixed hardware invariably falls short of an
 %% operator's needs.  Because hardware redesign is expensive, it is worthwhile
-%% building switch measurement {\em primitives} that support programmable
+%% building router measurement {\em primitives} that support programmable
 %% performance diagnoses as opposed to measurement {\em functionality} that support
 %% a useful---but fixed--set of diagnoses. 
-%% While we share this goal with programmable switches~\cite{xpliant, tofino,
-%%   flexpipe, corsa}, today's programmable switch architectures only support
+%% While we share this goal with programmable routers~\cite{xpliant, tofino,
+%%   flexpipe, corsa}, today's programmable router architectures only support
 %% programmable parsing~\cite{gibb_parsing}, header processing~\cite{rmt, domino}
 %% and scheduling~\cite{pifo}.
 % not fine-grained programmable measurement.
-Today's programmable switches support flexible parsing~\cite{gibb_parsing},
+Today's programmable routers support flexible parsing~\cite{gibb_parsing},
 header processing~\cite{rmt, domino_sigcomm}, and
 scheduling~\cite{pifo_sigcomm}. Our goal is to add monitoring to this list.
 
@@ -87,7 +87,7 @@ scheduling~\cite{pifo_sigcomm}. Our goal is to add monitoring to this list.
 % alone.
 In this paper, we propose {\em language-directed hardware design}: we design a
 language that can express a broad variety of performance monitoring use cases,
-and then design high-speed switch hardware primitives in service of this
+and then design high-speed router hardware primitives in service of this
 language.
 %% By designing hardware to support an expressive language, 
 We believe the resulting hardware design can support a wide variety of current
@@ -111,7 +111,7 @@ load balancing~\cite{conga}.
 %TODO: what is the \cite{flare} paper for flowlet sizes?
 
 \Para{Hardware design for performance queries.} To support the \TheSystem query
-language, we are able to leverage many existing switch hardware primitives like
+language, we are able to leverage many existing router hardware primitives like
 INT~\cite{int} and flexible header processing~\cite{rmt}. To support flexible
 aggregations over packets, we design a {\em programmable key-value store} in
 hardware (\Sec{aggregation}), where the keys represent flow identifiers and values
@@ -133,7 +133,7 @@ incur variable write latencies due to cache misses; however, line-rate packet
 forwarding requires deterministic latency bounds. Our design treats a cache miss
 as the arrival of a packet from a new flow, and {\em merges} the new cache value
 with the the flow's old value in the backing store on eviction. The backing
-store can reside either on the switch CPU or a separate collection server.
+store can reside either on the router CPU or a separate collection server.
 % TODO: backend or backing store? Need to be consistent.
 
 We characterize a class of affine aggregation functions which we call {\em
@@ -141,17 +141,17 @@ We characterize a class of affine aggregation functions which we call {\em
 such merging is possible without losing accuracy. Many aggregation functions are
 linear-in-state, \eg counters, predicated counters (\eg count only TCP packets
 that saw timeouts), exponentially weighted moving averages, or functions
-computed over a finite window of packets.  We design a switch instruction to
+computed over a finite window of packets.  We design a router instruction to
 support linear-in-state functions, finding that it easily meets
 timing at 1 GHz, while occupying modest silicon area.
 
 \Para{Query compiler.} We implement a {\em compiler} that takes \TheSystem
-queries and compiles them into switch configurations for two targets
+queries and compiles them into router configurations for two targets
 (\Sec{compiler}): (1) the P4 behavioral model~\cite{p4-bmv2}, an open source
-programmable software switch, and (2) a simulator for high-speed switch
+programmable software router, and (2) a simulator for high-speed router
 hardware, Banzai~\cite{domino_sigcomm}, that can be used to experiment with
 different instruction sets.  The \TheSystem compiler detects linear-in-state
-aggregations in input queries and successfully targets the linear-in-state switch
+aggregations in input queries and successfully targets the linear-in-state router
 instruction that we added to Banzai.
 
 % TODO: Need to clean up paragraph above.
@@ -163,5 +163,5 @@ between 5-10 pipeline stages for almost all queries, which is modest for a
 32-stage pipeline~\cite{rmt}. We evaluate our key-value store's performance
 using trace-driven simulations. For a 32-Mbit on-chip cache, which occupies
 about 2.5\% of the chip's area, the typical cache eviction rate from a single
-top-of-rack switch can be handled by a single 8-core server running
+top-of-rack router can be handled by a single 8-core server running
 REDIS.

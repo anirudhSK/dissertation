@@ -16,23 +16,23 @@ also describe the limitations of our programming model
 \label{ss:lstf}
 
 Least Slack-Time First (LSTF)~\cite{lstf,ups} schedules packets at
-  each switch in increasing order of packet slacks, i.e., the time
+  each router in increasing order of packet slacks, i.e., the time
   remaining until each packet's deadline.  Packet slacks are
-  initialized at an end host or edge switch and are decremented by the
-  wait time at each switch's queue. We can program LSTF using a simple 
+  initialized at an end host or edge router and are decremented by the
+  wait time at each router's queue. We can program LSTF using a simple 
   scheduling transaction:
 \begin{lstlisting}[style=customc]
   p.rank  = p.slack + p.arrival_time
 \end{lstlisting}
 
-%At every switch, we take the packet's arrival time and add it to the
+%At every router, we take the packet's arrival time and add it to the
 The addition of the packet's arrival time to the slack already carried
 in the packet ensures that packets are dequeued in order of their
 slack at the time of dequeue, not enqueue. Then, after packets are
 dequeued, we subtract the time at which the packet is dequeued from
 the packet's slack, which has the effect of decrementing the slack by
-the wait time at the switch's queue. This subtraction can be achieved
-by programming the egress pipeline of a programmable switch~\cite{rmt}
+the wait time at the router's queue. This subtraction can be achieved
+by programming the egress pipeline of a programmable router~\cite{rmt}
 to decrement one header field by another.
 
 \subsection{Stop-and-Go Queueing}
@@ -68,7 +68,7 @@ with equal ranks (\S\ref{s:pifo}).
 \subsection{Minimum rate guarantees}
 \label{ss:min_rate}
 
-A common scheduling policy on many switches today is providing a
+A common scheduling policy on many routers today is providing a
 minimum rate guarantee to a flow, provided the sum of such guarantees
 does not exceed the link capacity. A minimum rate guarantee can be
 programmed using PIFOs with a two-level PIFO tree, where the root of

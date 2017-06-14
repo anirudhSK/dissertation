@@ -2,8 +2,8 @@
 \label{sec:pipeline-layout}
 
 This compiler pass first generates a {\em linear sequence of operators} from the
-switch-local query AST of \Sec{network-to-switch-local}. The operator sequence
-will then be used in the same order to generate a switch pipeline
+router-local query AST of \Sec{network-to-router-local}. The operator sequence
+will then be used in the same order to generate a router pipeline
 configuration. There are two aspects which require care when constructing a
 pipeline structure: (i) the pipeline should respect read-write dependencies
 between different operators, and (ii) repeated subqueries should not create
@@ -34,7 +34,7 @@ function into the body of a single \pfs action.
 
 Further, the \TheSystem compiler emits Domino code by collecting C-like code
 fragments from all pipeline stages together into a stateful program. The Domino
-compiler targets the Banzai switch pipeline simulator.
+compiler targets the Banzai router pipeline simulator.
 %%% by compiling this
 %%% program. %% Banzai can be configured to run with specific stateless and stateful
 %% hardware instructions, and the Domino compiler determines whether the stateful

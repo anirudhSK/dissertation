@@ -19,11 +19,11 @@ cases and simple to implement corresponding hardware primitives.
 \Para{Packet performance stream.} \TheSystem provides tuples for each packet at
 each queue with the following fields:
 \begin{lstlisting}
-(switch, qid, hdrs, uid, tin, tout, qsize)
+(router, qid, hdrs, uid, tin, tout, qsize)
 \end{lstlisting}
-Here {\ct switch} and {\ct qid} denote the switch and switch queue at which the
+Here {\ct router} and {\ct qid} denote the router and router queue at which the
 packet was observed. A packet may traverse multiple queues even within a single
-switch, so we provide distinct fields. The regular packet headers (Ethernet, IP,
+router, so we provide distinct fields. The regular packet headers (Ethernet, IP,
 TCP, \etc) are available in the {\ct hdrs} set of fields, with a {\ct uid} that
 uniquely determines a packet.\footnote{In many networks, it may be possible to
   use a combination of the \txtftuple and IP ID field.}

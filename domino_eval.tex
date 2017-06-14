@@ -47,7 +47,7 @@ feasible in hardware because their atoms incur modest chip area overhead.
 We use the \pktlanguage compiler to compile the algorithms in
 Table~\ref{tab:algos} to the targets in
 Table~\ref{tab:templates}~(\S\ref{domino_ss:compiler}).  We conclude with some lessons
-for programmable switch design~(\S\ref{ss:lessons}).
+for programmable router design~(\S\ref{ss:lessons}).
 
 \subsection{Expressiveness}
 \label{ss:expressiveness}
@@ -123,7 +123,7 @@ meets timing at 1 GHz and occupies an area of 1384 \si{\micro\meter\squared}
 \medskip
 \noindent
 \textbf{Designing stateful atoms.}
-The choice of stateful atoms determines the algorithms a line-rate switch can
+The choice of stateful atoms determines the algorithms a line-rate router can
 support. A more complex stateful atom can support more data-plane algorithms,
 but may not meet timing and occupies more area. To illustrate this effect, we
 design a containment hierarchy (Table~\ref{tab:templates}) of stateful atoms,
@@ -213,14 +213,14 @@ Because our stateful atoms are arranged in a containment hierarchy, we list the
 algorithm in Table~\ref{tab:algos}.
 
 As Table~\ref{tab:algos} shows, the choice of stateful atom determines
- what algorithms can run on a switch. For instance, with only the
+ what algorithms can run on a router. For instance, with only the
 ability to read or write state, only the Bloom Filter algorithm can run at line
 rate, because it only requires the ability to test and set membership bits.
 Adding the ability to increment state (the RAW atom) permits Heavy
 Hitters to run at line rate, because it employs a count-min sketch that is
 incremented on each packet.
 
-\subsection{Lessons for programmable switches}
+\subsection{Lessons for programmable routers}
 \label{ss:lessons}
 
 \medskip
@@ -290,9 +290,9 @@ atom results in a lower clock frequency and a lower line rate. Although all our
 atoms have a minimum critical-path delay under 1 ns (1 GHz), it is easy to extend them
 with functionality that violates timing at 1 GHz.
 
-In summary, for a switch designer, the minimum delay on the critical path of atoms
+In summary, for a router designer, the minimum delay on the critical path of atoms
 is the most important metric to optimize. The most programmable line-rate
-switches will have the highest density of useful stateful functionality
+routers will have the highest density of useful stateful functionality
 squeezed into a critical path budget of 1 clock cycle.
 
 \begin{table}[!t]
@@ -342,7 +342,7 @@ for a subset of algorithms.
 
 Our atom design process is manual and ad hoc at this point, but it already
 shows how  a compiler can aid in instruction-set design for programmable
-switches. Using the same iterative approach involving a compiler, we anticipate
+routers. Using the same iterative approach involving a compiler, we anticipate
 the atoms in \absmachine machines evolving as data-plane algorithms demand more
 of the hardware.
 

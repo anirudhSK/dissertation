@@ -5,7 +5,7 @@
 Packet scheduling allocates scarce link capacity across contending flows.  This
 allocation services an application or a network-wide objective, e.g., max-min
 fairness (WFQ) or minimum flow completion time (SRPT).  Past work has
-demonstrated significant performance benefits resulting from switch support
+demonstrated significant performance benefits resulting from router support
 for flexible allocation~\cite{pFabric, baraat, numfabric, nosilverbullet}.
 However, these benefits have remained unrealized, because today
 there isn't a pathway to implementing such schemes.
@@ -24,9 +24,9 @@ end-host/edge-based solutions today.
 %The network can be an equal participant in transport protocols
 %rather than a dumb pipe~\cite{e2e}. 
 
-Looking forward, a programmable scheduler on switches could
+Looking forward, a programmable scheduler on routers could
 simplify packet transport. For instance, pFabric~\cite{pFabric}
-minimizes flow completion times by coupling a simple switch
+minimizes flow completion times by coupling a simple router
 scheduler (shortest remaining processing time) with a simple end-host protocol
 (line rate transmission with no congestion control). Other transport mechanisms
 ~\cite{packetpair, numfabric} leverage fair queueing in the network to simplify

@@ -11,18 +11,18 @@ routers that provide greater flexibility, but lower and unpredictable run-time
 performance~\cite{dobrescu2012}.
 
 The \pktlanguage compiler has three passes (Figure~\ref{fig:passes}), which we
-illustrate using the flowlet switching example.  \textit{Preprocessing}
+illustrate using the flowlet routering example.  \textit{Preprocessing}
 (\S\ref{ss:preprocessing}) simplifies packet transactions into a simpler
 three-address code form~\cite{tac}.
 \textit{Pipelining} (\S\ref{ss:pipelining}) transforms preprocessed code into
-code for a \textit{Pipelined Virtual Switch Machine (PVSM)}, an intermediate
-representation that models a switch pipeline with no computational or resource
+code for a \textit{Pipelined Virtual Router Machine (PVSM)}, an intermediate
+representation that models a router pipeline with no computational or resource
 limits. \textit{Code generation} (\S\ref{ss:code_gen}) transforms this
 intermediate representation into configuration for a \absmachine machine, given
 the machine's computational and resource limits (\S\ref{s:atomConstraints}),
 and rejects the program if it can not run at line rate.  The \pktlanguage
 compiler uses many existing compilation techniques, but adapts
-them in important ways for line-rate switches (\S\ref{ss:related_compiler}).
+them in important ways for line-rate routers (\S\ref{ss:related_compiler}).
 
 \begin{figure}[!t]
   \centering
@@ -101,7 +101,7 @@ At this point, the preprocessed code is still one sequential code block.
 Pipelining turns this sequential code block into a pipeline of
 \textit{codelets}, where each codelet is a sequential block of three-address
 code statements. This codelet pipeline corresponds to an intermediate
-representation we call the \textit{Pipelined Virtual Switch Machine (PVSM)}.
+representation we call the \textit{Pipelined Virtual Router Machine (PVSM)}.
 PVSM has no computational or resource limits, analogous to intermediate
 representations for CPUs~\cite{llvm} that have infinite virtual
 registers. Later, during code generation, we map these codelets to atoms
@@ -139,7 +139,7 @@ We create PVSM's codelet pipeline using the steps below.
 %\footnote{An instruction A is control
 %    dependent on a preceding instruction B if the outcome of B determines
 %    whether A should be executed or not.}
-%The codelet pipeline implements the packet transaction on a switch pipeline
+%The codelet pipeline implements the packet transaction on a router pipeline
 %with no computational or resource constraints. We handle these next.
 
 \begin{figure*}[!t]

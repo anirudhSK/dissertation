@@ -1,33 +1,33 @@
 %\pagebreak
 %\section{Introduction}
 %\label{s:intro}
-Network switches in modern datacenters, enterprises, and service-provider
+Network routers in modern datacenters, enterprises, and service-provider
 networks perform many tasks in addition to standard packet forwarding. The set
-of requirements for switches has only increased with time as network operators
+of requirements for routers has only increased with time as network operators
 seek greater control over performance.  Performance may be improved using both
 data-plane and control-plane mechanisms. This paper focuses on data-plane
 algorithms. These algorithms process and transform packets, reading and
-writing state in the switch. Examples include active queue
+writing state in the router. Examples include active queue
 management~\cite{red,avq,codel}, scheduling~\cite{pifo_sigcomm}, congestion
-control with switch feedback~\cite{xcp, rcp}, network
+control with router feedback~\cite{xcp, rcp}, network
 measurement~\cite{opensketch, bitmap_george}, and data-plane traffic
 engineering~\cite{conga}.
 
 An important requirement for data-plane algorithms is the ability to process
-packets at the switch's line rate: 10--100 Gbit/s on 10--100 ports.  Therefore,
+packets at the router's line rate: 10--100 Gbit/s on 10--100 ports.  Therefore,
 these algorithms are typically implemented using dedicated hardware.  Hardware
 designs are rigid and not reconfigurable in the field. Thus, implementing and
 deploying a new algorithm, or even modifying a deployed one, requires an
 investment in new hardware---a time-consuming and expensive proposition.
 
 This rigidity affects many stakeholders adversely: vendors~\cite{arista_7050, cisco_nexus,
-dell_force10} building network switches with merchant-silicon
+dell_force10} building network routers with merchant-silicon
 chips~\cite{trident, tomahawk, mellanox}, network operators deploying these
-switches~\cite{vl2, facebook, google}, and researchers developing new data-plane
+routers~\cite{vl2, facebook, google}, and researchers developing new data-plane
 algorithms~\cite{conga, bitmap_george, xcp, rcp}.
 
-To run new data-plane algorithms after a switch has been built, researchers and
-companies have attempted to build programmable switches for many years,
+To run new data-plane algorithms after a router has been built, researchers and
+companies have attempted to build programmable routers for many years,
 starting from efforts on active networks~\cite{active-nets} to network
 processors~\cite{ixp4xx} to software routers~\cite{dpdk, click}. All these
 efforts sacrificed performance for programmability, typically running an order
@@ -35,11 +35,11 @@ of magnitude (or worse) slower than hardware line rates. Unfortunately, this
 reduction in performance has meant that these systems are rarely deployed in
 production networks.
 
-Programmable switching chips~\cite{tofino, flexpipe, xpliant} competitive in
+Programmable routering chips~\cite{tofino, flexpipe, xpliant} competitive in
 performance with state-of-the-art fixed-function chips~\cite{trident,
 tomahawk, mellanox} are now becoming available. These chips implement a few
 low-level hardware primitives that can be configured by software into a
-processing pipeline, and are field-reconfigurable. Building a switch with such
+processing pipeline, and are field-reconfigurable. Building a router with such
 a chip is attractive because it does not compromise on data rates~\cite{rmt}.
 
 In terms of programmability, these chips today allow the network operator to
@@ -52,7 +52,7 @@ hardware-independent manner.
 There is a gap between this form of programmability and the needs of data-plane
 algorithms. By contrast to packet forwarding, which doesn't modify state in the
 data plane, many data-plane algorithms create and modify {\em algorithmic
-state} in the switch as part of packet processing.
+state} in the router as part of packet processing.
 
 For such algorithms, programmability must directly capture the algorithm's
 intent without requiring the algorithm to be shoehorned into hardware
@@ -80,12 +80,12 @@ is not just predictable, but guaranteed.
 \new{
 In realizing packet transactions, we make three new contributions.  First, {\em
 \absmachine}, a machine model for programmable line-rate
-switches~(\S\ref{s:absmachine}).  \absmachine models two important constraints
+routers~(\S\ref{s:absmachine}).  \absmachine models two important constraints
 (\S\ref{s:atomConstraints}) for stateful line-rate operations: the inability to
 share state between different packet-processing units, and the requirement that
-any switch state modifications be visible to the next packet entering the
-switch. Based on these constraints, we introduce {\em atoms} to represent a
-programmable switch's packet-processing units.
+any router state modifications be visible to the next packet entering the
+router. Based on these constraints, we introduce {\em atoms} to represent a
+programmable router's packet-processing units.
 }
 
 \new{
@@ -93,7 +93,7 @@ Second, {\em \pktlanguage{}}, a new domain-specific language (DSL) for
 data-plane algorithms, with packet transactions at its core
 (\S\ref{s:transactions}).  \pktlanguage is an imperative language with C-like
 syntax, to our knowledge the first to offer such a high-level programming
-abstraction for line-rate switches.
+abstraction for line-rate routers.
 }
 
 \new{
@@ -108,7 +108,7 @@ transaction if the atom cannot execute the codelet.
 We evaluate expressiveness by programming a variety of data-plane algorithms
 (Table~\ref{tab:algos}) in \pktlanguage and compare with P4. We find that
 \pktlanguage provides a more concise and natural programming model for stateful
-data-plane algorithms.  Next, because no existing programmable switch supports
+data-plane algorithms.  Next, because no existing programmable router supports
 the set of atoms required for our data-plane algorithms, we design a set of
 compiler targets for these algorithms based on \absmachine
 (\S\ref{ss:targets}).  We show that these targets are feasible in a 32-nm
@@ -117,7 +117,7 @@ standard-cell library with $< 2\%$ cost in area relative to a 200
 Finally, we compile data-plane algorithms written in \pktlanguage to these
 targets (\S\ref{domino_ss:compiler}) to show how a target's atoms determine the
 algorithms it can support. We conclude with several lessons for programmable
-switch design (\S\ref{ss:lessons}).
+router design (\S\ref{ss:lessons}).
 
 \new{
 Code for the \pktlanguage compiler, the \absmachine machine model, and the code

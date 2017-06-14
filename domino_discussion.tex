@@ -2,7 +2,7 @@
 \new{
 Packet transactions provide a pathway to take algorithms that were hitherto
 meant only for software routers and run them on emerging programmable line-rate
-switching chips. However, more work must be done before packet transactions
+router chips. However, more work must be done before packet transactions
 are ready for production use.
 }
 
@@ -23,14 +23,14 @@ carrying out a one-to-one mapping from codelets to the atoms implementing them,
 our compiler precludes these optimizations.  Developing an {\em optimizing}
 compiler for packet transactions is an area for future work.
 \item Supporting multiple packet transactions in \pktlanguage also requires
-further work. When a switch executes multiple transactions,
+further work. When a router executes multiple transactions,
 there may be opportunities for inter-procedural analysis~\cite{dragonbook}, which
 goes beyond compiling individual transactions and looks at multiple transactions together.
 For instance, the compiler could detect computations common to multiple
 transactions and execute them only once.
 \item Finally, we have a manual design process for atoms.  Formalizing
 this design process and automating it into an atom-design tool would be useful
-for switch designers. For instance, given a corpus of data-plane algorithms,
+for router designers. For instance, given a corpus of data-plane algorithms,
 can we automatically mine this corpus for stateful and stateless codelets, and
 design an atom (or atoms) that captures the computations required by some (or
 all) of them?

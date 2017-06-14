@@ -11,11 +11,11 @@ our design (\S\ref{ss:feasibility}).
 \label{ss:performance}
 
 \an{Our goal is a programmable scheduler competitive with common shared-memory
-switches, such as the Broadcom Trident II~\cite{trident2}, used in many
+routers, such as the Broadcom Trident II~\cite{trident2}, used in many
 datacenters today.  Based on the
 Trident II, we target 1000 flows that can be flexibly allocated across logical
 PIFOs and a 12 MByte packet buffer size~\cite{bcom_buffer} with a cell
-size\footnote{Packets in a shared-memory switch are allocated in small units
+size\footnote{Packets in a shared-memory router are allocated in small units
 called cells.} of 200 bytes.  In the worst case, every packet is a single cell.
 Hence, up to 60K packets/elements per PIFO block can be spread out over
 multiple logical PIFOs.}
@@ -74,7 +74,7 @@ directly push it into the flow scheduler. To permit enqueues into this PIFO
 block, we also supply a flow ID argument to the enqueue operation.
 
 The FIFO bank needed for the rank store is a well-understood hardware
-design. Such FIFO banks are used to buffer packet payloads in switches and
+design. Such FIFO banks are used to buffer packet payloads in routers and
 much engineering effort has gone into optimizing them.  As a result,
 we focus our implementation effort on the flow scheduler alone.
 
@@ -186,12 +186,12 @@ stages~\cite{rmt}.
 \subsection{Area overhead}
 \label{ss:feasibility}
 
-\an{Because we target a shared-memory switch, the scheduling logic is shared
-across ports and a single PIFO mesh services an entire switch. Therefore, to
+\an{Because we target a shared-memory router, the scheduling logic is shared
+across ports and a single PIFO mesh services an entire router. Therefore, to
 estimate the area overhead of a programmable scheduler, we estimate the area
 overhead of a single PIFO mesh. Our overhead does not have to be multiplied by
-the number of ports and is the same for two shared-memory switches with equal
-aggregate packet rates, e.g., a 6-port 100G switch and a 60-port 10G switch.}
+the number of ports and is the same for two shared-memory routers with equal
+aggregate packet rates, e.g., a 6-port 100G router and a 60-port 10G router.}
 
 %TODO: Why are next-hop tables small?
 \an{To determine the area of a PIFO mesh, we compute the area of a single PIFO
@@ -209,12 +209,12 @@ meets timing at 1 GHz.}
 
 Overall, our baseline design consumes about 7.35 \si{\milli\metre\squared} of
 chip area (Table~\ref{tab:area_overheads}). This is about 3.7\% of the chip
-area of a typical switching chip, using the minimum chip area estimate of 200
+area of a typical router chip, using the minimum chip area estimate of 200
 \si{\milli\metre\squared} provided by Gibb et al.~\cite{glen_parsing}. In
 return for this 3.7\%, we get a significantly more flexible packet scheduler
-than current switches, which provide {\em fixed} two or three-level
+than current routers, which provide {\em fixed} two or three-level
 hierarchical scheduling. \an{Our 3.7\% area overhead is similar to the overhead
-for other programmable switch functions, e.g., 2\% for
+for other programmable router functions, e.g., 2\% for
 programmable parsing~\cite{glen_parsing} and 15\% for programmable header
 processing~\cite{rmt}.}
  
@@ -225,7 +225,7 @@ processing~\cite{rmt}.}
   \hline
   Component & Area in \si{\milli\metre\squared}\\
   \hline
-  Switching chip & 200--400~\cite{glen_parsing} \\
+  Router chip & 200--400~\cite{glen_parsing} \\
   \hline
   Flow Scheduler & 0.224 (from synthesis) \\
   \hline
@@ -250,7 +250,7 @@ processing~\cite{rmt}.}
   \end{tabular}
 \end{small}
 \caption{A 5-block PIFO mesh needs 3.7\% additional chip area relative to
-a baseline switch.}
+a baseline router.}
 \label{tab:area_overheads}
 \end{table}
 
@@ -327,11 +327,11 @@ information on the enqueue side is.  }
 \noindent
 \textbf{Buffer management.}
 Our design focuses on programmable scheduling and does not manage the allocation
-of a switch's data buffer across flows.  Buffer management can use
+of a router's data buffer across flows.  Buffer management can use
 static buffer limits for each flow. The limits can also be dynamic, e.g.,
 RED~\cite{red} and dynamic buffer sizing~\cite{broadcom_dynamic}.
 
-In a shared-memory switch, buffer management is orthogonal to scheduling,
+In a shared-memory router, buffer management is orthogonal to scheduling,
 and is implemented using counters that track flow occupancy in a shared
 buffer. Before a packet is enqueued into the scheduler, if any counter
  exceeds a static or dynamic threshold, the packet is dropped. A similar
@@ -340,8 +340,8 @@ design for buffer management could be used with a PIFO-based scheduler as well.
 \medskip
 \noindent
 \textbf{Priority Flow Control.}
-Priority Flow Control (PFC)~\cite{pfc} is a standard that allows a switch to
-send a {\em pause} message to an upstream switch requesting it to cease
+Priority Flow Control (PFC)~\cite{pfc} is a standard that allows a router to
+send a {\em pause} message to an upstream router requesting it to cease
 transmission of packets belonging to particular flows. PFC can be integrated
 into our hardware design by masking out certain flows in the flow scheduler
 during the dequeue operation if they have been paused because of a PFC pause
@@ -350,25 +350,25 @@ message, and unmasking them when a PFC {\em resume} message is received.
 
 \medskip
 \noindent
-\textbf{Multi-pipeline switches.}
-The highest end switches today, such as the Broadcom Tomahawk~\cite{tomahawk},
+\textbf{Multi-pipeline routers.}
+The highest end routers today, such as the Broadcom Tomahawk~\cite{tomahawk},
 support aggregate capacities exceeding 3 Tbit/sec. At a minimum packet size of
 64 bytes, this corresponds to an aggregate packet rate of \textasciitilde6
-billion packets/s. Because a single switch pipeline
-(Figure~\ref{pifo_fig:switch}) typically runs at 1 GHz and processes a
-billion packets/s, such switches require multiple ingress and egress pipelines
+billion packets/s. Because a single router pipeline
+(Figure~\ref{pifo_fig:router}) typically runs at 1 GHz and processes a
+billion packets/s, such routers require multiple ingress and egress pipelines
 that share access to the scheduler subsystem alone.
 
-In multi-pipeline switches, each PIFO block needs to support multiple enqueue
+In multi-pipeline routers, each PIFO block needs to support multiple enqueue
 and dequeue operations per clock cycle (as many as the number of ingress and
 egress pipelines) because packets can be enqueued from any of the input ports
 every clock cycle, and each input port could reside in any of the ingress
 pipelines. Similarly, each egress pipeline requires a new packet every clock
 cycle, resulting in multiple dequeues every clock cycle.
 
-A full-fledged design for multi-pipeline switches is beyond this paper, but our
+A full-fledged design for multi-pipeline routers is beyond this paper, but our
 current design facilitates a multi-pipeline implementation. A rank store
 supporting multiple pipelines is similar to the data buffer of multi-pipeline
-switches today. Building a flow scheduler to support multiple enqueues/dequeues
+routers today. Building a flow scheduler to support multiple enqueues/dequeues
 per clock is relatively easy because it is maintained in flip flops, where it
 is simple to add multiple ports (unlike SRAM).

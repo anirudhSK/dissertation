@@ -1,7 +1,7 @@
 
 \begin{lstlisting}
 void func(struct Packet pkt) {
-  pkt._tmp_tcps_valid = ((pkt.proto) == (6)) && (((pkt.switch_hdr) == (1)) || ((pkt.switch_hdr) == (2)));
+  pkt._tmp_tcps_valid = ((pkt.proto) == (6)) && (((pkt.router_hdr) == (1)) || ((pkt.router_hdr) == (2)));
   pkt.epoch = (pkt.tin)>>(7);
   pkt._tmp_tslots_valid = 1;
   pkt._tmp_joined_valid = (pkt._tmp_tcps_valid) && (pkt._tmp_tslots_valid);

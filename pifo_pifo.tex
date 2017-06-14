@@ -23,7 +23,7 @@ underlying components:
   a PIFO. We model this computation as a {\em packet
     transaction}~\cite{domino_sigcomm}, an atomically executed block
   of code that is executed once for each element before enqueuing it
-  in a PIFO.\footnote{Any state visible on the switch after processing
+  in a PIFO.\footnote{Any state visible on the router after processing
     $N$ consecutive packets is identical to a serial execution of the
     transactions across the $N$ packets in order of packet
     arrival~\cite{domino_sigcomm}.}
@@ -44,7 +44,7 @@ p.rank = p.start
 \end{lstlisting}
 \caption{Scheduling transaction for STFQ. {\tt p.x} refers to a packet
   field {\tt x} in packet {\tt p}.  {\tt y} refers to a state variable
-  that is persisted on the switch across packets, e.g., {\tt last\_finish}
+  that is persisted on the router across packets, e.g., {\tt last\_finish}
   and {\tt virtual\_time} in this snippet. {\tt p.rank} denotes the
   packet's computed rank.}
 \label{fig:sched_trans}

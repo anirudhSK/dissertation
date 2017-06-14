@@ -2,12 +2,12 @@
 %\section{Introduction}
 %\label{s:intro}
 
-Today's fastest switches, also known as \textit{line-rate switches},
+Today's fastest routers, also known as \textit{line-rate routers},
 provide a small menu of scheduling algorithms: typically, a
 combination of Deficit Round Robin~\cite{drr}, strict priority
 scheduling, and traffic shaping. A network operator can change
 parameters in these algorithms, but cannot change the core logic in an
-existing algorithm, or program a new one, without building new switch
+existing algorithm, or program a new one, without building new router
 hardware.
 
 By contrast, with a {\em programmable} packet scheduler, network
@@ -17,13 +17,13 @@ using Shortest Remaining Processing Time~\cite{srpt}, allocating
 bandwidth flexibly across flows or tenants~\cite{eyeq, faircloud}
 using Weighted Fair Queueing~\cite{wfq}, minimizing tail packet delays
 using Least Slack Time First~\cite{lstf}, etc. Moreover, with a
-programmable packet scheduler, switch vendors could implement
-scheduling algorithms as programs running on a programmable switching
+programmable packet scheduler, router vendors could implement
+scheduling algorithms as programs running on a programmable routering
 chip, making it easier to verify and modify these algorithms compared to
 baking in the same algorithms into a chip as rigid hardware.
 
 This paper presents a design for programmable packet scheduling in
-line-rate switches. All scheduling algorithms make two basic
+line-rate routers. All scheduling algorithms make two basic
 decisions: in {\em what order} packets should be scheduled and {\em
   when} they should be scheduled, corresponding to work-conserving
 and non-work-conserving algorithms respectively.  Furthermore, for many scheduling
@@ -57,7 +57,7 @@ Packet Fair Queueing~\cite{hpfq}, Least-Slack Time-First~\cite{lstf}, the Rate-C
 Service Disciplines~\cite{rcsd}, and fine-grained priority scheduling
 (e.g., Shortest Job First). Until now, any line-rate implementations
 of these algorithms---if they exist at all---have been hard-wired into
-switch hardware. We also describe the limits of the PIFO abstraction
+router hardware. We also describe the limits of the PIFO abstraction
 (\S\ref{pifo_ss:limitations}) by presenting examples of scheduling
 algorithms that cannot be programmed using PIFOs.
 
@@ -78,16 +78,16 @@ As a result, we find (\S\ref{s:hardware}) that is feasible to build a programmab
   \item supports 5-level hierarchical scheduling, where the scheduling
     algorithms at each level are programmable;
   \item runs at a clock frequency of 1 GHz---sufficient for a 64-port
-    10 Gbit/s shared-memory switch;
+    10 Gbit/s shared-memory router;
   \item uses only 4\% additional chip area compared to a
-    shared-memory switch that supports only a small menu of scheduling
+    shared-memory router that supports only a small menu of scheduling
     algorithms; and
-  \item has the same buffer size as a typical shared-memory switch
+  \item has the same buffer size as a typical shared-memory router
     in a datacenter (\textasciitilde 60K packets, \textasciitilde 1K flows)~\cite{trident2}.
 \end{CompactItemize}
 
 While we have not produced a chip supporting PIFOs, our synthesis results
-are promising and make a strong technical case for switching chip manufacturers to invest
+are promising and make a strong technical case for router chip manufacturers to invest
 in hardware for programmable schedulers. To that end, C++ code for a
 hardware reference model of our programmable scheduler and Verilog
 code for our hardware design are available at \url{http://web.mit.edu/pifo/}.

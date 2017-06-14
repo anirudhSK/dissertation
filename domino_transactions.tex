@@ -59,40 +59,40 @@ a packet transaction in \pktlanguage (Figure~\ref{fig:flowlet_code}).  The
 \absmachine machine (Figure~\ref{fig:flowlet_pipeline}). We first describe
 packet transactions in greater detail by walking through an example
 (\S\ref{ss:flowlet}). Next, we discuss language constraints in \pktlanguage
-(\S\ref{ss:constraints}) informed by line-rate switches.  We then discuss
+(\S\ref{ss:constraints}) informed by line-rate routers.  We then discuss
 triggering packet transactions (\S\ref{ss:guards}) and handling multiple
 transactions (\S\ref{ss:multiple}).
 
 \subsection{\pktlanguage by example}
 \label{ss:flowlet}
 
-We use flowlet switching~\cite{flowlets} as our running example. Flowlet
-switching is a load-balancing algorithm that sends bursts of packets, called
+We use flowlet routering~\cite{flowlets} as our running example. Flowlet
+routering is a load-balancing algorithm that sends bursts of packets, called
 flowlets, from a TCP flow on a randomly chosen next hop, provided the bursts
 are separated by a large enough time interval to ensure packets do not arrive
 out of order at a TCP receiver. For ease of exposition, we use only the source
 and destination ports in the hash function that randomly computes the next hop
-for flowlet switching.
+for flowlet routering.
 %it is easy to extend it to the full 5-tuple.
 
-Figure~\ref{fig:flowlet_code} shows flowlet switching in \pktlanguage and
+Figure~\ref{fig:flowlet_code} shows flowlet routering in \pktlanguage and
 demonstrates its core language constructs. All packet processing happens in the
 context of a packet transaction (the function \texttt{flowlet} starting at line
 17). The function's argument type {\tt Packet} declares the fields in a packet
 (lines 5--12)\footnote{A field is either a packet header, e.g.,
 source port ({\tt sport}) and destination port ({\tt dport}), or packet
  metadata ({\tt id}).} that can be referenced by the function body (lines
-18--32).  The function body can also modify persistent switch state using
+18--32).  The function body can also modify persistent router state using
 global variables (e.g., \texttt{last\_time} and \texttt{saved\_hop} on lines 14
 and 15, respectively). The function body may use \textit{intrinsics} such as
 \texttt{hash2} on line 23 to directly access hardware accelerators on the
-switch such as hash generators.  The \pktlanguage compiler uses an intrinsic's
+router such as hash generators.  The \pktlanguage compiler uses an intrinsic's
 signature to analyze read/write dependencies (\S\ref{ss:pipelining}), but otherwise considers it a blackbox.
 
 \medskip
 \noindent
 \textbf{Packet transaction semantics.}
-Semantically, the programmer views the switch as invoking the packet transaction
+Semantically, the programmer views the router as invoking the packet transaction
 serially in the order in which packets arrive, with no concurrent packet
 processing.  Put differently, the packet transaction modifies the passed-in
 packet argument and runs to completion, before starting on the next packet.
@@ -180,7 +180,7 @@ match-action table, we focus only on compiling packet transactions in this paper
 \subsection{Handling multiple transactions}
 \label{ss:multiple}
 So far, we have discussed a single packet transaction corresponding to a single
-data-plane algorithm. In practice, a switch would run multiple data-plane
+data-plane algorithm. In practice, a router would run multiple data-plane
 algorithms, each processing its own subset of packets. To address this, we
 envision a policy language that specifies pairs of guards and transactions.
 Realizing a policy is straightforward when all guards are disjoint. When guards

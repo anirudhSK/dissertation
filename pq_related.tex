@@ -1,14 +1,14 @@
 \section{Related Work}
 \label{sec:related}
-\Para{Endpoint-based monitoring.} Owing to limited switch support for
+\Para{Endpoint-based monitoring.} Owing to limited router support for
 measurement, many systems monitor network performance from
 endpoints alone~\cite{netpoirot, minlan-snap, dapper-sosr, trumpet,
 azure-smartnic}. While endpoint solutions are necessary for application
 context (\eg socket calls), they are inadequate to debug all network problems. A
-real network needs both endpoint and switch-based
+real network needs both endpoint and router-based
 systems because each sees something the other cannot.
 
-\Para{Switch-based monitoring.} Traditionally, switch-based monitoring has
+\Para{Router-based monitoring.} Traditionally, router-based monitoring has
 focused on per-flow counts, not performance measurement. For example,
 NetFlow~\cite{netflow} and sFlow~\cite{sflow} provide traffic summaries
 through flow and packet sampling. Packet-capture systems~\cite{cisco-span,
@@ -19,8 +19,8 @@ approach captures details of {\em performance} phenomena (\eg TCP incast) as
 specified by a flexible language like \TheSystem.
 
 Sketches~\cite{univmon, flowradar, counterbraids, dream} and earlier work
-on programmable switch measurements~\cite{progme, opensketch} provide traffic
-volume statistics using summary data structures on switches.  Unlike sketches,
+on programmable router measurements~\cite{progme, opensketch} provide traffic
+volume statistics using summary data structures on routers.  Unlike sketches,
 \TheSystem does
 not have an accuracy-memory tradeoff, since counting is
 linear-in-state and counters can be measured accurately. Instead, \TheSystem
@@ -37,8 +37,8 @@ accuracy.
 
 In-band Network Telemetry (INT)~\cite{int, tpp} exposes queue lengths to
 endpoints by stamping it on the packet itself. \TheSystem builds on INT and
-provides flexible filters and aggregations {\em directly in switches}.
-\TheSystem's data aggregation in switches saves
+provides flexible filters and aggregations {\em directly in routers}.
+\TheSystem's data aggregation in routers saves
 the bandwidth needed to collect INT data distributed over many endpoints.
 In addition, the
 Tetration chip provides flow-level telemetry, exposing a fixed set of metrics
@@ -47,7 +47,7 @@ measurement''~\cite{tetration-telemetry}. In contrast, \TheSystem provides
 programmable aggregation functions and aggregation levels.%% , \eg port
 %% versus flow-level.
 
-\Para{Programmable switches.} \TheSystem builds on programmable switch
+\Para{Programmable routers.} \TheSystem builds on programmable router
 architectures, leveraging their support for flexible
 parsing~\cite{gibb_parsing}, forwarding~\cite{rmt, openflow} and stateful
 processing~\cite{domino_sigcomm}. In addition, we design hardware for scalable
@@ -57,7 +57,7 @@ high-speed aggregation for a broad class of aggregation functions.
 position paper~\cite{marple-hotnets}. In addition to that work, \TheSystem
 provides a functional query language (as opposed to SQL), a query compiler, a
 formal characterization of which aggregation functions admit a scalable
-implementation, a measurement of switch resources taken up by common queries,
+implementation, a measurement of router resources taken up by common queries,
 and an end-to-end demonstration of its use.
 
 %\begin{table}[t]
@@ -76,9 +76,9 @@ and an end-to-end demonstration of its use.
 %\end{table}
 
 %SK->NG: I don't think the Brown work is related to us.
-%%\TheSystem shares the vision of developing new monitoring switch primitives with
-%%the prior work of Nelson~\etal~\cite{stateful-switch-monitoring}. The semantic
-%%switch features they propose pertain to stateful properties of network
+%%\TheSystem shares the vision of developing new monitoring router primitives with
+%%the prior work of Nelson~\etal~\cite{stateful-router-monitoring}. The semantic
+%%router features they propose pertain to stateful properties of network
 %%protocols; our focus is on performance metrics. Notwithstanding, our key-value
 %%store primitive can support a subset of their semantic features.
 %% The key-value store we propose can be used to implement
@@ -90,14 +90,14 @@ frenetic, path_query, streaming-monitoring} allow users to ask questions
 primarily about traffic volumes and count statistics, since their input data is
 collected using NetFlow and match-action rule counters~\cite{openflow}. In
 contrast, \TheSystem enables asking expressive {\em performance} questions on
-data collected with purpose-built switch hardware. \TheSystem shares some
+data collected with purpose-built router hardware. \TheSystem shares some
 functional and relational constructs with Gigascope~\cite{gigascope} and
 Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
-switch.
+router.
 
 \Para{Language-directed computer design.} %% The hardware design process
 %% used to create \TheSystem is (i) creating a language that expresses the
-%% kinds of switch monitoring we want and (ii) developing an efficient
+%% kinds of router monitoring we want and (ii) developing an efficient
 %% hardware design that supports the language.
 Our hardware design process is inspired by early
 efforts on language-directed computer

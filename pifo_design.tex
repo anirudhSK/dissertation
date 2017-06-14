@@ -3,20 +3,20 @@
 
 \begin{figure*}
   \centering
-  \includegraphics[width=\textwidth]{pifo_switch_pipeline.pdf}
-  \caption{A 64-port shared memory switch.  Combinational logic and memory are
-  shared across ports, both in the pipelines and in the scheduler. The switch
+  \includegraphics[width=\textwidth]{pifo_router_pipeline.pdf}
+  \caption{A 64-port shared memory router.  Combinational logic and memory are
+  shared across ports, both in the pipelines and in the scheduler. The router
   runs at a clock frequency of 1 GHz.}
-  \label{pifo_fig:switch}
+  \label{pifo_fig:router}
 \end{figure*}
 
 We now present a hardware design for a programmable scheduler based on PIFOs.
-We target shared-memory switches such as Broadcom's Trident II~\cite{trident2}
-(Figure~\ref{pifo_fig:switch}). In these switches, a parser feeds packets from all
+We target shared-memory routers such as Broadcom's Trident II~\cite{trident2}
+(Figure~\ref{pifo_fig:router}). In these routers, a parser feeds packets from all
 ports into a shared ingress pipeline, after which they enter a shared scheduler
 and a similarly shared egress pipeline. To reduce chip area, combinational
 logic and memory for packet processing are shared across ports, both in the
-pipelines and in the scheduler.  As a result, digital circuits on the switch
+pipelines and in the scheduler.  As a result, digital circuits on the router
 must handle the aggregate processing requirements of all output ports at
 minimum packet size, e.g., 64 10 Gbit/s ports each transmitting 64 byte
 packets. This translates into \textasciitilde 1 billion packets per second,
@@ -36,10 +36,10 @@ To program and implement scheduling and shaping transactions, we use
 Domino~\cite{domino_sigcomm}, a recent system to program stateful
 data-plane algorithms at line rate. Domino introduces hardware
 primitives (atoms), and software abstractions (packet transactions) to
-program stateful algorithms on programmable switches~\cite{tofino, flexpipe,
+program stateful algorithms on programmable routers~\cite{tofino, flexpipe,
 xpliant, rmt}
 
-Atoms are processing units representing a programmable switch's instruction
+Atoms are processing units representing a programmable router's instruction
 set, while a packet transaction is a block of code that is guaranteed to
 execute atomically.  The Domino compiler compiles a scheduling or shaping packet
 transaction into an atom pipeline that executes the transaction
@@ -53,11 +53,11 @@ data-plane algorithms and small enough to implement at 1 GHz . For
 instance, even the most expressive of these atoms, called Pairs,
 occupies only 6000 \si{\micro\metre\squared} in a 32 nm standard-cell
 library~\cite{domino_sigcomm}; a 200 \si{\milli\metre\squared}
-switching chip~\cite{glen_parsing} can support 300 Pairs atoms with
+routering chip~\cite{glen_parsing} can support 300 Pairs atoms with
 < 2\% area overhead. These 300 atoms are sufficient for
 many data-plane algorithms~\cite{domino_sigcomm}. The Domino paper
 also shows how the STFQ transaction (Figure~\ref{fig:sched_trans}) can
-be run at 1 GHz on a switch pipeline with the Pairs atom.
+be run at 1 GHz on a router pipeline with the Pairs atom.
 
 Similarly, we could use the Domino compiler to compile other
 scheduling and shaping transactions to an atom pipeline.  For example,
@@ -140,7 +140,7 @@ multiple logical PIFOs. These logical PIFOs correspond to PIFOs for
 different output ports or different classes in a
 hierarchical scheduling algorithm, which share the combinational logic
 required for a PIFO. We expect a small number of PIFO blocks in a
-typical switch (e.g., fewer than five) because each PIFO block
+typical router (e.g., fewer than five) because each PIFO block
 corresponds to a different level of a hierarchical scheduling tree and
 \an{most practical hierarchical scheduling algorithms we know of do
   not require more than a few levels of hierarchy}. As a result, a
@@ -248,7 +248,7 @@ this conflict in favor of scheduling PIFOs. Shaping PIFOs are used for
 rate limiting to a rate lower than the line rate. Therefore, they
 can afford to be delayed by a few clocks until there are no
 conflicts. By contrast, delaying scheduling decisions of a scheduling PIFO
-would mean that the switch would idle and not satisfy its line-rate guarantee.
+would mean that the router would idle and not satisfy its line-rate guarantee.
 
 
 As a result, shaping PIFOs only get best-effort
@@ -256,6 +256,6 @@ service. There are workarounds to this. One is overclocking the pipeline at
 (say) 1.25 GHz instead of 1 GHz, providing spare clock cycles for such
 best-effort processing. Another is to provide multiple ports to a PIFO block to
 support multiple operations every clock.  These techniques are commonly used in
-switches for background tasks such as reclaiming buffer
+routers for background tasks such as reclaiming buffer
 space, and can be applied to the PIFO mesh as well.
 % Amy wondered if there would be other kinds of conflicts, i.e., shaping-shaping or scheduling-scheduling
