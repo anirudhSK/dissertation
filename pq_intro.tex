@@ -61,11 +61,11 @@ variation, \ie jitter.
 %% processing~\cite{rmt, domino} and scheduling~\cite{pifo}.
 % not fine-grained programmable measurement. 
 
-Operator requirements are ever-changing, and redesigning hardware is
-expensive. We believe that the trajectory of adding fixed-function router
-monitoring piecemeal is unsustainable. Instead, we should build performance
-monitoring {\em primitives} that can be flexibly reused for a variety of
-operator needs.
+Operator requirements are ever-changing, and redesigning hardware is expensive.
+Instead of adding fixed-function router monitoring piecemeal as needs arise,
+this chapter proposes that we should build performance monitoring {\em
+primitives} that can be flexibly reused for a variety of operator needs, both
+in the present and in the future.
 %% Given the
 %% ever-changing needs of operators, fixed hardware invariably falls short of an
 %% operator's needs.  Because hardware redesign is expensive, it is worthwhile
@@ -77,9 +77,11 @@ operator needs.
 %% programmable parsing~\cite{gibb_parsing}, header processing~\cite{rmt, domino}
 %% and scheduling~\cite{pifo}.
 % not fine-grained programmable measurement.
-Today's programmable routers support flexible parsing~\cite{gibb_parsing},
-header processing~\cite{rmt, domino_sigcomm}, and
-scheduling~\cite{pifo_sigcomm}. Our goal is to add monitoring to this list.
+
+%TODO: Commenting out parsing, header processing, scheduling etc.
+%%%Today's programmable routers support flexible parsing~\cite{gibb_parsing},
+%%%header processing~\cite{rmt, domino_sigcomm}, and
+%%%scheduling~\cite{pifo_sigcomm}. Our goal is to add monitoring to this list.
 
 %TODO: Not sure if this language-directed is over-the-top? It seems to
 %complicate things.

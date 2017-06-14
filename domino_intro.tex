@@ -8,7 +8,7 @@ seek greater control over performance.  Performance may be improved using both
 data-plane and control-plane mechanisms. This chapter focuses on data-plane
 algorithms. These algorithms process and transform packets, reading and
 writing state in the router. Examples include active queue
-management~\cite{red,avq,codel}, scheduling~\cite{pifo_sigcomm}, congestion
+management~\cite{red,avq,codel}, packet scheduling~\cite{wfq, pfabric}, congestion
 control with router feedback~\cite{xcp, rcp}, network
 measurement~\cite{opensketch, bitmap_george}, and data-plane traffic
 engineering~\cite{conga}.
@@ -20,8 +20,8 @@ designs are rigid and not reconfigurable in the field. Thus, implementing and
 deploying a new algorithm, or even modifying a deployed one, requires an
 investment in new hardware---a time-consuming and expensive proposition.
 
-This rigidity affects many stakeholders adversely: vendors~\cite{arista_7050, cisco_nexus,
-dell_force10} building network routers with merchant-silicon
+This rigidity affects many stakeholders adversely: vendors~\cite{arista_7050,
+cisco_nexus, dell_force10} building network routers with merchant-silicon
 chips~\cite{trident, tomahawk, mellanox}, network operators deploying these
 routers~\cite{vl2, facebook, google}, and researchers developing new data-plane
 algorithms~\cite{conga, bitmap_george, xcp, rcp}.
@@ -36,11 +36,11 @@ reduction in performance has meant that these systems are rarely deployed in
 production networks.
 
 Programmable router chips~\cite{tofino, flexpipe, xpliant} competitive in
-performance with state-of-the-art fixed-function chips~\cite{trident,
-tomahawk, mellanox} are now becoming available. These chips implement a few
-low-level hardware primitives that can be configured by software into a
-processing pipeline, and are field-reconfigurable. Building a router with such
-a chip is attractive because it does not compromise on data rates~\cite{rmt}.
+performance with state-of-the-art fixed-function chips~\cite{trident, tomahawk,
+mellanox} are now becoming available. These chips implement a few low-level
+hardware primitives that can be configured by software into a processing
+pipeline, and are field-reconfigurable. Building a router with such a chip is
+attractive because it does not compromise on data rates~\cite{rmt}.
 
 In terms of programmability, these chips today allow the network operator to
 program packet parsing and forwarding, i.e., a programmer can program the set
@@ -65,9 +65,9 @@ By studying the requirements of data-plane algorithms and the constraints of
 line-rate hardware, we introduce a new abstraction to program and implement
 data-plane algorithms: a {\em packet transaction} (\S\ref{s:transactions}). A
 packet transaction is a sequential code block that is atomic and isolated from
-other such code blocks, with the semantics that any visible state is equivalent to a serial
-execution of packet transactions across packets in the order of packet
-arrival.  Packet transactions let the programmer focus on the operations
+other such code blocks, with the semantics that any visible state is equivalent
+to a serial execution of packet transactions across packets in the order of
+packet arrival.  Packet transactions let the programmer focus on the operations
 needed for each packet without worrying about other concurrent packets.
 
 Packet transactions have an \textit{all-or-nothing} guarantee: all packet
@@ -116,8 +116,9 @@ standard-cell library with $< 2\%$ cost in area relative to a 200
 \si{\milli\metre\squared} baseline switching chip~\cite{gibb_parsing}.
 Finally, we compile data-plane algorithms written in \pktlanguage to these
 targets (\S\ref{domino_ss:compiler}) to show how a target's atoms determine the
-algorithms it can support. We conclude with several lessons for programmable
-router design (\S\ref{ss:lessons}).
+algorithms it can support. We also distill with several lessons for
+programmable router design (\S\ref{ss:lessons}) based on our experience with
+\pktlanguage.
 
 \new{
 Code for the \pktlanguage compiler, the \absmachine machine model, and the code

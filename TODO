@@ -1,7 +1,8 @@
-* Move the NetAMA proofs into the appendix instead of a separate TR.
 * Read the entire dissertation and trim as much as possible.
 * Write an acks.tex
-* Decide whether we are calling it Marple or NetAMA for real.
+
+* Move the NetAMA proofs into the appendix instead of a separate TR. DO BEFORE SUBMITTING
+* Decide whether we are calling it Marple or NetAMA for real. CAN BE DONE LATER
 
 * Rewrite portions of text that refer to the Domino paper DONE
 * Rename occurences of "this paper" to "this thesis". DONE

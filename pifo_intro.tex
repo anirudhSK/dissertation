@@ -2,77 +2,73 @@
 %\section{Introduction}
 %\label{s:intro}
 
-Today's fastest routers, also known as \textit{line-rate routers},
-provide a small menu of scheduling algorithms: typically, a
-combination of Deficit Round Robin~\cite{drr}, strict priority
-scheduling, and traffic shaping. A network operator can change
-parameters in these algorithms, but cannot change the core logic in an
-existing algorithm, or program a new one, without building new router
-hardware.
+Packet scheduling is the task of picking the next packet to transmit on each
+output port of a router.  Today's line-rate routers provide a small menu of
+scheduling algorithms: typically, a combination of Deficit Round
+Robin~\cite{drr}, strict priority scheduling, and traffic shaping. A network
+operator can change parameters in these algorithms, but cannot change the core
+logic in an existing algorithm, or program a new one, without building new
+router hardware.
 
-By contrast, with a {\em programmable} packet scheduler, network
-operators could customize scheduling algorithms to application
-requirements, e.g., minimizing flow completion times~\cite{pFabric}
-using Shortest Remaining Processing Time~\cite{srpt}, allocating
-bandwidth flexibly across flows or tenants~\cite{eyeq, faircloud}
-using Weighted Fair Queueing~\cite{wfq}, minimizing tail packet delays
-using Least Slack Time First~\cite{lstf}, etc. Moreover, with a
-programmable packet scheduler, router vendors could implement
-scheduling algorithms as programs running on a programmable router
-chip, making it easier to verify and modify these algorithms compared to
-baking in the same algorithms into a chip as rigid hardware.
+By contrast, with a {\em programmable} packet scheduler, network operators
+could customize scheduling algorithms to application requirements, e.g.,
+minimizing flow completion times~\cite{pFabric} using Shortest Remaining
+Processing Time~\cite{srpt}, allocating bandwidth flexibly across flows or
+tenants~\cite{eyeq, faircloud} using Weighted Fair Queueing~\cite{wfq},
+minimizing tail packet delays using Least Slack Time First~\cite{lstf}, etc.
+Moreover, with a programmable packet scheduler, router vendors could implement
+scheduling algorithms as programs running on a programmable router chip, making
+it easier to verify and modify these algorithms compared to baking in the same
+algorithms into a chip as rigid hardware.
 
 In this chapter, we present a design for programmable packet scheduling in
-line-rate routers. All scheduling algorithms make two basic
-decisions: in {\em what order} packets should be scheduled and {\em
-  when} they should be scheduled, corresponding to work-conserving
-and non-work-conserving algorithms respectively.  Furthermore, for many scheduling
-algorithms, these two decisions can be made when a packet is
-enqueued. 
+line-rate routers. We start with the basic observation that all scheduling
+algorithms make two basic decisions: in {\em what order} packets should be
+scheduled and {\em when} they should be scheduled, corresponding to
+work-conserving and non-work-conserving algorithms respectively.  Furthermore,
+we observe that for many scheduling algorithms, these two decisions can be made
+when a packet is enqueued. 
 %As we showed in a recent position paper~\cite{pifo_hotnets},
-%TODO: Figure out how to include PIFO hotnets paper in this dissertation
-This observation suggests a natural hardware primitive for packet
-scheduling: a {\em push-in first-out queue
-  (PIFO)}~\cite{pifo}. A PIFO is a priority queue that
-allows elements to be pushed into an arbitrary position based on an
-element's {\em rank} (the scheduling order or time),\footnote{\an{When
-    the rank denotes the scheduling time, the PIFO implements a
-    calendar queue; we distinguish between PIFOs and priority queues
-    for this reason.}} but always dequeues elements from the head.
+%TODO: Figure out how to include PIFO hotnets paper content in this dissertation
+% Sachin suggested citing it to save space on explaining how "for most scheduling
+% algorithms, these two decisions can be made when a packet is enqueued".
+This observation suggests a natural hardware primitive for packet scheduling: a
+{\em push-in first-out queue (PIFO)}~\cite{pifo}. A PIFO is a priority queue
+that allows elements to be pushed into an arbitrary position based on an
+element's {\em rank} (the scheduling order or time),\footnote{\an{When the rank
+denotes the scheduling time, the PIFO implements a calendar queue; we
+distinguish between PIFOs and priority queues for this reason.}} but always
+dequeues elements from the head.
 
-\an{We develop a programming model for scheduling (\S\ref{s:pifo})
-  based on PIFOs with two key ideas. First, we allow users to set a packet's rank in
-  a PIFO by supplying a small program for computing packet ranks
-  (\S\ref{ss:wfq}).  Coupling this program with a single PIFO allows
-  the user to program any scheduling algorithm where the relative
-  scheduling order of buffered packets does not change with future
-  packet arrivals. Second, users can compose PIFOs together in a tree
-  to program hierarchical scheduling algorithms that violate this
-  relative ordering property (\S\ref{ss:hpfq} and
-  \S\ref{ss:hshaping}).}
+\an{In this chapter, we develop a programming model for scheduling
+(\S\ref{s:pifo}) based on PIFOs with two key ideas. First, we allow users to
+set a packet's rank in a PIFO by supplying a small program for computing packet
+ranks (\S\ref{ss:wfq}).  Coupling this program with a single PIFO allows the
+user to program any scheduling algorithm where the relative scheduling order of
+buffered packets does not change with future packet arrivals. Second, users can
+compose PIFOs together in a tree to program hierarchical scheduling algorithms
+that violate this relative ordering property (\S\ref{ss:hpfq} and
+\S\ref{ss:hshaping}).}
 
-We find that a PIFO-based scheduler lets us program many scheduling
-algorithms (\S\ref{s:expressive}), e.g., Weighted Fair
-Queueing~\cite{wfq}, Token Bucket Filtering~\cite{tbf}, Hierarchical
-Packet Fair Queueing~\cite{hpfq}, Least-Slack Time-First~\cite{lstf}, the Rate-Controlled
-Service Disciplines~\cite{rcsd}, and fine-grained priority scheduling
-(e.g., Shortest Job First). Until now, any line-rate implementations
-of these algorithms---if they exist at all---have been hard-wired into
-router hardware. We also describe the limits of the PIFO abstraction
-(\S\ref{pifo_ss:limitations}) by presenting examples of scheduling
-algorithms that cannot be programmed using PIFOs.
+We find that a PIFO-based scheduler lets us program many scheduling algorithms
+(\S\ref{s:expressive}), e.g., Weighted Fair Queueing~\cite{wfq}, Token Bucket
+Filtering~\cite{tbf}, Hierarchical Packet Fair Queueing~\cite{hpfq},
+Least-Slack Time-First~\cite{lstf}, the Rate-Controlled Service
+Disciplines~\cite{rcsd}, and fine-grained priority scheduling (e.g., Shortest
+Job First). Until now, any line-rate implementations of these algorithms---if
+they exist at all---have been hard-wired into router hardware. We also describe
+the limits of the PIFO abstraction (\S\ref{pifo_ss:limitations}) by presenting
+examples of scheduling algorithms that cannot be programmed using PIFOs.
 
-\an{To evaluate the hardware feasibility of PIFOs, we implemented the
-  design (\S\ref{s:design}) in Verilog~\cite{system_verilog} and
-  synthesized it to an industry-standard 16-nm standard-cell library
-  (\S\ref{s:hardware}). The main operation in our design is sorting an
-  array of PIFO elements at line rate. To implement this sort,
-  traditionally considered hard~\cite{sfq, drr}, we exploit
-  two observations. One, most scheduling algorithms schedule across flows,
-  with packet ranks increasingly monotonically within each flow. Hence, we
-  only need to sort the head packets of all flows to dequeue from a PIFO.
-  Two, transistor scaling now makes it feasible to sort these head packets at
-  line rate.}
+\an{To evaluate the hardware feasibility of PIFOs, we implemented the design
+(\S\ref{s:design}) in Verilog~\cite{system_verilog} and synthesized it to an
+industry-standard 16-nm standard-cell library (\S\ref{s:hardware}). The main
+operation in our design is sorting an array of PIFO elements at line rate. To
+implement this sort, traditionally considered hard~\cite{sfq, drr}, we exploit
+two observations. One, most scheduling algorithms schedule across flows, with
+packet ranks increasingly monotonically within each flow. Hence, we only need
+to sort the head packets of all flows to dequeue from a PIFO.  Two, transistor
+scaling now makes it feasible to sort these head packets at line rate.}
 
 As a result, we find (\S\ref{s:hardware}) that is feasible to build a programmable scheduler, which
 \begin{CompactItemize}
