@@ -17,18 +17,19 @@ despite being linear-in-state. In \Sec{workaround-nonscalable}, we showed how a
 user can rewrite queries to scale on-router aggregations despite these
 restrictions.
 
-We compute the pipeline's depth and width by compiling each query to a simulator
-of a hardware pipeline, Banzai~\cite{domino_sigcomm}. Banzai is supplied with
-stateless atoms (which compute binary expressions) and one stateful atom. The
-Domino compiler determines whether the input program can be mapped to a pipeline
-with the specified atoms. As expected, all the linear-in-state queries map to a
-pipeline with the multiply-accumulate atom. For the non-linear-in-state queries,
-we use the {\em nested-if} atom from Banzai, which supports state updates
-predicated on the state value.
+We compute the pipeline's depth and width by compiling each query to the Banzai
+machine model. Banzai is supplied with stateless atoms (which compute binary
+expressions) and one stateful atom. The Domino compiler determines whether the
+input program can be mapped to a pipeline with the specified atoms. As
+expected, all the linear-in-state queries map to a pipeline with the
+multiply-accumulate atom. For the non-linear-in-state queries, we use the {\em
+nested-if} atom from Banzai, which supports state updates predicated on the
+state value.
 
 Almost all queries require a pipeline that is less than ten stages deep; half
 require six or fewer. These pipeline depths are feasible, since some modern
 programmable routers offer 32 stages in each pipeline~\cite{rmt}. The number of
 atoms required per-stage (width) is at most four in almost all cases.  Atom
-circuits occupy small areas relative to the chip overall, so it is feasible to
-fit hundreds of atoms in a router~\cite{domino_sigcomm}.
+circuits occupy small areas relative to the chip overall; as shown previously in
+Table~\ref{tab:templates}, it is feasible to fit hundreds of atoms in a router
+for a modest cost in chip area.

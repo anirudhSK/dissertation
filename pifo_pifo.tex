@@ -21,12 +21,12 @@ underlying components:
 
 \item The computation of an element's rank before it is enqueued into
   a PIFO. We model this computation as a {\em packet
-    transaction}~\cite{domino_sigcomm}, an atomically executed block
+    transaction}~(\S\ref{s:transactions}), an atomically executed block
   of code that is executed once for each element before enqueuing it
-  in a PIFO.\footnote{Any state visible on the router after processing
-    $N$ consecutive packets is identical to a serial execution of the
-    transactions across the $N$ packets in order of packet
-    arrival~\cite{domino_sigcomm}.}
+  in a PIFO.\footnote{Recall from \S\ref{s:transactions} that any state
+    visible on the router after processing $N$ consecutive packets is
+    identical to a serial execution of the transactions across the $N$
+    packets in order of packet arrival.}
 \end{CompactEnumerate}
 
 We note that scheduling with the PIFO abstraction does not require packets to be

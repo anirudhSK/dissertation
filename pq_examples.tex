@@ -389,11 +389,10 @@ timer). &
     linear-in-state} if all its stateful updates are linear-in-state.  We report
   that a query {\em scales} to a large number of keys either if (i) there are no
   stateful updates involved, or (ii) all stateful updates are linear-in-state
-  {\em and} terminate the flow of tuples. Using the Domino~\cite{domino_sigcomm}
-  compiler, we report the hardware resources, \ie pipeline depth and width,
+  {\em and} terminate the flow of tuples. Using the Domino compiler (\S\ref{s:compiler}), we report the hardware resources, \ie pipeline depth and width,
   required to map the queries to a pipeline. Linear-in-state queries use the
   multiply-accumulate atom (\Sec{aggregation}); others use a {\em nested-if}
-  atom~\cite{domino_sigcomm} that supports updates predicated on the state value
+  atom (Table~\ref{tab:templates}) that supports updates predicated on the state value
   itself.}
 \label{fig:example-perf-queries}
 \end{figure*}

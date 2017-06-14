@@ -31,45 +31,26 @@ automatically configure this mesh from a scheduling tree.
 
 \subsection{Scheduling and shaping transactions}
 \label{ss:transactions}
-%TODO: Fix this.
-To program and implement scheduling and shaping transactions, we use
-Domino~\cite{domino_sigcomm}, a recent system to program stateful
-data-plane algorithms at line rate. Domino introduces hardware
-primitives (atoms), and software abstractions (packet transactions) to
-program stateful algorithms on programmable routers~\cite{tofino, flexpipe,
-xpliant, rmt}
+To program and implement scheduling and shaping transactions, we use Domino,
+introduced previously in Chapter~\ref{chap:domino}. Domino allows us to express
+these transactions in a high-level domain-specific language, using a compiler to
+compile the transactions down to a pipeline of hardware instructions or atoms.
+ One of the examples used to evaluate Domino in \S\ref{s:eval} is the STFQ transaction from
+Figure~\ref{fig:sched_trans}.  Specifically, Table~\ref{tab:algos} shows that
+the STFQ transaction can be run at 1 GHz on a router pipeline with the Pairs
+atom.
 
-Atoms are processing units representing a programmable router's instruction
-set, while a packet transaction is a block of code that is guaranteed to
-execute atomically.  The Domino compiler compiles a scheduling or shaping packet
-transaction into an atom pipeline that executes the transaction
-atomically, rejecting the transaction if it can't run at line rate.
-Transactions may be rejected for two reasons; either because there are
-not enough atoms to execute the transaction, or because the
-transaction requires computation beyond the atoms' capabilities.
- 
-Domino proposes atoms that are expressive enough to support many
-data-plane algorithms and small enough to implement at 1 GHz . For
-instance, even the most expressive of these atoms, called Pairs,
-occupies only 6000 \si{\micro\metre\squared} in a 32 nm standard-cell
-library~\cite{domino_sigcomm}; a 200 \si{\milli\metre\squared}
-router chip~\cite{glen_parsing} can support 300 Pairs atoms with
-< 2\% area overhead. These 300 atoms are sufficient for
-many data-plane algorithms~\cite{domino_sigcomm}. The Domino paper
-also shows how the STFQ transaction (Figure~\ref{fig:sched_trans}) can
-be run at 1 GHz on a router pipeline with the Pairs atom.
-
-Similarly, we could use the Domino compiler to compile other
-scheduling and shaping transactions to an atom pipeline.  For example,
-the transactions for Token Bucket Filtering (Figure
-~\ref{fig:hshaping_shaping_trans}), minimum rate guarantees
-(\S\ref{ss:min_rate}), Stop-and-Go queueing
-(\S\ref{ss:stopngo}), and LSTF (\S\ref{ss:lstf}), can all
-be expressed as Domino programs.  \an{An important restriction in
-  Domino is the absence of loops, which precludes rank computations
-  containing a loop with an unbounded iteration count. We have not,
-  however, encountered a scheduling or shaping transaction requiring
-  this capability.}
+%TODO: We need to evaluate this more thoroughly.
+Similarly, we could use the Domino compiler to compile other scheduling and
+shaping transactions to an atom pipeline.  For example, the transactions for
+Token Bucket Filtering (Figure ~\ref{fig:hshaping_shaping_trans}), minimum rate
+guarantees (\S\ref{ss:min_rate}), Stop-and-Go queueing (\S\ref{ss:stopngo}),
+and LSTF (\S\ref{ss:lstf}), can all be expressed as Domino programs and
+then compiled to a router pipeline with a sufficiently expressive atom.\an{An
+important restriction in Domino is the absence of loops, which precludes rank
+computations containing a loop with an unbounded iteration count. We have not,
+however, encountered a scheduling or shaping transaction requiring this
+capability.}
 % Loops with bounded iteration count can be unrolled.
 
 \begin{figure}[!t]

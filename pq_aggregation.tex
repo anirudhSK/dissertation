@@ -296,7 +296,7 @@ register, which is read by a packet arriving at that stage, then carried with
 the packet, and finally written into the next stage. Once values from the last
 $k$ packets have been read into packet fields, $\boldsymbol{A}$ and
 $\boldsymbol{B}$ can be computed using the stateless instructions provided by
-programmable router architectures~\cite{rmt, domino_sigcomm}.
+programmable router architectures (\cite{rmt} and Chapter~\ref{chap:domino}).
 
 \textbf{Carrying out the linear-in-state operation.} Once $\boldsymbol{A}$ and
 $\boldsymbol{B}$ are known, we use a multiply-and-accumulate (MAC)
@@ -309,7 +309,7 @@ chip with an area of a few hundred \si{\milli\meter\squared} can easily support
 a few hundred MAC instructions.
 
 \textbf{Queries that are not linear-in-state.} We use the set of stateful
-instructions developed in Domino~\cite{domino_sigcomm} for queries that are not
+instructions developed in Domino (Chapter~\ref{chap:domino}) for queries that are not
 linear-in-state. Our evaluations show that these instructions are sufficient
 for our non linear-in-state queries.
 %TODO: Reconfig. in LRU? Maybe this is not even required ...

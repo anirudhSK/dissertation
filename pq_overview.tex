@@ -64,9 +64,9 @@ On the other hand, the {\ct groupby} construct should maintain state on routers.
 %% complex processing typically seen at end hosts.
 Stateful manipulation on a router is challenging because the time budget to
 update state before the next packet arrives can be as low as a nanosecond on
-high-end routers~\cite{domino_sigcomm}.  Further, the router may need to
-maintain a total amount of state proportional to the number of flows, which may
-grow unbounded with time.
+high-end routers (recall the 1 GHz clock rate from Chapter~\ref{chap:domino}).
+Further, the router may need to maintain a total amount of state proportional
+to the number of flows, which may grow unbounded with time.
 
 We solve both challenges through a novel programmable key-value store in
 hardware, where the keys represents aggregation fields (\eg flows) and values

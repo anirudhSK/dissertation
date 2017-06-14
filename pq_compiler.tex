@@ -2,9 +2,9 @@
 \label{sec:compiler}
 
 Our query compiler transforms a \TheSystem query to target two router backend
-targets: (1) P4 behavioral model~\cite{p4-bmv2} configured by emitting
-P4~\cite{p4}, and (2) Banzai machine model, configured by emitting
-Domino~\cite{domino_sigcomm}. The emitted code configures a router pipeline,
+targets: (1) the P4 behavioral model~\cite{p4-bmv2} configured by emitting
+P4~\cite{p4}, and (2) the Banzai machine model, configured by emitting
+Domino code. The emitted code configures a router pipeline,
 where each stage is a match-action table~\cite{openflow} or our key-value store.
 
 A preliminary pass of the compiler over the input query converts the query to an

@@ -196,16 +196,15 @@ aggregate packet rates, e.g., a 6-port 100G router and a 60-port 10G router.}
 %TODO: Why are next-hop tables small?
 \an{To determine the area of a PIFO mesh, we compute the area of a single PIFO
 block and multiply it by the number of blocks because the area of the
-interconnect is negligible.
-For a single block's area, we separately estimate areas for the
-rank store, atom pipelines, and flow scheduler, and ignore the area of the
-small next-hop lookup tables.  We estimate the rank store's area by using SRAM
-estimates~\cite{sram_estimate}, the atom pipeline's area using
-Domino~\cite{domino_sigcomm}, and the flow scheduler's area by implementing it
-in Verilog~\cite{system_verilog} and synthesizing it to gate-level netlist in a
-16-nm standard cell library using the Cadence Encounter RTL
-Compiler~\cite{cadence_rc}. The RTL Compiler also verifies that the flow scheduler
-meets timing at 1 GHz.}
+interconnect is negligible.  For a single block's area, we separately estimate
+areas for the rank store, atom pipelines, and flow scheduler, and ignore the
+area of the small next-hop lookup tables.  We estimate the rank store's area by
+using SRAM estimates~\cite{sram_estimate}, the atom pipeline's area using
+the individual atom area numbers from Table~\ref{tab:templates}, and the flow
+scheduler's area by implementing it in Verilog~\cite{system_verilog} and
+synthesizing it to gate-level netlist in a 16-nm standard cell library using
+the Cadence Encounter RTL Compiler~\cite{cadence_rc}. The RTL Compiler also
+verifies that the flow scheduler meets timing at 1 GHz.}
 
 Overall, our baseline design consumes about 7.35 \si{\milli\metre\squared} of
 chip area (Table~\ref{tab:area_overheads}). This is about 3.7\% of the chip
@@ -243,7 +242,7 @@ processing~\cite{rmt}.}
   \hline
   5-block PIFO mesh & 5.55 \\
   \hline
-  300 atoms spread out over the 5-block PIFO mesh for rank computations & 6000 \si{\micro\metre\squared}* 300 = 1.8 \si{\milli\metre\squared} (\S\ref{ss:transactions},~\cite{domino_sigcomm})\\
+  300 atoms spread out over the 5-block PIFO mesh for rank computations & 6000 \si{\micro\metre\squared}* 300 = 1.8 \si{\milli\metre\squared} (\S\ref{ss:transactions},~Table~\ref{tab:templates})\\
   \hline
   Overhead for 5-block PIFO mesh & (5.55 + 1.8) / 200.0 = 3.7 \% \\
   \hline

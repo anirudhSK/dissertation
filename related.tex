@@ -99,17 +99,6 @@ programmable scheduling at line rate.}
 %%shows, PIFOs allow a line-rate router to run many of these scheduling
 %%algorithms, which, so far, have only been run on software routers.
 
-%%\medskip
-%%\noindent
-%%\textbf{Programmable routers.} Recent work has proposed hardware architectures~\cite{tofino, flexpipe,
-%%xpliant, rmt} and software abstractions~\cite{p4, domino_sigcomm} for
-%%programmable routers.  While many packet-processing tasks can be programmed on
-%%these routers, scheduling isn't one of them. Programmable routers can {\em
-%%assist} a PIFO-based scheduler by providing a programmable ingress pipeline for
-%%scheduling and shaping transactions, without requiring a dedicated atom
-%%pipeline inside each PIFO block.  However, they still need PIFOs for
-%%programmable scheduling.
-
 \Para{Universal Packet Scheduling (UPS).} UPS~\cite{ups} shares our goal of
 flexible packet scheduling by seeking a single scheduling algorithm that is
 {\em universal} and can emulate any scheduling algorithm. Theoretically, UPS

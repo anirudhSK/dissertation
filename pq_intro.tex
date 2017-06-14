@@ -147,8 +147,8 @@ timing at 1 GHz, while occupying modest silicon area.
 \Para{Query compiler.} We implement a {\em compiler} that takes \TheSystem
 queries and compiles them into router configurations for two targets
 (\Sec{compiler}): (1) the P4 behavioral model~\cite{p4-bmv2}, an open source
-programmable software router, and (2) a simulator for high-speed router
-hardware, Banzai~\cite{domino_sigcomm}, that can be used to experiment with
+programmable software router, and (2) the Banzai machine model introduced in
+\S\ref{s:absmachine}, which can be used to experiment with
 different instruction sets.  The \TheSystem compiler detects linear-in-state
 aggregations in input queries and successfully targets the linear-in-state router
 instruction that we added to Banzai.
