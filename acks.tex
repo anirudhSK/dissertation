@@ -2,84 +2,83 @@
 \addcontentsline{toc}{chapter}{Acknowledgments}%
 
 As a Ph.D. student, I was fortunate to work with two outstanding advisors, Hari
-Balakrishnan and Mohammad Alizadeh. To me, Hari was the master of the
-highest-order bit. Through his own example, he reminded me at all times to
-focus on that which was most important, whether it was an elusive sentence
-required to complete a paragraph, the title of a key slide during a
-presentation, a nudge in the right direction when I needed life advice, or a
-simple explanation of a particular concept. Hari took a chance on me in the
-spring of 2012 and agreed to take me on as a student solely based on my
-performance as his TA; this dissertation is my way of repaying that debt. I was
-fortunate to start working with Mohammad in 2014 right after he had accepted an
-offer from MIT. Mohammad taught me the value of digging deep until a concept
-was crystal clear and mathematically precise. He taught me to appreciate the
-beauty and headiness that comes with mathematical rigor and showed me, by
-example, how to work with router hardware engineers.
+Balakrishnan and Mohammad Alizadeh. They were always in agreement about what
+constituted great research, but each contributed a unique perspective to my
+research.  Hari was the quintessential master of the highest-order bit. He
+taught me to focus on the most important thing on hand, whether it was an
+elusive sentence required to finish a paragraph, the title of a key slide
+during a presentation, or a simple explanation of a particular concept. Hari
+took me on as his student in 2012 when my options were limited; this
+dissertation is my way of repaying that debt. Mohammad taught me to persist
+until a concept was extremely clear and mathematically precise. He made me
+appreciate the beauty and headiness that come with mathematical rigor and
+showed me how to work with hardware engineers. Most importantly, he taught me
+how to listen and incorporate opposing viewpoints while still moving my own
+research forward.
 
-Keith Winstein has been a friend, philosopher, and guide through graduate
-school.  In the two years we spent working together, he taught me to love clean
-code, corrected my writing, improved my ability to give talks, and convinced me
-that it was always possible to get the computer to do your bidding. In April
-2013, he wrote a blog post during NSDI asking why software-defined networking
-did not include the data plane and what could be done about it. This
-dissertation is a four-year delayed and somewhat lengthy answer to his
-question.
+Keith Winstein has been a friend and mentor through graduate school.  In the
+two years we spent working together, he taught me to love clean code, corrected
+my writing, showed me how to give an engaging talk, and convinced me that it
+was always possible to get the computer to do your bidding. In April 2013, he
+wrote a blog post asking why software-defined networking did not include the
+data plane and whether something could be done about it. This dissertation is a
+four-year delayed answer to his question.
 
 My thesis committee members, George Varghese and Nick McKeown, helped shape my
-research taste. George taught me what doing great interdisciplinary work was
-about; he pushed me to go deeper till I discovered crisp connections to and
-differences from adjacent disciplines. Nick recommended that I spend some time
-interning at Barefoot Networks, and through his own example, showed me that it
-was possible to combine intellectual rigour with industrial relevance.
+research taste. George taught me to go beyond the surface in interdisciplinary
+work; he pushed until I discovered crisp connections to and differences from
+adjacent disciplines. Nick recommended that I spend some time interning at
+Barefoot Networks, which greatly improved my dissertation, and showed me how to
+combine intellectual rigour with impact.
 
-I spent close to a year interning at Barefoot Networks carrying out some of the
-work in this dissertation. It is not often that a fledgling startup allows an
-intern free reign for a year to pursue open-ended research. My manager,
-Changhoon Kim, gave me almost endless rope to go after the ideas I thought were
-interesting. Mihai Budiu taught me how to engineer a compiler, and Anurag
-Agrawal patiently explained every bit of the router's scheduler. In addition, I
-benefited from conversations with many other engineers and interns at Barefoot
-Networks, including Antonin, KRam, Ravindra, CK, and Naga.
+As part of my dissertation work, I spent a year interning at Barefoot Networks.
+It is not often that a fledgling startup allows an intern free reign to pursue
+open-ended research. My manager, Changhoon Kim, gave me almost endless rope to
+go after ideas that I thought were interesting. Mihai Budiu taught me how to
+engineer a compiler and Anurag Agrawal patiently explained a router's
+scheduling hardware to me. In addition, I benefited from conversations with
+many other engineers and interns at Barefoot Networks, including Antonin, KRam,
+Ravindra, CK, and Naga.
 
-This dissertation represents joint work with a number of collaborators: Alvin
-Cheung, Mihai Budiu, Changhoon Kim, Mohammad Alizadeh, Hari Balakrishnan,
-George Varghese, Nick McKeown, Steve Licking, Suvinay Subramanian, Mohammad
-Alizadeh, Sharad Chole, Shang-Tse Chuang, Anurag Agrawal, Tom Edsall, Sachin
-Katti, Srinivas Narayana, Vikram Nathan, Prateesh Goyal, Venkat Arun, and
-Vimalkumar Jeyakumar. The broader P4 community provided an ideal setting to
-carry out this work, both to get feedback from its community members and as a
-vehicle for translating some of these ideas into practice. 
+This dissertation represents joint work with a number of collaborators, each
+contributing a unique perspective to the work here: Alvin Cheung, Mihai Budiu,
+Changhoon Kim, Mohammad Alizadeh, Hari Balakrishnan, George Varghese, Nick
+McKeown, Steve Licking, Suvinay Subramanian, Mohammad Alizadeh, Sharad Chole,
+Shang-Tse Chuang, Anurag Agrawal, Tom Edsall, Sachin Katti, Srinivas Narayana,
+Vikram Nathan, Prateesh Goyal, Venkat Arun, and Vimalkumar Jeyakumar. The
+broader P4 community provided an ideal setting for my work, both to get
+feedback and as a vehicle for translating some of these ideas into practice. 
 
 My grad school colleagues past and present, Ravi, Amy, Vikram, NG, Tiffany,
 Shuo, Katrina, Lenin, Jonathan, Peter, Hongzi, Pratiksha, Somak, Ameesh, Alvin,
 and Eugene provided a great reason to come to work everyday, whether it was to
-get ice cream at Tosci's, commiserate about grad school, play an afternoon game
-of ping-pong, or to lose my breath attempting to play squash.  Suvinay
-Subramanian has been a steady friend through graduate school, and I am glad to
-have had him around. My friends outside grad school, Raghav, Aakash, Akhil,
-Raghunandan, and Praneeth have provided me with much-needed breaks from work
-from time to time.
+get ice cream at Tosci's, play an afternoon game of ping-pong, or to lose my
+breath attempting to play squash. Ravi has been a great sounding board,
+tempering my naive optimism with a healthy dose of reality. Suvinay and NG have
+been close friends through graduate school, and I am glad to have had them
+around. My friends outside grad school, Raghav, Aakash, Akhil, Raghunandan, and
+Praneeth, have provided me with much-needed breaks from work with the
+occasional catch-up phone call.
 
 Sheila Marian has been a phenomenal admin assistant, assisting with paper work
-when I was away from MIT for a year, booking travel for me, and ordering cakes
-for thesis defenses. Janet Fischer has seen me at the EECS graduate office more
-times than she can count and has patiently extended every one of my Ph.D.
-deadlines. Piotr Indyk has been my academic advisor for the last seven years,
-and has looked out for me since my first year in graduate schools, especially
-when I needed help changing advisors. Sylvia Hiestand at the MIT International
-Students Office got all of my paper work in order when I needed to spend a year
-away from MIT.
+when I was away from MIT, booking travel for me, and ordering cakes for thesis
+defenses. Janet Fischer at the EECS graduate office has patiently extended
+every Ph.D.  deadline. My academic advisor, Piotr Indyk, has looked out for me
+since my first year at MIT, especially when I was switching advisors.  Sylvia
+Hiestand at the MIT International Students Office got all of my paper work in
+order during my year away from MIT.
 
-My parents, Rama and Sivaraman, have put up with my churlish ways during the
-course of my Ph.D.; I am grateful to them for their patience and for not asking
-me when I would graduate. My sister, Vibhaa, continues to cheer me up when I am
-down.  My grandmother's utter lack of interest in my research is a much needed
-breath of fresh air. My in-laws have been a steady source of support from afar
-during my job search. My wife, Tejaswi, has gone through both the highs and
-lows of my Ph.D. alongside me; I am grateful for her calming presence and
-honest advice during stressful times. 
+My parents, Rama and Sivaraman, have put up with my churlish ways during my
+Ph.D.; I am grateful to them for their patience and for not asking me when I
+would graduate. My sister, Vibhaa, continues to cheer me up when I am down.  My
+grandmother's utter lack of interest in my research is a much needed breath of
+fresh air. My in-laws have been a steady source of support from afar during my
+job search. My wife, Tejaswi, has gone through both the highs and lows of my
+Ph.D. along with me; I am grateful for her ability to listen carefully and for
+her honest advice during stressful times. 
 
-My late grandfather, Dr. V. Ramamurti, has been an inspiration to me since I
-was a kid, and was the reason I embarked on a Ph.D. in the first place.
-Unfortunately, his untimely demise last year meant that he could not see me
-complete my Ph.D. I dedicate this thesis to him.
+My late grandfather, Dr. V. Ramamurti was the reason I embarked on a Ph.D.
+Throughout high school, he spent an inordinate amount of time patiently
+teaching me mathematics and physics and indulging my questions. As a faculty
+member, who also consulted for industry, he taught me not to stray too far from
+reality. I dedicate this thesis to him.
