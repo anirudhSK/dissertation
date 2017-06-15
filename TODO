@@ -5,7 +5,6 @@
 * Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
 * Traffic engineering vs. load balancing
 * Don't keep saying today in the text
-* Check that there are no e.g.,, in the text
 * domino_banzai.tex could use some more work
 * Don't need to overdo the C-like re: Domino. Instead, call it an imperative DSL.
 * router's line rate, or line rate of routers, sounds better than line rate routers
@@ -14,6 +13,7 @@
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
 * Decide whether we are calling it Marple or NetAMA for real. CAN BE DONE LATER
 
+* Check that there are no e.g.,, in the text DONE
 * Maybe move text from pifo hotnets into the main text of the dissertation? (DONE)
 * Move the NetAMA proofs into the appendix instead of a separate TR. DONE
 * Write an acks.tex (DONE)
