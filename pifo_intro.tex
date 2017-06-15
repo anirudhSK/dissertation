@@ -22,33 +22,29 @@ it easier to verify and modify these algorithms compared to baking in the same
 algorithms into a chip as rigid hardware.
 
 In this chapter, we present a design for programmable packet scheduling in
-high-speed routers. We start with the basic observation that all scheduling
-algorithms make two basic decisions: in {\em what order} packets should be
-scheduled and {\em when} they should be scheduled, corresponding to
-work-conserving and non-work-conserving algorithms respectively.  Furthermore,
-we observe that for many scheduling algorithms, these two decisions can be made
-when a packet is enqueued. 
-%As we showed in a recent position paper~\cite{pifo_hotnets},
-This observation suggests a natural hardware primitive for packet scheduling: a
-{\em push-in first-out queue (PIFO)}~\cite{pifo}. A PIFO is a priority queue
-that allows elements to be pushed into an arbitrary position based on an
-element's {\em rank} (the scheduling order or time),\footnote{\an{When the rank
-denotes the scheduling time, the PIFO implements a calendar queue; we
-distinguish between PIFOs and priority queues for this reason.}} but always
-dequeues elements from the head.
-%TODO: Figure out how to include content from the PIFO hotnets paper here.
-% Sachin suggested citing it to save space on explaining how "for most scheduling
-% algorithms, these two decisions can be made when a packet is enqueued".
+high-speed routers. We first deconstruct packet scheduling
+(\S\ref{s:deconstruct}) and observe that all scheduling algorithms make two
+basic decisions: in {\em what order} packets should be scheduled and {\em when}
+they should be scheduled, corresponding to work-conserving and
+non-work-conserving algorithms respectively.  Furthermore, we observe that for
+many scheduling algorithms, these two decisions can be made when a packet is
+enqueued. This observation suggests a natural hardware primitive for packet
+scheduling: a {\em push-in first-out queue (PIFO)}~\cite{pifo}. A PIFO is a
+priority queue that allows elements to be pushed into an arbitrary position
+based on an element's {\em rank} (the scheduling order or
+time),\footnote{\an{When the rank denotes the scheduling time, the PIFO
+implements a calendar queue; we distinguish between PIFOs and priority queues
+for this reason.}} but always dequeues elements from the head.
 
-This chapter develops a programming model for scheduling (\S\ref{s:pifo}) based
-on PIFOs with two key ideas. First, we allow users to set a packet's rank in a
-PIFO by supplying a small program for computing packet ranks (\S\ref{ss:wfq}).
-Coupling this program with a single PIFO allows the user to program any
-scheduling algorithm where the relative scheduling order of buffered packets
-does not change with future packet arrivals. Second, users can compose PIFOs
-together in a tree to program several hierarchical scheduling algorithms that
-violate this relative ordering property (\S\ref{ss:hpfq} and
-\S\ref{ss:hshaping}).
+We then develop a programming model for scheduling (\S\ref{s:pifo}) based on
+PIFOs with two key ideas. First, we allow an operator programming the scheduler
+to set a packet's rank in a PIFO by supplying a small program for computing
+packet ranks (\S\ref{ss:wfq}).  Coupling this program with a single PIFO allows
+the user to program any scheduling algorithm where the relative scheduling
+order of buffered packets does not change with future packet arrivals. Second,
+users can compose PIFOs together in a tree to program several hierarchical
+scheduling algorithms that violate this relative ordering property
+(\S\ref{ss:hpfq} and \S\ref{ss:hshaping}).
 
 We find that a PIFO-based scheduler lets us program many scheduling algorithms
 (\S\ref{s:expressive}), \eg Weighted Fair Queueing~\cite{wfq}, Token Bucket
@@ -88,8 +84,6 @@ programmable scheduler, which
 % The Trident2 is 1.25 Tbit/s, while we assume 640
 \end{CompactItemize}
 
-While we have not produced a chip supporting PIFOs, our synthesis results are
-promising and make a strong technical case for router chip manufacturers to
-invest in hardware for programmable schedulers. C++ code for a hardware
-reference model of our programmable scheduler and Verilog code for our hardware
-design are available at \url{http://web.mit.edu/pifo/}.
+ C++ code for a hardware reference model of our programmable scheduler and
+Verilog code for our hardware design are available at
+\url{http://web.mit.edu/pifo/}.
