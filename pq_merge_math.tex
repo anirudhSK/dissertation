@@ -81,7 +81,7 @@ In general, requiring $n2^n$ bits is typically infeasible for even moderate valu
 \end{theorem}
 \begin{proof}
 The associative condition is trivial: by definition, no auxiliary bits are required. 
-Suppose $f$ is an aggregation function that is linear in state, i.e. $f(\mathbf{S}, p) = \mathbf{A}(p) \cdot \mathbf{S} + \mathbf{B}(p)$, where $\mathbf{S}$ is a state vector, and $\mathbf{A,B}$ are matrices depending only on the incoming packet. Then:
+Suppose $f$ is an aggregation function that is linear in state, \ie $f(\mathbf{S}, p) = \mathbf{A}(p) \cdot \mathbf{S} + \mathbf{B}(p)$, where $\mathbf{S}$ is a state vector, and $\mathbf{A,B}$ are matrices depending only on the incoming packet. Then:
 \[ f(\mathbf{S}_0, \{p_1, \ldots, p_k\}) = \mathbf{A}(p_k)\ldots \mathbf{A}(p_1) \cdot \mathbf{S}_0 + \mathbf{C}(p_1, p_2, \ldots, p_k) \equiv \mathbf{A'} \cdot \mathbf{S}_0 + \mathbf{C}(p_1, \ldots, p_k)\]
 where $\mathbf{C}$ is some function of only the packets and $\mathbf{A'}$ is a composition of the $\mathbf{A}$ matrices for the observed packets. The switch keeps track of $\mathbf{A'}$ and $\mathbf{C}$, which requires $O(nd^2)$ space where $d$ is the number of pieces of state, each of which we assume has size $n$. These matrices are sent to the backing store upon eviction, at which point the merge operation computes the new backing store value:
 \[ \mathbf{S}_d \leftarrow \mathbf{C}(p_1, \ldots, p_k) + \mathbf{A'} \cdot \mathbf{S}_d \]
@@ -130,7 +130,7 @@ We join two nodes by an edge labeled
 with the packet value that causes the transition between those two nodes and
 repeat this process from each newly created node until all edges out of a node
 lead back to existing nodes\footnote{We need a way to check node equality,
-i.e., function equality. We do this by a brute force check on all inputs to
+\ie function equality. We do this by a brute force check on all inputs to
 both nodes/functions.}.
 
 There are $2^{n2^n}$ possible iterated functions. We assume that given an iterated function,

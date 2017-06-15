@@ -156,7 +156,7 @@ packet from the same flow was seen. Because of the location of the {\ct emit()}
 statement, the flowlet size from {\ct fl\_track} is only streamed to other
 operators on encountering the first packet of a new flowlet.
 %% A special statement within aggregation functions, {\ct emit()}, explicitly
-%% decides that a tuple containing the current value of the state (i.e., flowlet
+%% decides that a tuple containing the current value of the state (\ie flowlet
 %% size) should be streamed to queries consuming the result, shown below:
 \begin{lstlisting}
 fl_bkts  = map(fl_track, [size/16], [bucket]);
