@@ -1,39 +1,30 @@
 \section{The expressiveness of PIFOs}
 \label{s:expressive}
 
-In addition to the three examples from \S\ref{s:pifo}, we now provide
-several more examples (\S\ref{ss:lstf} through \S\ref{ss:other}) and
-also describe the limitations of our programming model
-(\S\ref{pifo_ss:limitations}).
-
-%, \S\ref{ss:stopngo},
-%\S\ref{ss:min_rate}) to demonstrate how a network operator can program
-%diverse scheduling algorithms using PIFOs. We also briefly list
-%several other examples (\S\ref{ss:other}) 
-%
+In addition to the three examples from \S\ref{s:pifo}, we now provide several
+more examples of scheduling algorithms that can be expressed using our
+programming model (\S\ref{ss:lstf} through \S\ref{ss:other}) and also describe
+the limitations of our programming model (\S\ref{pifo_ss:limitations}).
 
 \subsection{Least Slack-Time First}
 \label{ss:lstf}
 
-Least Slack-Time First (LSTF)~\cite{lstf,ups} schedules packets at
-  each router in increasing order of packet slacks, i.e., the time
-  remaining until each packet's deadline.  Packet slacks are
-  initialized at an end host or edge router and are decremented by the
-  wait time at each router's queue. We can program LSTF using a simple 
-  scheduling transaction:
+Least Slack-Time First (LSTF)~\cite{lstf,ups} schedules packets at each router
+in increasing order of packet slacks, \ie the time remaining until each
+packet's deadline.  Packet slacks are initialized at an end host or edge router
+and are decremented by the wait time at each router's queue. We can program
+LSTF using a simple scheduling transaction:
 \begin{lstlisting}[style=customc]
   p.rank  = p.slack + p.arrival_time
 \end{lstlisting}
 
-%At every router, we take the packet's arrival time and add it to the
-The addition of the packet's arrival time to the slack already carried
-in the packet ensures that packets are dequeued in order of their
-slack at the time of dequeue, not enqueue. Then, after packets are
-dequeued, we subtract the time at which the packet is dequeued from
-the packet's slack, which has the effect of decrementing the slack by
-the wait time at the router's queue. This subtraction can be achieved
-by programming the egress pipeline of a programmable router~\cite{rmt}
-to decrement one header field by another.
+The addition of the packet's arrival time to the slack already carried in the
+packet ensures that packets are dequeued in order of their slack at the time of
+dequeue, not enqueue. Then, after packets are dequeued, we subtract the time at
+which the packet is dequeued from the packet's slack, which has the effect of
+decrementing the slack by the wait time at the router's queue. This subtraction
+can be achieved by programming the egress pipeline to decrement one header
+field by another using the techniques from Chapter~\ref{chap:domino}.
 
 \subsection{Stop-and-Go Queueing}
 \label{ss:stopngo}
@@ -49,44 +40,40 @@ to decrement one header field by another.
 \label{fig:stopngo}
 \end{figure}
 
-Stop-and-Go Queueing~\cite{stopngo} is a non-work-conserving algorithm
-that provides bounded delays to packets using a framing strategy. Time
-is divided into non-overlapping frames of equal length \texttt{T}, where
-every packet arriving within a frame is transmitted at the end of the
-frame, smoothing out any burstiness in traffic patterns induced by
-previous hops.
+Stop-and-Go Queueing~\cite{stopngo} is a non-work-conserving algorithm that
+provides bounded delays to packets using a framing strategy. Time is divided
+into non-overlapping frames of equal length \texttt{T}, where every packet
+arriving within a frame is transmitted at the end of the frame, smoothing out
+any burstiness in traffic patterns induced by previous hops.
 
-The shaping transaction in Figure~\ref{fig:stopngo}
-specifies the scheme. {\tt frame\_begin\_time} and {\tt
-  frame\_end\_time} are two state variables that track the beginning
-and end of the current frame in wall-clock time.  When a packet is
-enqueued, its departure time is set to the end of the current frame.
-Multiple packets with the same departure time are sent out in first-in
-first-out order, as guaranteed by a PIFO's semantics for breaking ties
-with equal ranks (\S\ref{s:pifo}).
+The shaping transaction in Figure~\ref{fig:stopngo} can be used to program
+Stop-and-Go Queueing. {\tt frame\_begin\_time} and {\tt frame\_end\_time} are
+two state variables that track the beginning and end of the current frame in
+wall-clock time.  When a packet is enqueued, its departure time is set to the
+end of the current frame.  Multiple packets with the same departure time are
+sent out in first-in first-out order, as guaranteed by a PIFO's semantics for
+breaking ties with equal ranks (\S\ref{s:pifo}).
 
 \subsection{Minimum rate guarantees}
 \label{ss:min_rate}
 
-A common scheduling policy on many routers today is providing a
-minimum rate guarantee to a flow, provided the sum of such guarantees
-does not exceed the link capacity. A minimum rate guarantee can be
-programmed using PIFOs with a two-level PIFO tree, where the root of
-the tree implements strict priority scheduling across flows. Flows
-below their minimum rate are scheduled preferentially to flows above
-their minimum rate. Then, at the next level of the tree, the PIFOs
-implement the FIFO discipline for each flow.
+A common scheduling policy on many routers today is providing a minimum rate
+guarantee to a flow, provided the sum of such guarantees does not exceed the
+link capacity. A minimum rate guarantee can be programmed using PIFOs with a
+two-level PIFO tree, where the root of the tree implements strict priority
+scheduling across flows. Flows below their minimum rate are scheduled
+preferentially to flows above their minimum rate. Then, at the next level of
+the tree, the PIFOs implement the FIFO discipline for each flow.
 
-%In more detail, to program a minimum rate guarantee for a flow, 
-When a packet is enqueued, we execute a FIFO scheduling transaction at
-its leaf node, setting its rank to the wall-clock time on arrival. At
-the root, a PIFO reference (the packet's flow identifier) is pushed
-into the root PIFO using a rank that reflects whether the flow is
-above or below its rate limit after the arrival of the current
-packet. To determine this, we run the scheduling transaction in
-Figure~\ref{fig:min_rate} that uses a token bucket (the state variable
-{\tt tb}) that can be filled up until {\tt BURST\_SIZE} to decide if
-the arriving packet puts the flow above or below {\tt min\_rate}.
+When a packet is enqueued, we execute a scheduling transaction corresponding to
+the FIFO discipline at its leaf node, setting its rank to the wall-clock time
+on arrival. At the root, a PIFO reference (the packet's flow identifier) is
+pushed into the root PIFO using a rank that reflects whether the flow is above
+or below its rate limit after the arrival of the current packet. To determine
+this, we run the scheduling transaction in Figure~\ref{fig:min_rate} that uses
+a token bucket (the state variable {\tt tb}) that can be filled up until {\tt
+BURST\_SIZE} to decide if the arriving packet puts the flow above or below {\tt
+min\_rate}.
 
 \begin{figure}
   \begin{lstlisting}[style=customc]
@@ -105,7 +92,7 @@ the arriving packet puts the flow above or below {\tt min\_rate}.
   last_time = now
   p.rank = p.over_min
   \end{lstlisting}
-\caption{Scheduling transaction for min. rate guarantees.}
+\caption{Scheduling transaction for minimum rate guarantees.}
 \label{fig:min_rate}
 \end{figure}
 
@@ -149,7 +136,7 @@ programmed using PIFOs.
   that can be implemented using a combination of a rate
   regulator to shape traffic and a packet scheduler to schedule the
   shaped traffic. An RCSD algorithm can be programmed using PIFOs by
-  setting the rate regulator using a shaping transaction and the
+  programming the rate regulator using a shaping transaction and the
   packet scheduler using a scheduling transaction.
   
 \item \textbf{Incremental deployment.}
@@ -157,14 +144,13 @@ programmed using PIFOs.
   subset of their traffic. This can be programmed as a hierarchical
   scheduling algorithm, with one FIFO class dedicated to legacy
   traffic and another to experimental traffic. Within the experimental
-  class, an operator could program any scheduling tree. % (e.g., WFQ, LSTF, HPFQ).}
+  class, an operator could program any scheduling tree, \eg WFQ, LSTF, HPFQ.
 \end{CompactEnumerate}
 
 \subsection{Limitations}
 \label{pifo_ss:limitations}
 
-\noindent
-\textbf{Changing the scheduling order of all packets of a flow.} 
+\Para{Changing the scheduling order of all packets of a flow.} 
 Although a tree of PIFOs can enable algorithms where the relative scheduling order
 of buffered packets changes in response to new packet arrivals (\S\ref{ss:hpfq}), it
 does not permit arbitrary changes to the scheduling order of buffered
@@ -215,24 +201,22 @@ programming model attaches a single shaping and scheduling transaction
 to a tree node. This lets us enforce rate limits on a single node, but not
 across multiple nodes.
 
-As an example, PIFOs
-cannot express the following policy: WFQ on a set of flows A, B, and
-C, with the additional constraint that the aggregate throughput of A+B
-doesn't exceed 10 Mbit/s. One work around is to implement this as HPFQ
-across two classes C1 and C2, with C1 containing A and B, and C2
-containing C alone. Then, we enforce the rate limit of 10 Mbit/s on
-C1 as in Figure~\ref{fig:hshaping}. However, this isn't equivalent to our desired policy. More
-generally, our programming model for programmable scheduling
-establishes a one-to-one relationship between the scheduling and
-shaping transactions, which is constraining for some algorithms.
+As an example, PIFOs cannot express the following policy: WFQ on a set of flows
+A, B, and C, with the additional constraint that the aggregate throughput of
+A+B does not exceed 10 Mbit/s. One work around is to implement this as HPFQ
+across two classes C1 and C2, with C1 containing A and B, and C2 containing C
+alone. Then, we enforce the rate limit of 10 Mbit/s on C1 as in
+Figure~\ref{fig:hshaping}. However, this is not equivalent to our desired
+policy. More generally, our programming model for programmable scheduling
+establishes a one-to-one relationship between the scheduling and shaping
+transactions, which excludes some scheduling algorithms.
 
-\Para{Output rate limiting.} The PIFO abstraction enforces rate
-limits using a shaping transaction, which determines a packet or PIFO
-reference's scheduling time {\em before} it is enqueued into a PIFO.
-The shaping transaction permits rate limiting on the {\em input} side,
-i.e., before elements are enqueued. An alternate form of rate limiting
-is on the {\em output}, i.e., by limiting the rate at which elements
-are scheduled.
+\Para{Output rate limiting.} The PIFO abstraction enforces rate limits using a
+shaping transaction, which determines a packet or PIFO reference's scheduling
+time {\em before} it is enqueued into a PIFO.  The shaping transaction permits
+rate limiting on the {\em input} side, \ie before elements are enqueued. An
+alternate form of rate limiting is on the {\em output}, \ie by limiting the
+rate at which elements are scheduled.
 
 To illustrate the difference, consider a scheduling algorithm with two
 priority queues, \texttt{LO} and \texttt{HI}, where \texttt{LO} is to
@@ -244,9 +228,9 @@ assume packets from \texttt{HI} starve \texttt{LO} for a long
 period of time. During this time, packets from \texttt{LO}, after
 leaving the shaping PIFO, accumulate in the PIFO shared with
 \texttt{HI}. Now, if there are suddenly no more \texttt{HI} packets,
-all packets from \texttt{LO} are transmitted at line rate, and no
+all packets from \texttt{LO} are transmitted at line rate, and are no
 longer rate limited to 10 Mbit/s for a transient period of time,
-i.e., until all instances of \texttt{LO} are drained out of the PIFO
+\ie until all instances of \texttt{LO} are drained out of the PIFO
 shared with \texttt{HI}. Input rate limiting still provides long-term
 rate guarantees, while output rate limiting provides short-term
 guarantees as well.
