@@ -4,7 +4,10 @@
 * Be consistent with I vs. we
 * Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
 
+* Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
 * Decide whether we are calling it Marple or NetAMA for real. CAN BE DONE LATER
+* Maybe move text from pifo hotnets into the main text of the dissertation? (WISH LIST)
+
 * Move the NetAMA proofs into the appendix instead of a separate TR. DONE
 * Write an acks.tex (DONE)
 * Rewrite portions of text that refer to the Domino paper DONE
@@ -16,7 +19,5 @@
 * Rename Marple to NetAMA in figures (DONE)
 * Check that citations to PIFO cite the correct SIGCOMM 17 paper, not the older 1999 JSAC paper. (DONE)
 * Make chapter summaries more matter of fact and less philosophical (DONE)
-* Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
-* Maybe move text from pifo hotnets into the main text of the dissertation? (WISH LIST)
 * Consider using oneside for a tighter finish (IGNORE)
 * Dangling refs (DONE)
