@@ -53,15 +53,16 @@ switching.  Control flows from top to bottom. Stateful atoms are in grey.}
 \vspace{-0.35in}
 \end{figure}
 
-A programmer programs a data-plane algorithm by writing it as
-a packet transaction in \pktlanguage (Figure~\ref{fig:flowlet_code}).  The
-\pktlanguage compiler then compiles this transaction to an atom pipeline for a
-\absmachine machine (Figure~\ref{fig:flowlet_pipeline}). We first describe
-packet transactions in greater detail by walking through an example
-(\S\ref{ss:flowlet}). Next, we discuss language constraints in \pktlanguage
-(\S\ref{ss:constraints}) informed by line-rate routers.  We then discuss
-triggering packet transactions (\S\ref{ss:guards}) and handling multiple
-transactions (\S\ref{ss:multiple}).
+A programmer programs a data-plane algorithm by writing it as a packet
+transaction in \pktlanguage (Figure~\ref{fig:flowlet_code}).  The \pktlanguage
+compiler then compiles this transaction to an atom pipeline for a \absmachine
+machine (Figure~\ref{fig:flowlet_pipeline}). We first describe packet
+transactions in greater detail by walking through the example shown in
+Figure~\ref{fig:flowlet_code} (\S\ref{ss:flowlet}). Next, we discuss language
+constraints in \pktlanguage (\S\ref{ss:constraints}) informed by line-rate
+routers.  We then discuss how the execution of packet transactions is triggered
+(\S\ref{ss:guards}) and how we handle multiple transactions
+(\S\ref{ss:multiple}).
 
 \subsection{\pktlanguage by example}
 \label{ss:flowlet}
@@ -79,47 +80,52 @@ Figure~\ref{fig:flowlet_code} shows flowlet switching in \pktlanguage and
 demonstrates its core language constructs. All packet processing happens in the
 context of a packet transaction (the function \texttt{flowlet} starting at line
 17). The function's argument type {\tt Packet} declares the fields in a packet
-(lines 5--12)\footnote{A field is either a packet header, e.g.,
-source port ({\tt sport}) and destination port ({\tt dport}), or packet
- metadata ({\tt id}).} that can be referenced by the function body (lines
-18--32).  The function body can also modify persistent router state using
-global variables (e.g., \texttt{last\_time} and \texttt{saved\_hop} on lines 14
-and 15, respectively). The function body may use \textit{intrinsics} such as
-\texttt{hash2} on line 23 to directly access hardware accelerators on the
-router such as hash generators.  The \pktlanguage compiler uses an intrinsic's
-signature to analyze read/write dependencies (\S\ref{ss:pipelining}), but otherwise considers it a blackbox.
+(lines 5--12)\footnote{A field is either a packet header, \eg source port ({\tt
+sport}) and destination port ({\tt dport}), or packet metadata ({\tt id}).}
+that can be referenced by the function body (lines 18--32).  The function body
+can also modify persistent router state using global variables (\eg
+\texttt{last\_time} and \texttt{saved\_hop} on lines 14 and 15, respectively).
+The function body may use \textit{intrinsics} such as \texttt{hash2} on line 23
+to directly access hardware accelerators on the router such as hash generators.
+The \pktlanguage compiler uses an intrinsic's signature to analyze read/write
+dependencies (\S\ref{ss:pipelining}), but otherwise considers it a blackbox,
+and directly passes it to the underlying router chip for execution, much like
+intrinsics in GCC~\cite{intrinsics}.
 
 \medskip
 \noindent
 \textbf{Packet transaction semantics.}
-Semantically, the programmer views the router as invoking the packet transaction
-serially in the order in which packets arrive, with no concurrent packet
-processing.  Put differently, the packet transaction modifies the passed-in
-packet argument and runs to completion, before starting on the next packet.
-These semantics allow the programmer to program under the illusion that a
-single, extremely fast, processor is serially executing the packet processing code for
-all packets. The programmer doesn't worry about parallelizing the code within
-and across pipeline stages to run at line rate.
+Semantically, the programmer views the router as invoking the packet
+transaction serially in the order in which packets arrive, with no concurrent
+packet processing.  Put differently, the packet transaction modifies the
+passed-in packet argument and runs to completion, before starting on the next
+packet.  These semantics allow the programmer to program under the illusion
+that a single, extremely fast, processor is serially executing the packet
+processing code for all packets. The programmer doesn't worry about
+parallelizing the code within and across pipeline stages to run at the router's
+line rate.
 
 \subsection{The \pktlanguage language}
 \label{ss:constraints}
-\pktlanguage's syntax (Figure~\ref{fig:grammar}) is similar to C, but with
-several constraints (Table~\ref{tab:restrict}).  These constraints are required
-for deterministic performance.  Memory allocation, unbounded iteration counts,
-and unstructured control flow cause variable performance, which may prevent an
-algorithm from achieving line rate. Additionally, within a \pktlanguage transaction, 
-each array can only be accessed using a single packet field, and repeated accesses to the 
-same array are allowed only if that packet field is unmodified between accesses.
+\pktlanguage's syntax (Figure~\ref{fig:grammar}) is similar to an imperative
+language such as C, but with several constraints (Table~\ref{tab:restrict}).
+These constraints are required for deterministic performance.  Memory
+allocation, unbounded iteration counts, and unstructured control flow cause
+variable performance, which may prevent an algorithm from achieving the
+router's line rate.  Additionally, within a \pktlanguage transaction, each
+array can only be accessed using a single packet field, and repeated accesses
+to the same array are allowed only if that packet field is unmodified between
+accesses.
 %array modifications by mandating that a single execution of a transaction (the
 %execution of a transaction for a single packet) can access only one entry in an
 %array.
 
-For example, all read and write accesses to \texttt{last\_time} use the
-index \texttt{pkt.id}. \texttt{pkt.id} is not modified during the
-course of a single transaction execution (single packet); it only changes between executions
-(packets).  This restriction on arrays mirrors restrictions on the stateful memories
-attached to atoms (\S\ref{s:atomConstraints}), which require multiple ports to
-support distinct read and write addresses every clock cycle.
+For example, all read and write accesses to \texttt{last\_time} use the index
+\texttt{pkt.id}. \texttt{pkt.id} is not modified during the course of a single
+transaction execution (single packet); it only changes between executions
+(packets).  This restriction on arrays mirrors restrictions on the stateful
+memories attached to atoms (\S\ref{s:atomConstraints}), which require multiple
+ports to support distinct read and write addresses every clock cycle.
 
 \begin{table}
   \begin{tabular}{p{0.95\columnwidth}}
@@ -160,22 +166,22 @@ p \in \text{\pktlanguage programs} &::=& \{ d ; sv; t \}
 \label{fig:grammar}
 \end{figure}
 
-
-\subsection{Triggering packet transactions}
+%TODO: The below two subsections are quite weak
+\subsection{Triggering the execution of packet transactions}
 \label{ss:guards}
-Packet transactions specify \textit{how} to process packet headers and state.  To
-specify {\em when} to run packet transactions, programmers use {\em guards}:
-predicates on packet fields that trigger a transaction if a packet
-matches the guard. For example, {\tt (pkt.tcp\_dst\_port == 80)} would
-trigger heavy-hitter detection~\cite{opensketch} on packets with TCP
-destination port 80.
+Packet transactions specify \textit{how} to process packet headers and state.
+To specify {\em when} to execute packet transactions, programmers use {\em
+guards}: predicates on packet fields that trigger a transaction if a packet
+matches the guard. For example, {\tt (pkt.tcp\_dst\_port == 80)} would trigger
+heavy-hitter detection~\cite{opensketch} on packets with TCP destination port
+80.
 
 Guards can be realized using an exact match in a match-action table, with the
-actions being the atoms compiled from a packet transaction. Guards
-can take various forms, e.g., exact, ternary, longest-prefix, and range-based
-matches, depending on the matches supported by the match-action
-pipeline. Because guards map straightforwardly to the match key in a
-match-action table, we focus only on compiling packet transactions.
+actions being the atoms compiled from a packet transaction. Guards can take
+various forms, \eg exact, ternary, longest-prefix, and range-based matches,
+depending on the matches supported by the match-action pipeline. Because guards
+map straightforwardly to the match key in a match-action table, we focus only
+on compiling packet transactions.
 
 \subsection{Handling multiple transactions}
 \label{ss:multiple}
