@@ -1,17 +1,13 @@
 %\pagebreak
 %\section{Introduction}
 %\label{s:intro}
-Network routers in modern datacenters, enterprises, and service-provider
-networks perform many tasks in addition to standard packet forwarding. The set
-of requirements for routers has only increased with time as network operators
-seek greater control over performance.  Performance may be improved using both
-data-plane and control-plane mechanisms. This chapter focuses on data-plane
-algorithms. These algorithms process and transform packets, reading and
-writing state in the router. Examples include active queue
-management~\cite{red,avq,codel}, packet scheduling~\cite{wfq, pFabric}, congestion
-control with router feedback~\cite{xcp, rcp}, network
-measurement~\cite{opensketch, bitmap_george}, and data-plane traffic
-engineering~\cite{conga}.
+
+This chapter focuses on the hardware and software required to program
+data-plane algorithms on high-speed routers. These algorithms process and
+transform packets, reading and writing state in the router. Examples include
+active queue management~\cite{red,avq,codel}, congestion control with router
+feedback~\cite{xcp, rcp}, network measurement~\cite{opensketch, bitmap_george},
+and data-plane traffic engineering~\cite{conga}.
 
 An important requirement for data-plane algorithms is the ability to process
 packets at the router's line rate: 10--100 Gbit/s on 10--100 ports.  Therefore,
@@ -26,14 +22,16 @@ chips~\cite{trident, tomahawk, mellanox}, network operators deploying these
 routers~\cite{vl2, facebook, google}, and researchers developing new data-plane
 algorithms~\cite{conga, bitmap_george, xcp, rcp}.
 
-To run new data-plane algorithms after a router has been built, researchers and
-companies have attempted to build programmable routers for many years,
-starting from efforts on active networks~\cite{active-nets} to network
-processors~\cite{ixp4xx} to software routers~\cite{dpdk, click}. All these
-efforts sacrificed performance for programmability, typically running an order
-of magnitude (or worse) slower than hardware line rates. Unfortunately, this
-reduction in performance has meant that these systems are rarely deployed in
-production networks.
+%%
+%%To run new data-plane algorithms after a router has been built, researchers and
+%%companies have attempted to build programmable routers for many years,
+%%starting from efforts on active networks~\cite{active-nets} to network
+%%processors~\cite{ixp4xx} to software routers~\cite{dpdk, click}. All these
+%%efforts sacrificed performance for programmability, typically running an order
+%%of magnitude (or worse) slower than hardware line rates. Unfortunately, this
+%%reduction in performance has meant that these systems are rarely deployed in
+%%production networks.
+%%% Commenting the above paragraph because we say all this in intro.tex
 
 Programmable router chips~\cite{tofino, flexpipe, xpliant} competitive in
 performance with state-of-the-art fixed-function chips~\cite{trident, tomahawk,
@@ -43,22 +41,21 @@ pipeline, and are field-reconfigurable. Building a router with such a chip is
 attractive because it does not compromise on data rates~\cite{rmt}.
 
 In terms of programmability, these chips today allow the network operator to
-program packet parsing and forwarding, i.e., a programmer can program the set
-of protocol formats to be matched and the set of actions to be executed when
+program packet parsing and forwarding, \ie a programmer can program the set of
+protocol formats to be matched and the set of actions to be executed when
 matching packet headers in a match-action table. Languages such as P4~\cite{p4}
 are emerging as a way to express such match-action processing in a
-hardware-independent manner.
+hardware-independent manner. There is a gap between this form of
+programmability and the needs of data-plane algorithms. By contrast to packet
+forwarding, which doesn't modify state in the data plane, many data-plane
+algorithms create and modify {\em algorithmic state} in the router as part of
+packet processing.
 
-There is a gap between this form of programmability and the needs of data-plane
-algorithms. By contrast to packet forwarding, which doesn't modify state in the
-data plane, many data-plane algorithms create and modify {\em algorithmic
-state} in the router as part of packet processing.
-
-For such algorithms, programmability must directly capture the algorithm's
-intent without requiring the algorithm to be shoehorned into hardware
-primitives like a sequence of match-action tables. Indeed, the ability to
-directly capture an algorithm's intent pervades programming models for many
-other networking devices, e.g., software routers~\cite{click}, network
+For such algorithms, we believe that programmability must directly capture the
+algorithm's intent without requiring the algorithm to be shoehorned into
+hardware primitives like a sequence of match-action tables. Indeed, the ability
+to directly capture an algorithm's intent pervades programming models for many
+other networking devices, \eg software routers~\cite{click}, network
 processors~\cite{packetc}, and network endpoints~\cite{qdisc}.
 
 By studying the requirements of data-plane algorithms and the constraints of
@@ -74,45 +71,41 @@ Packet transactions have an \textit{all-or-nothing} guarantee: all packet
 transactions accepted by the packet transactions compiler will run at line
 rate, or be rejected.  There is no ``slippery slope'' of running network
 algorithms at lower speeds as with network processors or software routers: when
-compiled, a packet transaction runs at line rate, or not at all.  Performance
-is not just predictable, but guaranteed.
+compiled, a packet transaction runs at the router's line rate, or not at all.
+Performance is not just predictable, but guaranteed.
 
-\new{
-In realizing packet transactions, we make three new contributions.  First, {\em
-\absmachine}, a machine model for programmable line-rate
-routers~(\S\ref{s:absmachine}).  \absmachine models two important constraints
+This chapters makes three new contributions.  First, {\em \absmachine}, a
+machine model for programmable line-rate routers~(\S\ref{s:absmachine}).
+\absmachine is inspired by existing programmable router chips, but extends them
+with functionality required for state modifications in the router's ASIC.
+Specifically, \absmachine models two important constraints
 (\S\ref{s:atomConstraints}) for stateful line-rate operations: the inability to
 share state between different packet-processing units, and the requirement that
 any router state modifications be visible to the next packet entering the
 router. Based on these constraints, we introduce {\em atoms} to represent a
 programmable router's packet-processing units.
-}
 
-\new{
 Second, {\em \pktlanguage{}}, a new domain-specific language (DSL) for
 data-plane algorithms, with packet transactions at its core
 (\S\ref{s:transactions}).  \pktlanguage is an imperative language with C-like
 syntax, to our knowledge the first to offer such a high-level programming
 abstraction for line-rate routers.
-}
 
-\new{
 Third, {\em a compiler from \pktlanguage packet transactions to a \absmachine
 target}~(\S\ref{s:compiler}). The \pktlanguage compiler extracts {\em codelets}
 from  transactions: code fragments, which if executed atomically, guarantee a
 packet transaction's semantics. It then uses program
 synthesis~\cite{sketch_asplos} to map codelets to atoms, rejecting the
 transaction if the atom cannot execute the codelet.
-}
 
-We evaluate expressiveness by programming a variety of data-plane algorithms
-(Table~\ref{tab:algos}) in \pktlanguage and compare with P4. We find that
-\pktlanguage provides a more concise and natural programming model for stateful
-data-plane algorithms.  Next, because no existing programmable router supports
-the set of atoms required for our data-plane algorithms, we design a set of
-compiler targets for these algorithms based on \absmachine
-(\S\ref{ss:targets}).  We show that these targets are feasible in a 32-nm
-standard-cell library with $< 2\%$ cost in area relative to a 200
+We evaluate \pktlanguage's expressiveness by programming a variety of
+data-plane algorithms (Table~\ref{tab:algos}) in \pktlanguage and compare with
+P4. We find that \pktlanguage provides a more concise and natural programming
+model for stateful data-plane algorithms.  Next, because no existing
+programmable router supports the set of atoms required for our data-plane
+algorithms, we design a set of compiler targets for these algorithms based on
+\absmachine (\S\ref{ss:targets}).  We show that these targets are feasible in a
+32-nm standard-cell library with $< 2\%$ cost in area relative to a 200
 \si{\milli\metre\squared} baseline switching chip~\cite{gibb_parsing}.
 Finally, we compile data-plane algorithms written in \pktlanguage to these
 targets (\S\ref{domino_ss:compiler}) to show how a target's atoms determine the
@@ -120,8 +113,6 @@ algorithms it can support. We also distill with several lessons for
 programmable router design (\S\ref{ss:lessons}) based on our experience with
 \pktlanguage.
 
-\new{
 Code for the \pktlanguage compiler, the \absmachine machine model, and the code
 examples listed in Table~\ref{tab:algos} is available at
 \url{http://web.mit.edu/domino}.
-}
