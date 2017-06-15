@@ -4,8 +4,8 @@ This section describes the hardware implementation of our programmable
 scheduler. We discuss performance requirements
 (\S\ref{ss:performance}), the implementation of a PIFO block
 (\S\ref{ss:single_block}), and the full-mesh interconnect between them
-(\S\ref{ss:interconnect}).  Finally, we estimate the area overhead of
-our design (\S\ref{ss:feasibility}).
+(\S\ref{ss:interconnect}).  Finally, we estimate the additional chip area
+incurred by our design (\S\ref{ss:feasibility}).
 
 \subsection{Performance requirements}
 \label{ss:performance}
@@ -23,9 +23,9 @@ multiple logical PIFOs.}
  Based on these requirements, our baseline design targets a PIFO block that
 supports 64K packets and 1024 flows that can be shared across 256 logical
 PIFOs. Further, we target a 16-bit rank field and a 32-bit metadata field
-(e.g., {\tt p.length} in Figure~\ref{fig:sched_trans}) for our PIFO block.
+(\eg {\tt p.length} in Figure~\ref{fig:sched_trans}) for our PIFO block.
 We put 5 such blocks together into a 5-block PIFO mesh that can
-support up to 5 levels of hierarchy in a scheduling algorithm---sufficient for
+support up to 5 levels of hierarchy in a scheduling algorithm, sufficient for
 most practical hierarchical schedulers we know of.
 
 \begin{figure}[!t]
@@ -45,25 +45,25 @@ logical PIFO.  We first describe an implementation of a PIFO block with a
 single logical PIFO and then extend it to multiple logical PIFOs in the same
 block.
 
-One naive implementation is a single sorted array. An incoming element is
-compared against all array elements in parallel to determine a location for the
-new element, and then inserted there by shifting the array.  However, each
-comparison needs one comparator circuit, and supporting 64K of
-these is infeasible.
+A naive implementation of a single PIFO is a single sorted array. In this
+implementation, an incoming element would be compared against all array elements
+in parallel to determine a location for the new element, and then inserted
+there by shifting the array.  However, each comparison needs one comparator
+circuit, and supporting 64K parallel comparators is infeasible.
 
 At the same time, nearly all practical scheduling algorithms group packets into
 flows or classes,\footnote{\an{Last-In First-Out (LIFO) is a counterexample.
-We can handle LIFO by creating a new flow for every packet, if there are fewer
-than 1024 packets (flows) in the buffer at any time.}} e.g., based on
+We can handle LIFO by creating a new flow for every packet, so long as there are
+fewer than 1024 packets (flows) in the buffer at any time.}} \eg based on
 traffic type, ports, or addresses. They then schedule a flow's packets in FIFO
 order because packet ranks increase across a flow's consecutive packets.  This
 motivates a design with two parts (Figure~\ref{fig:pifo_impl}):
 \begin{CompactEnumerate}
-\item A {\em flow scheduler} that picks the element to dequeue based on the rank of the {\em
-head} (earliest) elements of each flow. \an{The flow scheduler is effectively a PIFO consisting
-of the head elements of all flows.}
-\item A {\em rank store}, a FIFO bank that stores the ranks of
-  elements beyond the head for each flow in FIFO order.
+\item A {\em flow scheduler} that picks the next element to dequeue based on
+the ranks of the {\em head} (earliest) elements of all flows. \an{The flow
+scheduler is effectively a PIFO consisting of the head elements of all flows.}
+\item A {\em rank store}, a FIFO bank that stores the ranks of elements beyond
+the head for each flow in FIFO order.
 \end{CompactEnumerate}
 
 This decomposition reduces the number of elements requiring sorting from the
@@ -73,21 +73,22 @@ in the rank store. For a flow's first element, we bypass the rank store and
 directly push it into the flow scheduler. To permit enqueues into this PIFO
 block, we also supply a flow ID argument to the enqueue operation.
 
-The FIFO bank needed for the rank store is a well-understood hardware
-design. Such FIFO banks are used to buffer packet payloads in routers and
-much engineering effort has gone into optimizing them.  As a result,
-we focus our implementation effort on the flow scheduler alone.
+The FIFO bank needed for the rank store is a well-understood hardware design.
+Such FIFO banks are used to buffer packet payloads in routers and much
+engineering effort has gone into optimizing them.  As a result, we focus our
+discussion here on the flow scheduler alone.
 
-\Para{The Flow Scheduler.}
+\Para{The flow scheduler.}
 The flow scheduler sorts an array of flows using the ranks of the head elements
-in each flow. It supports one enqueue {\em and} one dequeue to its enclosing
+of all flows. It supports one enqueue {\em and} one dequeue to its enclosing
 PIFO block every clock cycle, which translates into the following operations on
 the flow scheduler every clock cycle.
 \begin{CompactEnumerate}
-  \item Enqueue operation: Inserting a flow when the flow goes from empty to
-  non-empty.
-\item Dequeue operation: Removing a flow that empties once it is
-  scheduled, (or) removing and reinserting a flow with the rank of the
+  \item Enqueue operation: Inserting a flow into the flow scheduler 
+  when the flow goes from empty to non-empty.
+\item Dequeue operation: Removing a flow from the flow scheduuler that
+  empties once it is scheduled, (or) removing and reinserting a flow into
+  the flow scheduler with the rank of the
   next element if the flow is still backlogged.
 \end{CompactEnumerate}
 
@@ -102,8 +103,9 @@ These primitives access all of the flow scheduler's elements in parallel. To
 facilitate this, we implement the flow scheduler in flip flops, unlike the rank
 store, which is in SRAM.
 
-The flow scheduler is a sorted array, where a push is implemented by executing the
-three steps below (Figure~\ref{fig:flow_scheduler}).
+The flow scheduler is organized in hardware as a sorted array, where a push is
+implemented by executing the three steps below
+(Figure~\ref{fig:flow_scheduler}).
 \begin{CompactEnumerate}
 \item Compare the incoming rank against all ranks in the array in parallel, using a comparator.
   This produces a bit mask of comparison results indicating if the incoming rank
@@ -117,10 +119,10 @@ A pop is implemented by shifting the head element out of the sorted array.
 So far, we have focused on a flow scheduler implementation handling a single
 logical PIFO. To handle multiple logical PIFOs, we keep elements sorted by
 rank, regardless of the logical PIFO they belong to; hence, the push logic
-doesn't change.  To pop from a specific logical PIFO, we compare against all elements to
-find elements with that logical PIFO ID. Among these, we find the first
-using a priority encoder, and remove this element by shifting the array. The
-rank store implementation doesn't change when introducing logical PIFOs;
+does not change.  To pop from a specific logical PIFO, we compare against all
+elements to find elements with that logical PIFO ID. Among these, we find the
+first using a priority encoder, and remove this element by shifting the array.
+The rank store implementation does not change when introducing logical PIFOs;
 however, we do require that a flow belong to exactly one logical PIFO.
 
 %parallel and pipelined
@@ -168,52 +170,53 @@ still permitted every cycle.
 
 An interconnect between PIFO blocks allows PIFO blocks to enqueue into and
 dequeue from other blocks. Because the number of PIFO blocks is small, we
-provide a full mesh between them. For a 5-block PIFO mesh as in our baseline design, this requires
-5*4 = 20 sets of wires between PIFO blocks. Each set carries all the inputs
-required for specifying an enqueue and dequeue operation on a PIFO block.
+provide a full mesh between them. For a 5-block PIFO mesh as in our baseline
+design, this requires 5*4 = 20 sets of wires between PIFO blocks. Each set
+carries all the inputs required for specifying an enqueue and dequeue operation
+on a PIFO block.
 
-For our baseline design (\S\ref{ss:performance}), for an enqueue, we require a logical PIFO ID (8 bits),
-the element's rank (16 bits), the element meta data (32 bits), and the flow ID
-(10 bits). For a dequeue, we need a logical PIFO ID (8 bits) and wires to store
-the dequeued element's metadata field (32 bits).  This adds up to 106 bits per set of wires, or
-2120 bits for the mesh. This is a small number of wires for a
-chip.  For example, RMT's match-action pipeline uses 4000 1-bit wires between a
-{\em a pair of pipeline stages} to move its 4K packet header vector between
-stages~\cite{rmt}. 
+For our baseline design (\S\ref{ss:performance}), for an enqueue, we require a
+logical PIFO ID (8 bits), the element's rank (16 bits), the element meta data
+(32 bits), and the flow ID (10 bits). For a dequeue, we need a logical PIFO ID
+(8 bits) and wires to store the dequeued element's metadata field (32 bits).
+This adds up to 106 bits per set of wires, or 2120 bits for the mesh. This is a
+small number of wires for an entire chip.  For example, RMT's match-action pipeline
+uses 4000 1-bit wires between a {\em a pair of pipeline stages} to move its 4K
+packet header vector between stages~\cite{rmt}. 
 
 \subsection{Area overhead}
 \label{ss:feasibility}
 
-\an{Because we target a shared-memory router, the scheduling logic is shared
+Because we target a shared-memory router, the scheduling logic is shared
 across ports and a single PIFO mesh services an entire router. Therefore, to
 estimate the area overhead of a programmable scheduler, we estimate the area
 overhead of a single PIFO mesh. Our overhead does not have to be multiplied by
 the number of ports and is the same for two shared-memory routers with equal
-aggregate packet rates, e.g., a 6-port 100G router and a 60-port 10G router.}
+aggregate packet rates, \eg a 6-port 100G router and a 60-port 10G router.
 
 %TODO: Why are next-hop tables small?
-\an{To determine the area of a PIFO mesh, we compute the area of a single PIFO
+To determine the area of a PIFO mesh, we compute the area of a single PIFO
 block and multiply it by the number of blocks because the area of the
-interconnect is negligible.  For a single block's area, we separately estimate
-areas for the rank store, atom pipelines, and flow scheduler, and ignore the
-area of the small next-hop lookup tables.  We estimate the rank store's area by
-using SRAM estimates~\cite{sram_estimate}, the atom pipeline's area using
-the individual atom area numbers from Table~\ref{tab:templates}, and the flow
-scheduler's area by implementing it in Verilog~\cite{system_verilog} and
-synthesizing it to gate-level netlist in a 16-nm standard cell library using
-the Cadence Encounter RTL Compiler~\cite{cadence_rc}. The RTL Compiler also
-verifies that the flow scheduler meets timing at 1 GHz.}
+interconnect itself is negligible.  For a single block's area, we separately
+estimate areas for the rank store, atom pipelines, and flow scheduler, and
+ignore the area of the small next-hop lookup tables.  We estimate the rank
+store's area by using SRAM estimates~\cite{sram_estimate}, the atom pipeline's
+area using the individual atom area numbers from Table~\ref{tab:templates}, and
+the flow scheduler's area by implementing it in Verilog~\cite{system_verilog}
+and synthesizing it to gate-level netlist in a 16-nm standard cell library
+using the Cadence Encounter RTL Compiler~\cite{cadence_rc}. The RTL Compiler
+also verifies that the flow scheduler meets timing at 1 GHz.
 
 Overall, our baseline design consumes about 7.35 \si{\milli\metre\squared} of
 chip area (Table~\ref{tab:area_overheads}). This is about 3.7\% of the chip
 area of a typical router chip, using the minimum chip area estimate of 200
 \si{\milli\metre\squared} provided by Gibb et al.~\cite{glen_parsing}. In
 return for this 3.7\%, we get a significantly more flexible packet scheduler
-than current routers, which provide {\em fixed} two or three-level
-hierarchical scheduling. \an{Our 3.7\% area overhead is similar to the overhead
-for other programmable router functions, e.g., 2\% for
-programmable parsing~\cite{glen_parsing} and 15\% for programmable header
-processing~\cite{rmt}.}
+than current routers, which provide {\em fixed} two or three-level hierarchical
+scheduling. Our 3.7\% area overhead is similar to the overhead for other
+programmable router functions, \eg 2\% for programmable
+parsing~\cite{glen_parsing} and 15\% for programmable header
+processing~\cite{rmt}.
  
 \begin{table}[!h]
   \centering
@@ -317,9 +320,9 @@ fairness is directly correlated with how up-to-date the \texttt{virtual\_time}
 information on the enqueue side is.  }
 
 \Para{Buffer management.}
-Our design focuses on programmable scheduling and does not manage the allocation
-of a router's data buffer across flows.  Buffer management can use
-static buffer limits for each flow. The limits can also be dynamic, e.g.,
+Our design focuses on programmable scheduling and does not manage the
+allocation of a router's data buffer across flows.  Buffer management can use
+static buffer limits for each flow. The limits can also be dynamic, \eg
 RED~\cite{red} and dynamic buffer sizing~\cite{broadcom_dynamic}.
 
 In a shared-memory router, buffer management is orthogonal to scheduling,
