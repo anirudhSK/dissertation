@@ -7,6 +7,7 @@
 * Don't keep saying today in the text
 * Check that there are no e.g.,, in the text
 * domino_banzai.tex could use some more work
+* Don't need to overdo the C-like re: Domino. Instead, call it an imperative DSL.
 
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
 * Decide whether we are calling it Marple or NetAMA for real. CAN BE DONE LATER
