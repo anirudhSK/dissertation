@@ -1,15 +1,8 @@
 \section{A programming model for packet scheduling}
 \label{s:pifo}
 
-For work-conserving scheduling algorithms, the characteristic feature
-is the order in which packets are scheduled; for non-work-conserving
-ones, it is the time at which each packet is sent. Moreover, for most
-algorithms used in practice, these two decisions can be determined
-definitively when a packet is enqueued into the packet
-buffer~\cite{pifo_hotnets}.
-
-Our programming model is built around this observation and has two
-underlying components:
+Our programming model is built around the idea that the scheduling order or
+time for many schedulers can be determined at enqueue. It has two components:
 \begin{CompactEnumerate}
 \item The {\em push-in first-out queue (PIFO)}~\cite{pifo}, which
   maintains the scheduling order or scheduling time for enqueued
@@ -20,13 +13,10 @@ underlying components:
   element enqueued earlier is dequeued first.
 
 \item The computation of an element's rank before it is enqueued into
-  a PIFO. We model this computation as a {\em packet
-    transaction}~(\S\ref{s:transactions}), an atomically executed block
+  a PIFO. We model this computation as a packet
+    transaction~(\S\ref{s:transactions}), an atomically executed block
   of code that is executed once for each element before enqueuing it
-  in a PIFO.\footnote{Recall from \S\ref{s:transactions} that any state
-    visible on the router after processing $N$ consecutive packets is
-    identical to a serial execution of the transactions across the $N$
-    packets in order of packet arrival.}
+  in a PIFO.
 \end{CompactEnumerate}
 
 We note that scheduling with the PIFO abstraction does not require packets to be
@@ -44,7 +34,7 @@ p.rank = p.start
 \end{lstlisting}
 \caption{Scheduling transaction for STFQ. {\tt p.x} refers to a packet
   field {\tt x} in packet {\tt p}.  {\tt y} refers to a state variable
-  that is persisted on the router across packets, e.g., {\tt last\_finish}
+  that is persisted on the router across packets, \eg {\tt last\_finish}
   and {\tt virtual\_time} in this snippet. {\tt p.rank} denotes the
   packet's computed rank.}
 \label{fig:sched_trans}
@@ -99,27 +89,24 @@ non-work-conserving scheduling algorithms~(\S\ref{ss:hshaping}).
 \subsection{Scheduling transactions}
 \label{ss:wfq}
 
-A {\em scheduling transaction} is a block of code associated with a
-PIFO that is executed once for each packet before the packet is
-enqueued. The scheduling transaction computes the packet's rank, which
-determines its position in the PIFO.  
-%Scheduling transactions can be used to program work-conserving
-%scheduling algorithms. In particular,
-A single scheduling transaction and PIFO are sufficient to specify any
-scheduling algorithm where the relative scheduling order of packets
-already in the buffer does not change with the arrival of future
-packets.
+A {\em scheduling transaction} is a block of code associated with a PIFO that
+is executed once for each packet before the packet is enqueued. The scheduling
+transaction computes the packet's rank, which determines its position in the
+PIFO. Scheduling transactions can be used to program work-conserving scheduling
+algorithms. In particular, a single scheduling transaction and PIFO are
+sufficient to specify any scheduling algorithm where the relative scheduling
+order of packets already in the buffer does not change with the arrival of
+future packets.
 
-Weighted Fair Queueing (WFQ)~\cite{wfq} is one example. It achieves weighted
-max-min allocation of link capacity across flows\footnote{We define a flow to
-be any set of packets sharing
-common values for specific packet fields.} sharing a link.  Approximations to
-WFQ\footnote{\an{An approximation is required because the original WFQ
-algorithm~\cite{wfq} has a complex virtual time calculation.}} include Deficit
-Round Robin (DRR)~\cite{drr}, Stochastic Fairness Queueing (SFQ)~\cite{sfq},
-and Start-Time Fair Queueing (STFQ)~\cite{stfq}. We consider STFQ here, and
-show how to program it using the scheduling transaction in
-Figure~\ref{fig:sched_trans}.
+WFQ, described earlier (\S\ref{ss:decon_wfq}), is one example. It achieves
+weighted max-min allocation of link capacity across flows\footnote{We define a
+flow to be any set of packets sharing common values for specific packet
+fields.} sharing a link.  Approximations to WFQ\footnote{\an{An approximation
+is required because the original WFQ algorithm~\cite{wfq} has a complex virtual
+time calculation.}} include Deficit Round Robin (DRR)~\cite{drr}, Stochastic
+Fairness Queueing (SFQ)~\cite{sfq}, and Start-Time Fair Queueing
+(STFQ)~\cite{stfq}. We consider STFQ here, and show how to program it using the
+scheduling transaction in Figure~\ref{fig:sched_trans}.
 
 %\footnote {STFQ is identical to the
 %  original WFQ algorithm~\cite{wfq}, but has a more practical virtual
@@ -140,6 +127,8 @@ start time of the last dequeued packet across all flows
 on enqueue). Packets are scheduled in order of increasing virtual
 start times, which is the packet's rank in the PIFO.
 
+%TODO: Bit of repetition with the previous section
+
 \subsection{Scheduling trees}
 \label{ss:hpfq}
 
@@ -158,7 +147,8 @@ example; the number on each child indicates its weight relative to its
 siblings.  HPFQ cannot be realized using a single scheduling
 transaction and PIFO because the relative scheduling order of packets
 that are already buffered can change with future packet arrivals
-(Section 2.2 of the HPFQ paper~\cite{hpfq} provides an example).
+(Section 2.2 of the HPFQ paper~\cite{hpfq} provides an example illustrating
+how this can happen.).
 
 %\hb{Can we
 %  provide the example here?}
@@ -170,7 +160,7 @@ scheduling transaction attached to each PIFO in the tree. To see how,
 observe that HPFQ executes WFQ at each level of the hierarchy, with
 each node using WFQ among its children. As discussed in
 \S\ref{ss:wfq}, a single PIFO encodes the current scheduling order for
-WFQ, i.e., the scheduling order if there are no further
+WFQ, \ie the scheduling order if there are no further
 arrivals. Similarly, a tree of PIFOs (Figure~\ref{fig:pifo_encoding}),
 where each PIFO's elements are either packets or references to other
 PIFOs, can be used to encode the current scheduling order of HPFQ and
