@@ -3,26 +3,28 @@
 
 The \pktlanguage compiler translates \pktlanguage programs to \absmachine
 targets. The compiler provides an {\em all-or-nothing model}: if compilation
-succeeds, the program will run at line rate on the target with packet
+succeeds, the program will run at the target's line rate with packet
 transaction semantics. Otherwise, if the program cannot run at line rate, it
 will not compile. This all-or-nothing model trades off diminished
 programmability for guaranteed line-rate performance, in contrast to software
 routers that provide greater flexibility, but lower and unpredictable run-time
 performance~\cite{dobrescu2012}.
 
+%TODO: Expand on tac here?
+%TODO: PVSM might be excessive here. Consider simplifying.
 The \pktlanguage compiler has three passes (Figure~\ref{fig:passes}), which we
 illustrate using the flowlet switching example.  \textit{Preprocessing}
 (\S\ref{ss:preprocessing}) simplifies packet transactions into a simpler
-three-address code form~\cite{tac}.
-\textit{Pipelining} (\S\ref{ss:pipelining}) transforms preprocessed code into
-code for a \textit{Pipelined Virtual Router Machine (PVSM)}, an intermediate
+three-address code form~\cite{tac}.  \textit{Pipelining}
+(\S\ref{ss:pipelining}) transforms preprocessed code into code for a
+\textit{Pipelined Virtual Router Machine (PVSM)}, an intermediate
 representation that models a router pipeline with no computational or resource
 limits. \textit{Code generation} (\S\ref{ss:code_gen}) transforms this
 intermediate representation into configuration for a \absmachine machine, given
 the machine's computational and resource limits (\S\ref{s:atomConstraints}),
-and rejects the program if it can not run at line rate.  The \pktlanguage
-compiler uses many existing compilation techniques, but adapts
-them in important ways for line-rate routers (\S\ref{ss:related_compiler}).
+and rejects the program if it can not run at the target's line rate.  The
+\pktlanguage compiler uses many existing compilation techniques, but adapts
+them in important ways to suit line-rate routers (\S\ref{ss:related_compiler}).
 
 \begin{figure}[!t]
   \centering
@@ -37,9 +39,9 @@ them in important ways for line-rate routers (\S\ref{ss:related_compiler}).
 \medskip
 \noindent
 \textbf{Branch removal.} A packet transaction's body can contain (potentially
-nested) branches (e.g., Lines~\ref{line:ifStart} to \ref{line:ifEnd} in
+nested) branches (\eg lines~\ref{line:ifStart} to \ref{line:ifEnd} in
 Figure~\ref{fig:flowlet_code}).  Branches alter control flow and complicate
-dependency analysis, i.e.,  whether a statement should precede another.  We
+dependency analysis, \ie whether a statement should precede another.  We
 transform branches into conditional assignments, starting from the innermost
 \texttt{if} and proceeding outwards (Figure~\ref{fig:if_convert}).  This turns
 the transaction body into straight-line code with no branches, which simplifies
@@ -48,17 +50,18 @@ dependency analysis during pipelining (\S\ref{ss:pipelining}).
 \medskip
 \noindent
 \textbf{Rewriting state variable operations.} We now identify state variables
-in a packet transaction, e.g., \texttt{last\_time} and \texttt{saved\_hop} in
+in a packet transaction, \eg \texttt{last\_time} and \texttt{saved\_hop} in
 Figure~\ref{fig:flowlet_code}.  For each state variable, we create a
-\textit{read flank} to read the variable into a temporary packet field.
-For an array, we also move the index expression into the read flank using the
-fact that only one array index is accessed per packet (\S\ref{ss:constraints}).
+\textit{read flank} to read the variable into a temporary packet field.  For an
+array, we also move the index expression into the read flank using the fact
+that only one array index is accessed per packet (\S\ref{ss:constraints}).
 Within the packet transaction, we replace the state variable with the temporary
 packet field, and create a \textit{write flank} to write this temporary packet
 field back to the state variable~(Figure~\ref{fig:stateful_flanks}). After
 this, the only operations on state variables are reads and writes; all
-arithmetic happens on packet fields. Restricting stateful operations simplifies
-handling of state during pipelining (\S\ref{ss:pipelining}).
+arithmetic happens on packet fields. Restricting stateful operations to just
+reads and writes simplifies handling of state during pipelining
+(\S\ref{ss:pipelining}).
 
 \medskip
 \noindent
@@ -77,22 +80,22 @@ representation where all instructions are either reads/writes into state
 variables or operations on packet fields of the form \texttt{pkt.f1 = pkt.f2 op
 pkt.f3}, where \texttt{op} can be an arithmetic, logical, relational, or
 conditional \footnote{Conditional operations alone have four arguments.}
-operator.  We also allow either one of {\tt pkt.f2} or {\tt pkt.f3} to be an
+operator. We also allow either one of {\tt pkt.f2} or {\tt pkt.f3} to be an
 intrinsic function call.  To convert to three-address code, we flatten
-expressions that are not in three-address code using
-temporary packet fields, e.g., {\tt pkt.tmp2} in Figure~\ref{fig:three_address}.
+expressions that are not in three-address code using temporary packet fields,
+\eg {\tt pkt.tmp2} in Figure~\ref{fig:three_address}.
 
-Flattening to three-address code breaks down
-statements in the packet transaction into a much simpler form that is closer
-to the atoms available in the \absmachine machine. For instance, there are no
-nested expressions. The simpler form of three-address code statements
-makes it easier to map them one-to-one to atoms during code generation (\S\ref{ss:code_gen}).
+Flattening to three-address code breaks down statements in the packet
+transaction into a much simpler form that is closer to the atoms available in
+the \absmachine machine. For instance, there are no nested expressions. The
+simpler form of three-address code statements makes it easier to map them
+one-to-one to atoms during code generation (\S\ref{ss:code_gen}).
 %\ac{I don't think it's any easier conceptually 
 %since we are using sketch to find the mapping. But it might be easier to write 
 %the mapping sketch code.}
 % I agree. That's what I meant here. E.g., the stateless codelets correspond directly to the instructions available.
 % Otherwise, we might have to break up codelets into multiple atoms and worry about how to do that.
-
+%TODO: Does it actually make the mapping problem easier?
 % Anirudh->Alvin: Can you check the above paragraph?
 
 \subsection{Pipelining}
@@ -103,23 +106,22 @@ Pipelining turns this sequential code block into a pipeline of
 code statements. This codelet pipeline corresponds to an intermediate
 representation we call the \textit{Pipelined Virtual Router Machine (PVSM)}.
 PVSM has no computational or resource limits, analogous to intermediate
-representations for CPUs~\cite{llvm} that have infinite virtual
-registers. Later, during code generation, we map these codelets to atoms
-available in a \absmachine machine while respecting its constraints.
+representations for CPUs~\cite{llvm} that have infinite virtual registers.
+Later, during code generation, we map these codelets to atoms available in a
+\absmachine machine while respecting its constraints.
 
-\new{
 We create PVSM's codelet pipeline using the steps below.
 \begin{CompactEnumerate}
   \item Create a graph with one node for each statement in the preprocessed code.
   \item Now, add {\em stateful dependencies} by adding a pair of edges between
-    the read and write flanks of the same state variable, e.g., in
+    the read and write flanks of the same state variable, \eg in
     Figure~\ref{fig:partitioning_before}, the node pair {\tt pkt.last\_time =
     last\_time[pkt.id]} and {\tt last\_time[pkt.id] = pkt.arrival}. Because of
     preprocessing, all stateful operations are paired up as read and write flanks.
     Hence, there is no risk of a ``stranded'' stateful operation.
   \item Now, add {\em stateless dependencies} by adding an edge from any node
     that writes a packet variable to any node that reads the same packet variable,
-    e.g., from {\tt pkt.tmp = pkt.arrival - pkt.last\_time} to {\tt pkt.tmp2 =
+    \eg from {\tt pkt.tmp = pkt.arrival - pkt.last\_time} to {\tt pkt.tmp2 =
     pkt.tmp > THRESH} in Figure~\ref{fig:partitioning_before}. We only check read-after-write dependencies because
     write-after-read and write-after-write dependencies don't exist after SSA, and
     we eliminate control dependencies~\cite{ssa} through branch removal.
@@ -287,9 +289,6 @@ moved into the read flank.}
 \label{fig:pipelining}
 \end{figure*}
 
-
-
-
 \subsection{Code generation}
 \label{ss:code_gen}
 
@@ -298,7 +297,7 @@ consider two constraints specified by any \absmachine machine
 (\S\ref{s:atomConstraints}).  Resource limits specify the number of atoms in a
 stage (pipeline width) and number of stages (pipeline depth), while
 computational limits specify the atom templates provided by a \absmachine
-machine.
+machine and limit what computations can be carried out by an atom.
 
 \medskip
 \noindent
@@ -329,22 +328,20 @@ mapping problem is equivalent to searching for values of the atom's configuratio
 parameters that result in the atom implementing the codelet.
 
 We use the SKETCH program synthesizer~\cite{sketch_asplos} for this purpose, as
-the atom templates can be easily expressed using SKETCH. SKETCH also
-provides efficient search algorithms and has been used for similar purposes in
-other domains~\cite{lifejoin, qbs}. As an
-illustration, assume we want to map the codelet {\tt x=x+1} to the atom
-template shown in Figure~\ref{fig:alu_in_sketch}. SKETCH will search for
-possible parameter values so that the resulting atom is functionally identical
-to the codelet, for all possible input values of {\tt x} up to a certain bound. 
-In this case, SKETCH
-finds the solution with {\tt choice=0} and {\tt constant=1}.  In contrast, if
-the specification is the codelet {\tt x=x*x}, SKETCH will return
+the atom templates can be easily expressed using SKETCH. SKETCH also provides
+efficient search algorithms and has been used for similar purposes in other
+domains~\cite{lifejoin, qbs}. As an illustration, assume we want to map the
+codelet {\tt x=x+1} to the atom template shown in
+Figure~\ref{fig:alu_in_sketch}. SKETCH will search for possible parameter
+values so that the resulting atom is functionally identical to the codelet, for
+all possible input values of {\tt x} up to a certain bound.  In this case,
+SKETCH finds the solution with {\tt choice=0} and {\tt constant=1}.  In
+contrast, if the specification is the codelet {\tt x=x*x}, SKETCH will return
 an error as no parameters exist.
 
-Using program synthesis for code generation frees the compiler developer from implementing
-custom code generators for different \absmachine machines.
-Instead, the
-compiler developer only has to express the \absmachine machine's
+Using program synthesis for code generation frees the compiler developer from
+implementing custom code generators for different \absmachine machines.
+Instead, the compiler developer only has to express the \absmachine machine's
 atom templates using SKETCH, and the SKETCH synthesizer automatically maps
 codelets to atoms.
 
@@ -361,22 +358,21 @@ compilation techniques and prior work. The use of Strongly Connected Components
 architectures~\cite{software_pipelining}. The size of the largest SCC affects
 the {\em maximum throughput} of the pipelined loop in software pipelining. For
 \pktlanguage, it affects the {\em circuit area} of the atom required to run a
-program at line rate. \pktlanguage trades off an increase in space for
-line-rate performance.
+program at the target's line rate. \pktlanguage trades off an increase in space
+for line-rate performance.
 
 Program synthesis was used for code generation in
 Chlorophyll~\cite{chlorophyll}.  Code generation for \pktlanguage also shares
-similar goals to technology mapping~\cite{micheli} and
-instruction selection~\cite{dragonbook}.  However, prior work maps a code sequence
-to \textit{multiple} instructions/tiles, using heuristics to minimize
-instruction count. Domino's problem is simpler: we map each codelet to a single
-atom using SKETCH.  The simpler problem allows a non-heuristic solution: if
-there is any way to map the codelet to an atom, SKETCH will find it.
+similar goals to technology mapping~\cite{micheli} and instruction
+selection~\cite{dragonbook}.  However, prior work maps a code sequence to
+\textit{multiple} instructions/tiles, using heuristics to minimize instruction
+count. Domino's problem is simpler: we map each codelet to a single atom using
+SKETCH.  The simpler problem allows a non-heuristic solution: if there is any
+way to map the codelet to an atom, SKETCH will find it.
 
-Branch removal resembles If-Conversion~\cite{if_conversion}, a
-technique used in vectorizing compilers. This procedure is easier in Domino
-because there is no backward control transfer ({\tt goto}, {\tt break},
-{\tt continue}).
+Branch removal resembles If-Conversion~\cite{if_conversion}, a technique used
+in vectorizing compilers. This procedure is easier in Domino because there is
+no backward control transfer ({\tt goto}, {\tt break}, {\tt continue}).
 
 \begin{table}[!t]
   \centering
