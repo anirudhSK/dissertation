@@ -78,9 +78,7 @@ design. Such FIFO banks are used to buffer packet payloads in routers and
 much engineering effort has gone into optimizing them.  As a result,
 we focus our implementation effort on the flow scheduler alone.
 
-\medskip
-\noindent
-\textbf{The Flow Scheduler.}
+\Para{The Flow Scheduler.}
 The flow scheduler sorts an array of flows using the ranks of the head elements
 in each flow. It supports one enqueue {\em and} one dequeue to its enclosing
 PIFO block every clock cycle, which translates into the following operations on
@@ -277,9 +275,7 @@ flows. The flow scheduler meets timing until 2048 flows.}
 \label{tab:num_flows}
 \end{table}
 
-\medskip
-\noindent
-\textbf{Varying the flow scheduler's parameters from the baseline.}
+\Para{Varying the flow scheduler's parameters from the baseline.}
 The flow scheduler has four parameters: rank width, metadata width, number of
 logical PIFOs, and number of flows. Among these, increasing the number of flows
 has the most impact on whether the flow scheduler meets timing at 1 GHz.  \an{This
@@ -309,9 +305,7 @@ increasing the metadata width to 64 bits increases it to 0.317
 \subsection{Additional implementation concerns}
 \label{ss:add_impl}
 
-\medskip
-\noindent
-\textbf{Coordination between enqueue and dequeue.}
+\Para{Coordination between enqueue and dequeue.}
 \an{ When computing packet ranks on enqueue, some scheduling algorithms access
 state modified on packet dequeues. An example is STFQ (\S\ref{ss:wfq}) that
 accesses the \texttt{virtual\_time} variable when computing a packet's virtual
@@ -322,9 +316,7 @@ and dequeue views of the same state: for STFQ, the degree of short-term
 fairness is directly correlated with how up-to-date the \texttt{virtual\_time}
 information on the enqueue side is.  }
 
-\medskip
-\noindent
-\textbf{Buffer management.}
+\Para{Buffer management.}
 Our design focuses on programmable scheduling and does not manage the allocation
 of a router's data buffer across flows.  Buffer management can use
 static buffer limits for each flow. The limits can also be dynamic, e.g.,
@@ -336,9 +328,7 @@ buffer. Before a packet is enqueued into the scheduler, if any counter
  exceeds a static or dynamic threshold, the packet is dropped. A similar
 design for buffer management could be used with a PIFO-based scheduler as well.
 
-\medskip
-\noindent
-\textbf{Priority Flow Control.}
+\Para{Priority Flow Control.}
 Priority Flow Control (PFC)~\cite{pfc} is a standard that allows a router to
 send a {\em pause} message to an upstream router requesting it to cease
 transmission of packets belonging to particular flows. PFC can be integrated
@@ -347,9 +337,7 @@ during the dequeue operation if they have been paused because of a PFC pause
 message, and unmasking them when a PFC {\em resume} message is received.
 %TODO: Amy's comment. Maybe explain the masking/unmasking process.
 
-\medskip
-\noindent
-\textbf{Multi-pipeline routers.}
+\Para{Multi-pipeline routers.}
 The highest end routers today, such as the Broadcom Tomahawk~\cite{tomahawk},
 support aggregate capacities exceeding 3 Tbit/sec. At a minimum packet size of
 64 bytes, this corresponds to an aggregate packet rate of \textasciitilde6

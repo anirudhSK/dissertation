@@ -92,9 +92,7 @@ area overhead they incur in silicon. Next, we discuss the design of stateless
 and stateful atoms separately. Finally, we discuss how these stateless and
 stateful atoms are combined together in our compiler targets.
 
-\medskip
-\noindent
-\textbf{Atom feasibility.}
+\Para{Atom feasibility.}
 We synthesize a digital circuit corresponding to an atom template by writing
 the atom template in Verilog, and using the Synopsys Design
 Compiler~\cite{synopsys_dc} to compile the Verilog code. The Design Compiler
@@ -107,9 +105,7 @@ multiple instances of this atom.
 % (a library of primitive gates designed using a
 %transistor with a feature size of 32 nm)
 
-\medskip
-\noindent
-\textbf{Designing stateless atoms.}
+\Para{Designing stateless atoms.}
 Stateless atoms are easier to design because arbitrary stateless operations can
 be broken up into multiple pipeline stages without violating
 atomicity~(\S\ref{ss:atoms}). We design a stateless atom that can support
@@ -120,9 +116,7 @@ field can also be substituted with a constant operand. This stateless atom
 meets timing at 1 GHz and occupies an area of 1384 \si{\micro\meter\squared}
 (Table~\ref{tab:templates}).
 
-\medskip
-\noindent
-\textbf{Designing stateful atoms.}
+\Para{Designing stateful atoms.}
 The choice of stateful atoms determines the algorithms a line-rate router can
 support. A more complex stateful atom can support more data-plane algorithms,
 but may not meet timing at 1 GHz and occupies more area. To illustrate this
@@ -136,9 +130,7 @@ our stateful atoms meet timing at 1 GHz.  However, the atom's area and minimum
 end-to-end propagation delay increases with the atom's
 complexity~(Table~\ref{tab:templates}).
 
-\medskip
-\noindent
-\textbf{The compiler targets.}
+\Para{The compiler targets.}
 We design seven \absmachine machines as compiler targets. A single \absmachine
 machine has 600 atoms.
 \begin{CompactEnumerate}

@@ -92,9 +92,7 @@ dependencies (\S\ref{ss:pipelining}), but otherwise considers it a blackbox,
 and directly passes it to the underlying router chip for execution, much like
 intrinsics in GCC~\cite{intrinsics}.
 
-\medskip
-\noindent
-\textbf{Packet transaction semantics.}
+\Para{Packet transaction semantics.}
 Semantically, the programmer views the router as invoking the packet
 transaction serially in the order in which packets arrive, with no concurrent
 packet processing.  Put differently, the packet transaction modifies the

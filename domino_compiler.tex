@@ -36,9 +36,7 @@ them in important ways to suit line-rate routers (\S\ref{ss:related_compiler}).
 \subsection{Preprocessing}
 \label{ss:preprocessing}
 
-\medskip
-\noindent
-\textbf{Branch removal.} A packet transaction's body can contain (potentially
+\Para{Branch removal.} A packet transaction's body can contain (potentially
 nested) branches (\eg lines~\ref{line:ifStart} to \ref{line:ifEnd} in
 Figure~\ref{fig:flowlet_code}).  Branches alter control flow and complicate
 dependency analysis, \ie whether a statement should precede another.  We
@@ -47,9 +45,7 @@ transform branches into conditional assignments, starting from the innermost
 the transaction body into straight-line code with no branches, which simplifies
 dependency analysis during pipelining (\S\ref{ss:pipelining}).
 
-\medskip
-\noindent
-\textbf{Rewriting state variable operations.} We now identify state variables
+\Para{Rewriting state variable operations.} We now identify state variables
 in a packet transaction, \eg \texttt{last\_time} and \texttt{saved\_hop} in
 Figure~\ref{fig:flowlet_code}.  For each state variable, we create a
 \textit{read flank} to read the variable into a temporary packet field.  For an
@@ -63,9 +59,7 @@ arithmetic happens on packet fields. Restricting stateful operations to just
 reads and writes simplifies handling of state during pipelining
 (\S\ref{ss:pipelining}).
 
-\medskip
-\noindent
-\textbf{Converting to static single-assignment form.} We next convert the code
+\Para{Converting to static single-assignment form.} We next convert the code
 to static single-assignment form (SSA)~\cite{ssa}, where every packet field is
 assigned exactly once. We do this by replacing every assignment to a packet
 field with a new packet field and propagating this until the next assignment to
@@ -73,9 +67,7 @@ the same field~(Figure~\ref{fig:ssa}) .  Because fields are assigned once, SSA
 removes Write-After-Read and Write-After-Write dependencies.  Only
 Read-After-Write dependencies remain during pipelining (\S\ref{ss:pipelining}).
 
-\medskip
-\noindent
-\textbf{Flattening to three-address code.} Three-address code is a
+\Para{Flattening to three-address code.} Three-address code is a
 representation where all instructions are either reads/writes into state
 variables or operations on packet fields of the form \texttt{pkt.f1 = pkt.f2 op
 pkt.f3}, where \texttt{op} can be an arithmetic, logical, relational, or
@@ -298,18 +290,14 @@ stage (pipeline width) and number of stages (pipeline depth), while
 computational limits specify the atom templates provided by a \absmachine
 machine and limit what computations can be carried out by an atom.
 
-\medskip
-\noindent
-\textbf{Resource limits.} To handle resource limits, we scan each pipeline
+\Para{Resource limits.} To handle resource limits, we scan each pipeline
 stage in the codelet pipeline starting from the first to check for pipeline
 width violations. If we violate the pipeline width, we insert as many new
 stages as required and spread codelets evenly across these stages.  We continue
 until the number of codelets in all stages is under the pipeline width,
 rejecting the program if we exceed the pipeline depth.
 
-\medskip
-\noindent
-\textbf{Computational limits.} Next, we determine if each codelet in the pipeline
+\Para{Computational limits.} Next, we determine if each codelet in the pipeline
 can be mapped to atoms provided by the \absmachine machine. In general,
 codelets have multiple three-address code statements that need to execute
 atomically. For instance, updating the state variable \texttt{saved\_hop} in

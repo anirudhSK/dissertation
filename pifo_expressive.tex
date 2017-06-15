@@ -210,9 +210,7 @@ which is identical to the Shortest Remaining Processing Time (SRPT) discipline
 discipline (\S\ref{ss:other}), which performs almost as well as
 pFabric~\cite{pFabric}.
 
-\medskip
-\noindent 
-\textbf{Traffic shaping across multiple nodes in a scheduling tree.}  Our
+\Para{Traffic shaping across multiple nodes in a scheduling tree.}  Our
 programming model attaches a single shaping and scheduling transaction
 to a tree node. This lets us enforce rate limits on a single node, but not
 across multiple nodes.
@@ -228,9 +226,7 @@ generally, our programming model for programmable scheduling
 establishes a one-to-one relationship between the scheduling and
 shaping transactions, which is constraining for some algorithms.
 
-\medskip
-\noindent
-\textbf{Output rate limiting.} The PIFO abstraction enforces rate
+\Para{Output rate limiting.} The PIFO abstraction enforces rate
 limits using a shaping transaction, which determines a packet or PIFO
 reference's scheduling time {\em before} it is enqueued into a PIFO.
 The shaping transaction permits rate limiting on the {\em input} side,
