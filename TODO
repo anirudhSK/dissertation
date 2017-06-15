@@ -4,6 +4,7 @@
 * Be consistent with I vs. we
 * Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
 * Traffic engineering vs. load balancing
+* Don't keep saying today in the text
 
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
 * Decide whether we are calling it Marple or NetAMA for real. CAN BE DONE LATER
