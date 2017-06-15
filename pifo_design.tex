@@ -4,38 +4,40 @@
 \begin{figure*}
   \centering
   \includegraphics[width=\textwidth]{pifo_router_pipeline.pdf}
-  \caption{A 64-port shared memory router.  Combinational logic and memory are
-  shared across ports, both in the pipelines and in the scheduler. The router
-  runs at a clock frequency of 1 GHz.}
+  \caption{A shared memory router.  Combinational logic and memory are
+  shared across ports, both in the pipelines and in the scheduler.}
+%The router runs at a clock frequency of 1 GHz.}
   \label{pifo_fig:router}
 \end{figure*}
 
 We now present a hardware design for a programmable scheduler based on PIFOs.
 We target shared-memory routers such as Broadcom's Trident II~\cite{trident2}
-(Figure~\ref{pifo_fig:router}). In these routers, a parser feeds packets from all
-ports into a shared ingress pipeline, after which they enter a shared scheduler
-and a similarly shared egress pipeline. To reduce chip area, combinational
-logic and memory for packet processing are shared across ports, both in the
-pipelines and in the scheduler.  As a result, digital circuits on the router
-must handle the aggregate processing requirements of all output ports at
-minimum packet size, e.g., 64 10 Gbit/s ports each transmitting 64 byte
-packets. This translates into \textasciitilde 1 billion packets per second,
-after accounting for minimum inter-packet gaps, or a 1 GHz clock
-frequency.
+(Figure~\ref{pifo_fig:router}). In these routers, a parser feeds packets from
+all ports into a shared ingress pipeline, after which they enter a shared
+scheduler and a similarly shared egress pipeline. To reduce chip area,
+combinational logic and memory for packet processing are shared across ports,
+both in the pipelines and in the scheduler. As discussed earlier
+(\S\ref{s:absmachine}), the number of pipelines depends on the aggregate
+capacity of the router. For our PIFO design, we focus on a 64-port 10G
+single-pipeline router, where one pipeline handles the aggregate processing
+requirements of all ports at minimum packet size, \ie 64 10 Gbit/s ports each
+transmitting 64 byte packets. This translates into \textasciitilde 1 billion
+packets per second, after accounting for minimum inter-packet gaps, or a 1 GHz
+clock frequency.
 
 We first describe how scheduling and shaping transactions can be implemented
 (\S\ref{ss:transactions}). Then, we show how a tree of PIFOs can be realized
-using a full mesh of PIFO blocks by appropriately interconnecting these blocks
+using a full mesh of {\em PIFO blocks} by appropriately interconnecting these blocks
 (\S\ref{ss:mesh}). We also describe how a compiler (\S\ref{pifo_ss:compiler}) could
 automatically configure this mesh from a scheduling tree.
 
 \subsection{Scheduling and shaping transactions}
 \label{ss:transactions}
-To program and implement scheduling and shaping transactions, we use Domino,
-introduced previously in Chapter~\ref{chap:domino}. Domino allows us to express
-these transactions in a high-level domain-specific language, using a compiler to
-compile the transactions down to a pipeline of hardware instructions or atoms.
- One of the examples used to evaluate Domino in \S\ref{s:eval} is the STFQ transaction from
+To program and implement scheduling and shaping transactions, we use Domino
+(Chapter~\ref{chap:domino}). Domino allows us to express these transactions in
+Domino's domain-specific language, using a compiler to compile the transactions
+down to a pipeline of \absmachine atoms.  One of the examples used to evaluate
+Domino in \S\ref{s:eval} is the STFQ transaction from
 Figure~\ref{fig:sched_trans}.  Specifically, Table~\ref{tab:algos} shows that
 the STFQ transaction can be run at 1 GHz on a router pipeline with the Pairs
 atom.
@@ -45,12 +47,12 @@ Similarly, we could use the Domino compiler to compile other scheduling and
 shaping transactions to an atom pipeline.  For example, the transactions for
 Token Bucket Filtering (Figure ~\ref{fig:hshaping_shaping_trans}), minimum rate
 guarantees (\S\ref{ss:min_rate}), Stop-and-Go queueing (\S\ref{ss:stopngo}),
-and LSTF (\S\ref{ss:lstf}), can all be expressed as Domino programs and
-then compiled to a router pipeline with a sufficiently expressive atom.\an{An
-important restriction in Domino is the absence of loops, which precludes rank
-computations containing a loop with an unbounded iteration count. We have not,
-however, encountered a scheduling or shaping transaction requiring this
-capability.}
+and LSTF (\S\ref{ss:lstf}), can all be expressed as Domino programs. They can
+then be compiled to a router pipeline with a sufficiently expressive
+atom. An important restriction in Domino is the absence of loops, which
+precludes rank computations containing a loop with an unbounded iteration
+count. We have not, however, encountered a scheduling or shaping transaction
+requiring this capability.
 % Loops with bounded iteration count can be unrolled.
 
 \begin{figure}[!t]
@@ -115,16 +117,17 @@ capability.}
 \subsection{The PIFO mesh}
 \label{ss:mesh}
 
+%TODO: Define logical PIFO before.
 We lay out PIFOs physically as a full mesh (Figure~\ref{fig:mesh}) of
 {\em PIFO blocks} (Figure~\ref{fig:block}). Each PIFO block supports
 multiple logical PIFOs. These logical PIFOs correspond to PIFOs for
 different output ports or different classes in a
 hierarchical scheduling algorithm, which share the combinational logic
 required for a PIFO. We expect a small number of PIFO blocks in a
-typical router (e.g., fewer than five) because each PIFO block
+typical router (\eg fewer than five) because each PIFO block
 corresponds to a different level of a hierarchical scheduling tree and
-\an{most practical hierarchical scheduling algorithms we know of do
-  not require more than a few levels of hierarchy}. As a result, a
+most practical hierarchical scheduling algorithms we know of do
+  not require more than a few levels of hierarchy. As a result, a
 full mesh between these blocks is feasible (\S\ref{ss:interconnect}
 has more details).
 
@@ -133,10 +136,9 @@ PIFO blocks run at 1 GHz and contain an atom
 pipeline to execute scheduling and shaping transactions before enqueuing into a
 logical PIFO. In every clock cycle, each PIFO block supports one enqueue and
 dequeue operation on a logical PIFO residing within that block
-(\an{shaping transactions require more than one operation per clock cycle and
-are discussed in \S\ref{ss:shape_challenge}}).
-%We address a logical PIFO within
-%a block with a logical PIFO ID.
+(shaping transactions require more than one operation per clock cycle and
+are discussed in \S\ref{ss:shape_challenge}). We address a logical PIFO within
+a block with a logical PIFO ID.
 
 The interface to a PIFO block is:
 \begin{CompactEnumerate}
@@ -144,18 +146,18 @@ The interface to a PIFO block is:
   logical PIFO ID, the element's rank, and some metadata that will be
   carried with the element such as the packet length required for
   STFQ's rank computation. The enqueue returns nothing.
-  \item Dequeue from a specific logical PIFO ID within the block. The dequeue
+\item Dequeue from a specific logical PIFO ID within the block. The dequeue
    returns either a packet or a reference to another PIFO.
 \end{CompactEnumerate}
 
 After a dequeue, besides transmitting a packet, a PIFO block may
-communicate with another for two reasons:
+communicate with another PIFO block for two reasons:
  \begin{CompactEnumerate}
- \item To dequeue a logical PIFO in another block, e.g., when dequeuing a
+ \item To dequeue a logical PIFO in another block, \eg when dequeuing a
    sequence of PIFOs from the root to a leaf of a scheduling tree to transmit
    packets.
  
- \item To enqueue into a logical PIFO in another block, e.g., when
+ \item To enqueue into a logical PIFO in another block, \eg when
    enqueuing a packet that has just been dequeued from a shaping
    PIFO.
  \end{CompactEnumerate}
@@ -175,8 +177,8 @@ and Hierarchies with Shaping (Figure~\ref{fig:hshaping}).}
 
 The compiler first converts the scheduling tree to a logical PIFO tree that
 specifies the enqueue and dequeue operations on each PIFO.
-Figures~\ref{fig:hpfq_path} and \ref{fig:hshaping_path} show this tree for
-Figures~\ref{fig:hpfq} and \ref{fig:hshaping} respectively.  It then overlays
+Figures~\ref{fig:hpfq_path} and \ref{fig:hshaping_path} show the logical PIFO tree for
+the scheduling trees in Figures~\ref{fig:hpfq} and \ref{fig:hshaping} respectively.  It then overlays
 this tree over a PIFO mesh by assigning every level of the tree to a PIFO block
 and configuring the lookup tables to connect PIFO blocks as required by the
 tree.  Figure~\ref{fig:hpfq_mesh} shows the PIFO mesh for
@@ -186,15 +188,15 @@ for Figure~\ref{fig:hshaping}.
 If a particular level of the tree has more than one enqueue or dequeue from
 another level, which \an{arises in the presence of shaping transactions
 (\S\ref{ss:shape_challenge})}, we allocate new PIFO blocks to respect the
-constraint that any PIFO block provides one enqueue and dequeue operation per
-clock cycle, e.g., Figure~\ref{fig:hshaping_mesh} has an additional PIFO block
+constraint that any PIFO block provides only one enqueue and dequeue operation per
+clock cycle, \eg Figure~\ref{fig:hshaping_mesh} has an additional PIFO block
 containing TBF\_Right alone. Finally, we use the Domino compiler to compile
 scheduling and shaping transactions.
 %%
 %%\footnote{More precisely, the shaping PIFO that the TBF\_Right
 %%transaction enqueues into. We use a transaction's name to refer both to the
 %%transaction and the PIFO it enqueues into.} 
-
+%TODO: Could make above paragraph a bit more lucid.
 
 \subsection{Challenges with shaping transactions}
 \label{ss:shape_challenge}
