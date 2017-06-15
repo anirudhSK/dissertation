@@ -252,6 +252,33 @@ line rate.
 %%computations all need to finish within a ns, while the set of algorithms is
 %%infinite.
 
+\begin{table}[!t]
+  \centering
+  \begin{small}
+    \begin{tabular}{|p{0.18\textwidth}|p{0.61\textwidth}|p{0.06\textwidth}|}
+  \hline
+  Atom & Circuit & Min. delay (ps) \\
+  \hline
+  Read/Write & \centering\includegraphics[width=0.4\textwidth]{domino_rw.pdf} & 176 \\
+  \hline
+  ReadAddWrite (RAW) & \centering\includegraphics[width=0.5\textwidth]{domino_raw.pdf} & 316\\
+  \hline
+  \pbox{0.1\textwidth}
+  {Predicated\\
+  ReadAddWrite (PRAW)} & \centering\includegraphics[width=0.6\textwidth]{domino_pred_raw.pdf}  & 393 \\
+  \hline
+  \end{tabular}
+\end{small}
+\caption{An atom's minimum critical-path delay (\ie, the lowest possible
+critical-path delay on a particular standard cell library) increases with
+circuit depth.  Mux is a multiplexer. RELOP is a relational operation (>, <,
+==, !=). {\tt x} is a state variable. {\tt pkt.f1} and {\tt pkt.f2} are packet
+fields. {\tt Const} is a constant operand.}
+\label{tab:circuits}
+\end{table}
+
+
+
 \Para{Atom design is constrained by timing, not area.} Atoms are affected by
 two factors: their area and their timing, \ie the delay on the critical path of
 the atom's combinational circuit. For the few hundred atoms that we require,
@@ -279,31 +306,6 @@ In summary, for a router designer, the critical path of atoms is the most
 important metric to optimize. The most programmable line-rate routers will have
 the highest density of useful stateful functionality squeezed into a critical
 path budget of 1 clock cycle.
-
-\begin{table}[!t]
-  \centering
-  \begin{small}
-    \begin{tabular}{|p{0.18\textwidth}|p{0.61\textwidth}|p{0.06\textwidth}|}
-  \hline
-  Atom & Circuit & Min. delay (ps) \\
-  \hline
-  Read/Write & \centering\includegraphics[width=0.4\textwidth]{domino_rw.pdf} & 176 \\
-  \hline
-  ReadAddWrite (RAW) & \centering\includegraphics[width=0.5\textwidth]{domino_raw.pdf} & 316\\
-  \hline
-  \pbox{0.1\textwidth}
-  {Predicated\\
-  ReadAddWrite (PRAW)} & \centering\includegraphics[width=0.6\textwidth]{domino_pred_raw.pdf}  & 393 \\
-  \hline
-  \end{tabular}
-\end{small}
-\caption{An atom's minimum critical-path delay (\ie, the lowest possible
-critical-path delay on a particular standard cell library) increases with
-circuit depth.  Mux is a multiplexer. RELOP is a relational operation (>, <,
-==, !=). {\tt x} is a state variable. {\tt pkt.f1} and {\tt pkt.f2} are packet
-fields. {\tt Const} is a constant operand.}
-\label{tab:circuits}
-\end{table}
 
 \Para{Compilers can be used to design instruction sets.} Designing an
 instruction set for a programmable substrate is a chicken-and-egg problem: the
