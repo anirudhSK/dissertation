@@ -30,8 +30,8 @@ network devices: FPGAs, virtual routers, and line-rate routers.  \absmachine
 is a low-level machine model for line-rate routers alone and can be used as a
 NetASM target. Because of its role as a low-level machine model, \absmachine
 models practical constraints required for line-rate operation
-(\S\ref{s:atomConstraints}) that an IR like NetASM doesn't have to. For
-instance, \absmachine machines don't permit sharing state between atoms and use
+(\S\ref{s:atomConstraints}) that an IR like NetASM does not have to. For
+instance, \absmachine machines do not permit sharing state between atoms and use
 atom templates to limit computations that can happen at line rate.
 
 \Para{End-host-centric programmability.}
@@ -68,7 +68,7 @@ constructs.
 % TODO: Not sure if the below paragraph should be here.
 \Para{Compiling to programmable routers.}
 Jose et al.~\cite{lavanya_compiler} focus on compiling P4 programs to
-programmable data planes such as the RMT and FlexPipe architectures. Their work
+programmable data planes such as the RMT and FlexPipe~\cite{flexpipe} architectures. Their work
 focuses only on compiling stateless data-plane tasks such as forwarding and
 routing, while the \pktlanguage compiler handles stateful data-plane
 algorithms.
@@ -119,6 +119,7 @@ express:
   UPS provides a fix to this that requires
   estimating fair shares periodically, which is hard to do in
   practice.
+  %TODO: Check that this point is accurate.
 \item Scheduling policies that aggregate flows from distinct endpoints into a
   single flow at the router. An example is fair queueing across video and web
   traffic classes, regardless of endpoint.  Such policies require the router to
@@ -144,10 +145,10 @@ multiple PIFOs together, PIFOs express a wider class of scheduling algorithms.}
 \Para{Hardware designs for priority queues.}
 \an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
 pheap}.  However, each P-heap supports traffic belonging to a {\em single} 10
-Gbit/s input port in an input-queued router and there is a separate P-heap
-instance for each port~\cite{bhagwan}.  This per-port design incurs prohibitive
+Gbit/s input port in an input-queued router; there is a separate P-heap
+instance for each port~\cite{bhagwan}.  Having a separate P-heap per port incurs prohibitive
 area overhead on a shared-memory router, and prevents sharing of the data
-buffer and binary heap across output ports. Conversely, it isn't easy to
+buffer and binary heap across output ports. Conversely, it is not easy to
 overlay multiple logical PIFOs over a single P-heap, which would allow the
 P-heap to be shared across ports.}
 %%
@@ -182,7 +183,7 @@ specified by a flexible language like \TheSystem.
 earlier work on programmable router measurements~\cite{progme, opensketch}
 provide traffic volume statistics using summary data structures on routers.
 Unlike sketches, \TheSystem does not have an accuracy-memory tradeoff, since
-counting is linear-in-state and counters can be measured accurately. Instead,
+counting is linear-in-state and counters can be scalably implemented in \TheSystem. Instead,
 \TheSystem trades off memory size with cache eviction rate (\Sec{eval}).
 \TheSystem also allows users to perform a broader set of aggregations with full
 accuracy.
@@ -203,21 +204,20 @@ INT data distributed over many endpoints.  In addition, the Tetration chip
 provides flow-level telemetry, exposing a fixed set of metrics including
 latency, window and packet size variation, and a ``burst
 measurement''~\cite{tetration-telemetry}. In contrast, \TheSystem provides
-programmable aggregation functions and aggregation levels.%% , \eg port
-%% versus flow-level.
+programmable aggregation functions and flow definitions, \eg input/output port versus 5-tuple.
 
 \Para{Network query languages.} Prior network query languages~\cite{gigascope,
 frenetic, path_query, streaming-monitoring} allow users to ask questions
 primarily about traffic volumes and count statistics, since their input data is
 collected using NetFlow and match-action rule counters~\cite{openflow}. In
-contrast, \TheSystem enables asking expressive {\em performance} questions on
+contrast, \TheSystem enables expressive {\em performance} questions on
 data collected with purpose-built router hardware. \TheSystem shares some
 functional and relational constructs with Gigascope~\cite{gigascope} and
 Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
 router.
 
 \Para{Language-directed computer design.}
-Our hardware design process is inspired by early efforts on language-directed
-computer design~\cite{language-directed-computer-design, ditzel_patterson,
-soar}, aimed at designing efficient hardware to support expressive high-level
-languages.
+Our use of language-directed hardware design is inspired by early efforts on
+language-directed computer design~\cite{language-directed-computer-design,
+ditzel_patterson, soar}, aimed at designing efficient hardware to support
+expressive high-level languages.
