@@ -10,11 +10,11 @@
 * Make sure P4-16 and P4_{16} are consistent. Use one or the other, not both.
 * Use semicolons as separators with care
 * Be judicious with contractions
+* Be consistent with the project names and abstraction names TODO
 
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
-* Decide whether we are calling it Marple or NetAMA for real. CAN BE DONE LATER
 
-* Be consistent with the project names and abstraction names TODO
+* Decide whether we are calling it Marple or NetAMA for real. DONE
 * Read the entire dissertation and trim as much as possible. DONE
 * Try and see if I can improve the introductory portions of each of the chapters (DONE)
 * Check that there are no e.g.,, in the text DONE
