@@ -115,7 +115,7 @@ We create PVSM's codelet pipeline using the steps below.
     that writes a packet variable to any node that reads the same packet variable,
     \eg from {\tt pkt.tmp = pkt.arrival - pkt.last\_time} to {\tt pkt.tmp2 =
     pkt.tmp > THRESH} in Figure~\ref{fig:partitioning_before}. We only check read-after-write dependencies because
-    write-after-read and write-after-write dependencies don't exist after SSA, and
+    write-after-read and write-after-write dependencies do not exist after SSA, and
     we eliminate control dependencies~\cite{ssa} through branch removal.
   \item Generate strongly connected components (SCCs) of this dependency graph
     and condense them into a directed acyclic graph (DAG). This captures the notion that all
