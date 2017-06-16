@@ -1,4 +1,3 @@
-* Try and see if I can improve the introductory portions of each of the chapters
 * Read the entire dissertation and trim as much as possible.
 * Be consistent with the project names and abstraction names
 * Be consistent with I vs. we
@@ -13,6 +12,7 @@
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
 * Decide whether we are calling it Marple or NetAMA for real. CAN BE DONE LATER
 
+* Try and see if I can improve the introductory portions of each of the chapters (DONE)
 * Check that there are no e.g.,, in the text DONE
 * Maybe move text from pifo hotnets into the main text of the dissertation? (DONE)
 * Move the NetAMA proofs into the appendix instead of a separate TR. DONE
