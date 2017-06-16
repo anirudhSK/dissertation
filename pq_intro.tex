@@ -89,17 +89,18 @@ in the present and in the future.
 %complicate things.
 % Anirudh: I might just remove this and retain language-directed in the title
 % alone.
-In this chapter, we propose {\em language-directed hardware design}: we design a
+To develop these primitives, we propose {\em language-directed hardware design}: we design a
 language that can express a broad variety of performance monitoring use cases,
 and then design high-speed router hardware primitives in service of this
 language.
 %% By designing hardware to support an expressive language, 
 We believe the resulting hardware design can support a wide variety of current
-and future performance monitoring needs. Specifically, we make three contributions.
+and future performance monitoring needs that fall within the language. Specifically,
+we make three contributions.
 
 % Anirudh: again, we say stream here, but log in the next section :)
 \Para{Performance query language.} We propose {\em \TheSystem}, a language that
-uses familiar functional primitives like {\ct map, filter} and {\ct fold} for
+uses familiar functional primitives like {\ct map}, {\ct filter}, and {\ct fold} for
 performance monitoring.  \TheSystem provides the abstraction of a stream that
 contains performance information for {\em every packet} at {\em every queue} in
 the network (\Sec{language}). Using \TheSystem, programmers can focus their
@@ -119,8 +120,8 @@ INT~\cite{int} and flexible header processing~\cite{rmt}. To support flexible
 aggregations over packets, we design a {\em programmable key-value store} in
 hardware (\Sec{aggregation}), where the keys represent flow identifiers and values
 represent the state computed by the aggregation function. This key-value store
-should support two requirements: it should update values at a line-rate of 1
-packet per clock cycle (at 1GHz~\cite{rmt, xpliant_sdk}), and support millions
+should support two requirements: it should update values at a rate of 1
+packet per clock cycle (at 1 GHz~\cite{rmt}), and support millions
 of keys (\ie connections). Unfortunately, neither SRAM nor DRAM memory is fast
 and dense enough to meet both requirements.
 %% Second, we design a programmable
@@ -135,12 +136,12 @@ and a larger but slower off-chip {\em backing store} in DRAM. Traditional caches
 incur variable write latencies due to cache misses; however, line-rate packet
 forwarding requires deterministic latency bounds. Our design treats a cache miss
 as the arrival of a packet from a new flow, and {\em merges} the new cache value
-with the the flow's old value in the backing store on eviction. The backing
-store can reside either on the router CPU or a separate collection server.
+with the flow's old value in the backing store on eviction. The backing
+store can reside either on the router CPU or on a separate collection server.
 % TODO: backend or backing store? Need to be consistent.
 
-We characterize a class of affine aggregation functions which we call {\em
-  linear-in-state} for which
+We mathematically characterize a class of affine aggregation functions, which we call {\em
+  linear-in-state}, for which
 such merging is possible without losing accuracy. Many aggregation functions are
 linear-in-state, \eg counters, predicated counters (\eg count only TCP packets
 that saw timeouts), exponentially weighted moving averages, or functions
@@ -151,7 +152,8 @@ timing at 1 GHz, while occupying modest silicon area.
 \Para{Query compiler.} We implement a {\em compiler} that takes \TheSystem
 queries and compiles them into router configurations for two targets
 (\Sec{compiler}): (1) the P4 behavioral model~\cite{p4-bmv2}, an open source
-programmable software router, and (2) the Banzai machine model introduced in
+programmable software router, which can be used to run end-to-end experiments
+using \TheSystem within Mininet and (2) the Banzai machine model introduced in
 \S\ref{s:absmachine}, which can be used to experiment with
 different instruction sets.  The \TheSystem compiler detects linear-in-state
 aggregations in input queries and successfully targets the linear-in-state router
@@ -167,4 +169,4 @@ between 5-10 pipeline stages for almost all queries, which is modest for a
 using trace-driven simulations. For a 32-Mbit on-chip cache, which occupies
 about 2.5\% of the chip's area, the typical cache eviction rate from a single
 top-of-rack router can be handled by a single 8-core server running
-REDIS.
+Redis.
