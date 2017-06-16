@@ -3,7 +3,7 @@
 \label{s:eval:mininet}
 \label{sec:eval:mininet}
 
-
+%TODO: Need a figure for this 4-host topology
 To demonstrate \TheSystem's use in practice, we present a case study using
 Mininet~\cite{mininet}.
 %with a topology shown in Figure~\ref{fig:mininet-topo}.
@@ -14,19 +14,19 @@ The routers are connected via a single link and
 programmed in \pfs~\cite{p4-bmv2} with queries compiled by \TheSystem.
 
 Host {\ct h2} repeatedly downloads a 1MB objects over TCP from {\ct h1}.
-Meanwhile, {\ct h3} sends {\ct h4} sporadic bursts of UDP traffic, which
-{\ct h4} acks.  Suppose a network admin notices the irregular latency
+Meanwhile, {\ct h3} sends {\ct h4} sporadic bursts of UDP traffic %which
+%{\ct h4} acks.
+Suppose a network admin notices the irregular latency
 spikes for the TCP traffic (\Fig{mininet-latency}). She suspects a queue buildup
 in the routers and measures the queue depths seen by the traffic by writing:
 {\ct result = filter(\pktlog, srcip == h1 and dstip == h2).}
 
-% Can remove this figure if we need space.
-%\begin{figure}[ht]
-%\centering
-%\includegraphics[width=0.4\columnwidth]{mininet-topo.pdf}
-%\caption{Mininet topology used for the case study.}
-%\label{fig:mininet-topo}
-%\end{figure}
+%%\begin{figure}[ht]
+%%\centering
+%%\includegraphics[width=0.4\columnwidth]{mininet-topo.pdf}
+%%\caption{Mininet topology used for the case study.}
+%%\label{fig:mininet-topo}
+%%\end{figure}
 
 \begin{figure}[!t]
 \centering
@@ -95,9 +95,10 @@ between {\ct h3} and {\ct h4} is responsible for the latency spikes.
 There are 18 UDP bursts, with an average size of 320 packets and
 average duration of 472 ms, which matches our emulation setup.
 
-\TheSystem's power and flexibility make this diagnosis simple. End host solutions
- are blind to queue contention on the router, and flexible
-aggregations expose flow statistics customized for the problem:
+\TheSystem's power and flexibility make this diagnosis simple. \TheSystem
+allows us to directly instrument a router to reports its own queueing delays
+, and flexible
+aggregations expose flow statistics (in this case, {\ct burst\_stats}) customized for the problem:
 packet counts alone would have disguised the bursty nature of
 the offending UDP traffic.
 

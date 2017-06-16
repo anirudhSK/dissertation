@@ -23,7 +23,7 @@ expressions) and one stateful atom. The Domino compiler determines whether the
 input program can be mapped to a pipeline with the specified atoms. As
 expected, all the linear-in-state queries map to a pipeline with the
 multiply-accumulate atom. For the non-linear-in-state queries, we use the {\em
-nested-if} atom from Banzai, which supports state updates predicated on the
+nested-if} atom from Banzai (Table~\ref{tab:templates}), which supports state updates predicated on the
 state value.
 
 Almost all queries require a pipeline that is less than ten stages deep; half
