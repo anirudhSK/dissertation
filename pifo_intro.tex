@@ -1,8 +1,16 @@
 %\pagebreak
 %\section{Introduction}
 %\label{s:intro}
-Packet scheduling is the task of picking the next packet to transmit on a
-router's output port.  Today's fastest routers provide a small menu of
+Packet scheduling, the task of picking the next packet to transmit on a
+router's output port, is an important determinant of network performance. As a
+result, the research literature is replete with scheduling
+algorithms~\cite{wfq, srr, lstf, drr, pFabric} that target different network
+performance objectives.  This chapter develops hardware designs and programming
+abstractions to providing programmable packet scheduling in high-speed
+routers.
+%TODO: Add more examples of scheduling algorithms in the citation list
+
+ Today's fastest routers provide a small menu of
 scheduling algorithms: typically, a combination of Deficit Round
 Robin~\cite{drr}, strict priority scheduling, and traffic shaping. A network
 operator can change parameters (\eg weights in Deficit Round Robin, or rate
