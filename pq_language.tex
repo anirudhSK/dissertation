@@ -1,4 +1,4 @@
-\section{\THESYSTEM query language}
+\section{\TheSystem query language}
 \label{sec:language}
 %TODO: We seem to keep mixing up folds and groupbys
 % SK->NG: We need to say somewhere that the result of any query is a stream
@@ -13,8 +13,8 @@ compute node executing the query.
 \TheSystem programs process the performance stream using familiar functional
 constructs like {\ct filter}, {\ct map}, {\ct fold} and {\ct zip}, all of which
 take streams as inputs and produce a stream as output. This {\em functional}
-language model is both expressive to support diverse performance monitoring use
-cases and simple to implement corresponding hardware primitives.
+language model is both expressive enough to support diverse performance monitoring use
+cases and simple enough to support in high-speed hardware.
 
 \Para{Packet performance stream.} \TheSystem provides tuples for each packet at
 each queue with the following fields:
@@ -26,7 +26,7 @@ packet was observed. A packet may traverse multiple queues even within a single
 router, so we provide distinct fields. The regular packet headers (Ethernet, IP,
 TCP, \etc) are available in the {\ct hdrs} set of fields, with a {\ct uid} that
 uniquely determines a packet.\footnote{In many networks, it may be possible to
-  use a combination of the \txtftuple and IP ID field.}
+  use a combination of the \txtftuple and IP ID field for the {\ct uid} field.}
 
 We provide access to a variety of performance metadata: {\ct tin} and {\ct tout}
 denote the timestamps of ingress and egress of the packet in the queue, while
@@ -35,7 +35,8 @@ beneficial to have two timestamps to detect co-habitation of the queue by
 packets belonging to different flows. Additionally, it is beneficial to have a
 queue size since we cannot always determine the queue size from the two
 timestamps, as links may service multiple queues. If a packet
-is dropped, the {\ct tout} and {\ct qsize} values are {\ct infinity.}
+is dropped, the {\ct tout} and {\ct qsize} values are {\ct infinity.} We now
+give a few example use cases that can be supported by \TheSystem.
 
 %% The {\ct path} field provides information about the path of the packet in the
 %% network, which may be used to detect route changes or aggregate information by
@@ -101,8 +102,8 @@ A {\ct groupby} takes the general form {\ct groupby(R, [aggFields], fun)} where
 the function {\ct fun} operates over tuples sharing attributes in a list {\ct
   aggFields} of headers and performance metadata. This construct is inspired by
 {\ct fold}s in functional programming applied to
-aggregates~\cite{comprehensive-comprehensions}. Such {\ct fold}s are challenging
-to express concisely with regular or streaming SQL.
+aggregates~\cite{comprehensive-comprehensions}. Such {\ct fold}s, which are order-dependent
+, are challenging to express concisely with query languages like SQL.
 % Anirudh: I like the term partitions over aggregates. Not sure what is better?
 
 The aggregation function {\ct fun} itself is written in an imperative form, with
@@ -122,9 +123,10 @@ def new_flow(fcount):
 The result of a {\ct groupby} is a stream containing the aggregation fields (\ie
 \txtftuple) and the aggregated values (\ie {\ct fcount}). The output stream only
 contains tuples for which the {\ct emit()} statement is encountered during
-execution. For example, the output stream of {\ct new\_flow} consists of the
+execution. So an aggregation function without an {\ct emit()} results in an empty
+output stream. For example, the output stream of {\ct new\_flow} consists of the
 first packet of every new transport-level connection. The user can also read off
-all the aggregated fields and corresponding values as a table.
+the current state of all the aggregated fields and corresponding values as a table.
 %% If there are no {\ct
 %%   emit()} statements in the aggregation function, \TheSystem allows the user to
 %% read off all the key-value entries as a table.
@@ -196,7 +198,7 @@ result = filter(R4, qsize > 100 and count > 25);
 \end{lstlisting}
 The result of a {\ct zip} operation over two input streams is a concatenation of
 all the fields in the operands, whenever both input streams contain valid tuples
-processed from the same original packet tuple. A {\ct zip} is a special kind of
+processed from the same original packet tuple (\ie {\ct pktstream}). A {\ct zip} is a special kind of
 stream join where the result can be computed without any blocking, since tuples
 of both streams originate from the same packet tuple. The result of the {\ct
   zip}, \ie {\ct R4}, can be processed like any other stream as before: the {\ct
