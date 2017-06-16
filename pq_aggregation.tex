@@ -3,7 +3,7 @@
  High-speed routers typically feature an ingress and egress pipeline shared
 across multiple ports, running at a 1 GHz clock rate to support up to a billion
 64-Byte
-packets per second of aggregate capacity~\cite{rmt}.  To handle state updates
+packets per second of aggregate capacity (\S\ref{s:absmachine}).  To handle state updates
 from packets arriving at 1 GHz, the key-value store for aggregations must be
 available in SRAM on the router ASIC.  However, SRAM on an ASIC is limited,
 restricting the size of an on-chip key-value store to a few Mbits (10K flows).
@@ -12,7 +12,8 @@ In principle, we could scale to a larger number of flows by making the on-chip
 key-value store a cache for a larger off-chip store. In traditional cache
 designs, cache misses require accessing off-chip DRAM with non-deterministic
 latencies~\cite{unpredictable_cache} to read off the stored state. Because the
-aggregation operation requires the value read out to update it, the
+aggregation operation requires the value just read out from DRAM in order to update it
+in the cache, the
 entire operation incurs
 non-deterministic latencies. This results in stalls in the router
 pipeline. Unfortunately, pipeline stalls affect the router's ability to provide
@@ -77,9 +78,9 @@ We assume $s$ is initialized to $s_0$ for all flows. Let us assume a flow $F$ is
 evicted from the on-chip cache for the first time and written to the backing
 store with an EWMA of $s_d$.\footnote{When a flow is first evicted, the merge
 operation is trivial: we simply write the flow's current value into the backing
-store.} The first packet from $F$ after $F$'s eviction  is processed like a
+store.} The first packet from $F$ after $F$'s first eviction  is processed like a
 packet from a new flow in the on-chip cache, starting with the state $s_0$.
-Assume that $N$ packets from $F$ hit the on-chip cache after $F$'s eviction,
+Assume that $N$ packets from $F$ hit the on-chip cache after $F$'s first eviction,
 resulting in the EWMA going from $s_0$ to $s_{new}$.  Then, the correct EWMA
 $s_{correct}$ satisfies:
 \begin{align*}
@@ -103,10 +104,11 @@ functions of {\em bounded packet history}.
 % for matrices.
 
 A {\ct groupby} with no {\ct emit}s and a linear-in-state (or associative)
-aggregation function can be implemented scalably without losing accuracy.
-However, if the {\ct groupby} uses an {\ct emit} to pass tuples to another
+aggregation function can be implemented scalably without losing accuracy because
+it can be merged accurately.
+However, if the {\ct groupby} uses an {\ct emit()} to pass tuples to another
 query, it cannot be implemented scalably. An {\ct emit()} outputs the current state
-of the aggregation function, which assumes the current state is always
+of the aggregation function, for which the current state must always be
 available in the router's on-chip cache. This is only possible if flows are
 never evicted, effectively shrinking the key-value store to its on-chip cache
 alone.
@@ -116,7 +118,7 @@ alone.
 While the linear-in-state and associative conditions capture several aggregation
 functions, and enable a scalable implementation, there are two practical classes
 of queries that do not scale: (1) queries with aggregations
-functions that are neither associative nor linear-in-state; (2) queries where
+functions that are neither associative nor linear-in-state, and (2) queries where
 the groupby has an {\ct emit} statement.
 
 An example of the first class is the TCP non-monotonic query from
@@ -145,8 +147,8 @@ non-scalable classes. One is to
 rewrite queries to remove {\ct emit}s.
 For instance, we can rewrite the loss rate query
 (\Fig{example-perf-queries}) to independently record the per-flow
-counts for dropped packets and total number of packets in a table, and
-have an operator consult both tables every time they need the loss rate. Each
+counts for dropped packets and total number of packets in an aggregation table, and
+have an operator read both tables every time they need the loss rate. Each
 table can be scaled,
 but the implementation comes at a transient loss of accuracy
 relative to precisely 
@@ -172,7 +174,7 @@ a general condition that separates mergeable functions from non-mergeable ones?
 The answer is yes.
 We state our results in the form of several theorems without proof. The proofs
 are in Appendix~\ref{s:app:merge}.
-Let $n$ denote the allowable size for state tracked in a \TheSystem query: it must be bounded
+Let $n$ denote the allowable size for state tracked in a \TheSystem query: it must be constant
 and should not increase with the number of packets.
 %Let $N$ be the number of
 %packets seen between evictions of a particular key.
@@ -187,7 +189,7 @@ the merge correctly. For example, in the EWMA example, the value $(1-\alpha)^N$
 is auxiliary state. Then, a \emph{merge function} $m$ for an aggregation
 function $g$ is a function
 satisfying:
-\[ m(s, a, s_d) = g(s_d, \{p_1, \ldots, p_N\}) \]
+\[ m((s, a), s_d) = g(s_d, \{p_1, \ldots, p_N\}) \]
 for any $N$ and sequence of packets $p_1, \ldots, p_N$. The application of $g$ to
 a list of packets is shorthand for folding $g$ over each packet in order.
 
@@ -233,6 +235,7 @@ is co-NP-hard.
 \end{theorem}
 Hence, no polynomial time algorithm exists unless P=NP. 
 
+%TODO: Make sure notation here is consistent with that in the appendix.
 %SK->NG: Talk about stateless computations in the compiler.
 
 \subsection{Hardware feasibility}
@@ -264,7 +267,7 @@ similar to an exact-match match-action table: namely, each packet matches into
 the table using a key extracted from the packet header, and the corresponding
 action is executed by the router.
 %
-In addition, the cache adds and removes entries using the LRU policy.
+%In addition, the cache adds and removes entries using the LRU policy.
 %% piggybacking evicted entries on the packet itself.
 %
 Because of their similar interfaces, an on-router hash table can be used as
@@ -276,7 +279,7 @@ incremental deployment.
 %TODO: Anirudh. Last sentence is a bit vague. Not sure how to fix it.
 
 \textbf{The off-chip backing store} is a scale-out key-value store such as
-REDIS running on dedicated collection servers within the network. As
+Redis running on dedicated collection servers within the network. As
 \Sec{eval} shows, the number of measurement servers required to support
 typical eviction rates from the router's on-chip cache is small.%%  fraction of
 %%  the cost
