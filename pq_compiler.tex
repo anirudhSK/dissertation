@@ -12,7 +12,7 @@ abstract syntax tree (AST) of functional operators. The compiler then
 \begin{enumerate}
 \item produces router-local ASTs from a global AST
   (\Sec{network-to-router-local});
-\item produces \pfs and Domino pipeline configurations from router-level ASTs
+\item produces \pfs~\cite{p4_16} and Domino pipeline configurations from router-level ASTs
   (\Sec{pipeline-layout}); and
 \item recognizes linear-in-state aggregation functions, setting up
   auxiliary state for merging later (\Sec{linear-in-state-compilation}).

@@ -53,9 +53,9 @@ the first $k$ packets, to be able to merge each key later. %% Once we determine
 %% (\Sec{hardware}). Here, we need to 
 
 We solve two problems for each aggregation function: We (i) determine state
-variables which are functions of bounded packet history---configuring the router
+variables which are functions of bounded packet history, configuring the router
 to track $k$ packet fields; and (ii) detect linear-in-state updates for other
-states---configuring the router to track $\prod_{i} A_i$. The router tracks
+states, configuring the router to track $\prod_{i} A_i$. The router tracks
 these quantities using additional values for each key.
 
 %% While the canonicalized form of a linear-in-state update may be simple to spot,

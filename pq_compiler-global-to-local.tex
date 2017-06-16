@@ -95,7 +95,8 @@ are associative.
 %% We check three conditions: The aggregation is either (i) by router (and may
 %% include other aggregation fields), (ii) per-packet, or (iii) an associative
 %% function. 
-
+%TODO: Stream type is very confusing.
+\Para{Determining stream type.}
 We label each AST node with an additional attribute, the stream {\em type},
 corresponding to whether its output stream consists of tuples from a single
 router or multiple routers. Stream type is distinct from stream location: for
