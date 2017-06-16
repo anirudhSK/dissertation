@@ -136,8 +136,8 @@ both nodes/functions.}.
 There are $2^{n2^n}$ possible iterated functions. We assume that given an iterated function,
 it is possible to find that function in the existing partial closure graph in time $O(n2^n)$,
 the number of bits needed to represent the number of iterated functions in the worst case.
-Then, since we must enumerate every possible $p$-bit packet the total runtime is:
-\[ O(\text{\# iters} \cdot \text{\# packets} \cdot \text{\# time to test if function has been seen}) = O\left(n2^{n2^n}2^n2^p\right) \]
+Then, since we must enumerate every possible $p$-bit packet (\ie $2^p$ packets in total), the total runtime is:
+\[ O(\text{\# iters} \cdot \text{\# packets} \cdot \text{\# time to test if function has been seen}) = O\left(2^{n2^n} \cdot 2^p \cdot n2^n\right) \]
 \end{proof}
 
 This algorithm is intractable in practice. However, a polynomial time algorithm is unlikely
