@@ -18,8 +18,8 @@ the programmability required to implement the grayed-out algorithms in
 Figure~\ref{fig:router_evolution}.  These algorithms require the ability to
 programmatically manipulate router state on every packet, the ability to
 program which packet a router link must transmit next, and the ability to
-program what statistics a router must measure. We hope the results of this
-dissertation suggest directions in which commercial programmable router
+program what statistics a router must measure. We hope this
+dissertation suggests directions in which programmable router
  chips could evolve in the future.
 
 \Para{Abstract machines for line-rate routers.}
@@ -43,8 +43,9 @@ schemes, which are beyond Eden's capabilities.  Tiny Packet Programs
 (TPP)~\cite{tpp} allow end hosts to embed small programs in packet headers,
 which are then executed by the router. TPPs use a restricted instruction set to
 facilitate router execution; we show that router instructions must and can be
-substantially richer (Table~\ref{tab:templates}) for stateful data-plane
-algorithms.
+substantially richer (Table~\ref{tab:templates}).
+%for stateful data-plane
+%algorithms.
 %%
 %%Software routers~\cite{routebricks, click} and network processors~\cite{ixp4xx}
 %%are flexible, but at least 10$\times$--100$\times$ slower than programmable
@@ -208,16 +209,16 @@ programmable aggregation functions and flow definitions, \eg input/output port v
 
 \Para{Network query languages.} Prior network query languages~\cite{gigascope,
 frenetic, path_query, streaming-monitoring} allow users to ask questions
-primarily about traffic volumes and count statistics, since their input data is
+primarily about traffic volumes, since their input data is
 collected using NetFlow and match-action rule counters~\cite{openflow}. In
 contrast, \TheSystem enables expressive {\em performance} questions on
 data collected with purpose-built router hardware. \TheSystem shares some
-functional and relational constructs with Gigascope~\cite{gigascope} and
+language constructs with Gigascope~\cite{gigascope} and
 Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
 router.
+%functional and relational constructs
 
-\Para{Language-directed computer design.}
-Our use of language-directed hardware design is inspired by early efforts on
-language-directed computer design~\cite{language-directed-computer-design,
+\Para{Language-directed computer design.} Language-directed hardware design (Chapter~\ref{chap:perf_query})
+is inspired by language-directed computer design~\cite{language-directed-computer-design,
 ditzel_patterson, soar}, aimed at designing efficient hardware to support
 expressive high-level languages.
