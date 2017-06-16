@@ -1,6 +1,4 @@
-* Be consistent with I vs. we
 * Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
-* Traffic engineering vs. load balancing
 * Don't keep saying today in the text
 * domino_banzai.tex could use some more work
 * Don't need to overdo the C-like re: Domino. Instead, call it an imperative DSL.
@@ -13,7 +11,8 @@
 * Be consistent with the project names and abstraction names TODO
 
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
-
+* Be consistent with I vs. we DONE
+* Traffic engineering vs. load balancing NOT IMPORTANT
 * Decide whether we are calling it Marple or NetAMA for real. DONE
 * Read the entire dissertation and trim as much as possible. DONE
 * Try and see if I can improve the introductory portions of each of the chapters (DONE)
