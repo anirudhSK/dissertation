@@ -16,7 +16,7 @@ video conferencing, Web browsing, or social networking, each application's
 distinctive application logic resides in clients and servers, while the routers
 themselves are only responsible for forwarding packets between these clients
 and servers. The end-to-end principle has in part been responsible for the
-dramatic success and heterogeneity of the Internet because applications can
+dramatic success and heterogeneity of the Internet because applications can be
 deployed by implementing application-specific logic at end hosts without
 touching the routers inside the network.
 
@@ -58,7 +58,7 @@ between a variety of vantage points and then fusing these measurements together
 to estimate per-hop queueing latency. Not only is this indirect, it is also
 inaccurate relatively to directly instrumenting the router at that hop to
 measure its own queueing latency. As a second example, consider the problem of
-congestion control, which divides up a network's capacity farly among competing
+congestion control, which divides up a network's capacity fairly among competing
 users. There are many in-network solutions to congestion control~\cite{xcp,
 rcp}, which outperform the end-host-only approaches to congestion control used
 today. But, there is no way to deploy them.
@@ -82,7 +82,7 @@ exploit the large degree of parallelism available in packet processing:
 within the processing of a single packet, across packets at different ports,
 and pipeline parallelism when carrying out different functions on the same
 packet. However, hardware specialization carries a cost: because these routers are
-built of specialized hardware, they are fixed-function devices that can not be
+built out of specialized hardware, they are fixed-function devices that can not be
 reconfigured in the field.
 
 Recent work in software-defined networking~\cite{openflow} (SDN) and
