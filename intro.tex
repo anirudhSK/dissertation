@@ -130,20 +130,20 @@ congestion control.
 
 High-speed data-plane programming poses two challenges: (1) what hardware
 instructions are required to support programmable state modification at the
-router’s line rate and (2) what is the right programming model? In addressing
+router's line rate and (2) what is the right programming model? In addressing
 each challenge, Domino makes two new contributions:
 \begin{CompactEnumerate}
-\item \textit{Atoms} capture a router’s instruction set. They specify atomic
+\item \textit{Atoms} capture a router's instruction set. They specify atomic
 units of packet processing provided by the router hardware, \eg an atomic
 counter or an atomic test-and-set. Atoms are atomic in that all state updated
 by an atom is visible to the next packet arriving at that atom.
 \item \textit{Packet Transactions} provide a programming model. A packet
-transaction is an atomic and isolated block of code capturing an algorithm’s
+transaction is an atomic and isolated block of code capturing an algorithm's
 logic. It provides the semantics that any visible state is equivalent to a
 serial execution of packet transactions in the order of packet arrival---akin
 to an infinitely fast single-threaded router. Packet transactions are
 expressive and capture many important data-plane algorithms. Further, their
-serial semantics shield programmers from the hardware’s parallelism, instead
+serial semantics shield programmers from the hardware's parallelism, instead
 enlisting the Domino compiler to transform a serial packet transaction to a
 parallel atom pipeline.
 \end{CompactEnumerate}
@@ -161,11 +161,11 @@ around a block of statements to specify that the block must execute atomically.
 \subsection{Packet scheduling}
 
 Packet scheduling is an important determinant of network performance. The
-choice of scheduling algorithm is tied to a network’s overarching goals. For
+choice of scheduling algorithm is tied to a network's overarching goals. For
 instance, an algorithm that divides link capacity fairly is ideal in a
 multi-tenant setting~\cite{wfq}, while the shortest remaining processing time
 algorithm is ideal for a single tenant who desires low flow completion
-time~\cite{pFabric}. Today’s routers provide a fixed set of scheduling
+time~\cite{pFabric}. Today's routers provide a fixed set of scheduling
 algorithms and do not allow an operator to program scheduling to suit their
 needs.
 
@@ -177,7 +177,7 @@ response to new packet arrivals. Put differently, when a packet arrives, it can
 be pushed into the right location based on a packet priority (push in), but
 packets can always be dequeued from the head (first out). The PIFO abstraction
 is simple: a priority queue of packets with a small program to assign each
-packet its priority. Yet, by flexibly programming a packet’s priority
+packet its priority. Yet, by flexibly programming a packet's priority
 assignment, a network operator can use the PIFO abstraction to program a
 variety of previously proposed scheduling algorithms. So far, these algorithms
 could only be run in simulation or on slower speed software routers.
