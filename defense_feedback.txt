@@ -7,15 +7,16 @@ High-level feedback from defense:
 4. A background, related work section that shows up right after the introduction.
 5. Removing spurious and flawed contrast against the e2e principle.
 6. Clarifying what we lose by determining packet rank at enqueue alone, as opposed to changing it later at dequeue.
-7. More examples showing the generalizability of Domino's atoms.
+7. More examples showing the generalizability of Domino's atoms. Could add code listing of the Domino algorithms to the appendix.
 8. Distinguish computational capabilities of a pipeline from information not being available. For instance, RED needs queue depth that is not available, but the EWMA operation itself is rather straightforward.
 9. More diagrams in the introduction.
 10. Emphasize hardware-software co-design as an approach throughout. My take:
 turning both knobs gives you much more leverage than just turning one. And it's
 timely (demise of Moore's law). The leverage of turning both knobs results in
 simpler solutions than just turning one knob alone. Do just the right amount
-in both hw and sw sides.
-11. Completeness results for each of the three.
+in both hw and sw sides. Another take: devise specialized hardware and then devise
+software that targets this kind of specialized hardware.
+11. Completeness results for each of the three: what can each system do.
 12. Maybe a table for each of the three contributions listing:
 --> hardware primitive (PIFO, atom, linear-in-state, etc.),
 --> software (packet transaction, scheduling trees, perf queries),
@@ -25,9 +26,16 @@ Talk about how what it cannot do is as important as what it can do. That's the w
 Non-Turing-completeness can pay great dividends.
 13. Make a totally self-contained intro, to the point where the related work can be read just
 after reading the intro alone. Most readers will only read intro and rel work, not much more.
-The remaining are there for in-depth treatment, don't bank on them being read.
+The remaining are there for in-depth treatment; don't bank on them being read.
 14. Move Marple's theorems into main text.
-15. Move Marple characterization into the abstract/intro.
+15. Move Marple lis characterization into the abstract/intro.
 16. More detailed abstract.
 17. Clarify linear-in-state algorithm further.
 18. Move text from perf query sigcomm paper into the dissertation.
+
+Overall, the dissertation should be readable in full based on chapters 1 and 2
+alone. The rest should almost be just mechanical descriptions of each of the
+component pieces.  To this end, chapter 1 must stress the new contributions,
+and distinguish it *enough* from prior work, while chapter 2 must fill in all
+the details of prior work. Don't expect that most people will read beyond
+chapter 2 unless they want detail.
