@@ -39,3 +39,7 @@ component pieces.  To this end, chapter 1 must stress the new contributions,
 and distinguish it *enough* from prior work, while chapter 2 must fill in all
 the details of prior work. Don't expect that most people will read beyond
 chapter 2 unless they want detail.
+
+19. Add a related work/background subsection that talks about concurrent research:
+* Fastpass, Flexplane, UPS, SNAP, Flexplane, Xpliant, P4, Tofino
+
