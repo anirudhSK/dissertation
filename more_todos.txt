@@ -3,4 +3,5 @@
 3. Figures in intro.
 4. Move new SIGCOMM text into performance queries.
 5. More Domino programs.
-6. Move text of theorems into main text. 
+6. Move text of theorems into main text.
+7. Figure out how to keep marple's tech report and dissertation in sync.
