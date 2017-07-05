@@ -5,3 +5,4 @@
 5. More Domino programs.
 6. Move text of theorems into main text.
 7. Figure out how to keep marple's tech report and dissertation in sync.
+8. Reduce text from each chapter's introduction.
