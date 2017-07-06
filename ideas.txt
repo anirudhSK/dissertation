@@ -1,0 +1,7 @@
+1. Have a separate experimental method section to talk about simulation +
+synthesis + emulation etc.
+
+2. Should we have a section titled primer on a router's pipeline? This
+should talk about a shared pipeline, maybe multiple such pipelines and
+the scheduler that resides in between the two pipelines.
+
