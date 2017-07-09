@@ -6,3 +6,20 @@
 6. Move text of theorems into main text.
 7. Figure out how to keep marple's tech report and dissertation in sync.
 8. Reduce text from each chapter's introduction.
+9. http://www.srl.inf.ethz.ch/papers/sosp15-symple.pdf is very related work to our linear-in-state characterization:
+
+This system (called Symple) shares many of the same goals as Marple's aggregation
+implementation: http://www.srl.inf.ethz.ch/papers/sosp15-symple.pdf
+The introduction should be sufficient to understand the problem they
+are tackling.
+
+Figure 1 captures an example of an aggregation that they can
+parallelize (we should see if Figure 1 is linear-in-state), while
+Figure 2 captures the essence of their approach. Some of their
+restrictions in section 4.3 seem similar to ours. For instance,
+1. They encodes integers as affine transformations of other integers.
+2. They only allows multiplication of integers only with constants, and
+3. They don't permit division operations on integers.
+
+It might be worthwhile understanding more deeply what the differences
+and similarities between Marple and Symple are.
