@@ -1,0 +1,32 @@
+====Maybe describe the atom design process up front here=====
+Move it up from lessons learned to the beginnings of the evaluation section
+
+====Write up of whether atoms generalize======
+
+It's natural to ask if atoms generalize. We had to go through a trial and error
+process of extending the atoms to ensure they worked well (git commits
+xxx---yyy illustrate this process). However, after this process was over, we
+only had to add a multiply-accumulate atom (reqd. for performance queries). In
+hindsight, this was a simple enough instruction that we should have added to
+the original instruction set, but did not simply because there was no way to
+implement the primary use case for a MAC (the RED algorithm) without getting
+queue size information in the enqueue pipeline.
+
+After this process was over, we found that we could use the Domino atom to map
+new non-linear-in-state examples from the performance queries project. We also
+found that it could map <whatever examples we are able to map when writing new
+algorithms now>. We found that the instruction set also influences the
+algorithms people actually write for these pieces of hardware (give some
+examples here).
+
+At the same time, there are algorithms that do not map. These are algorithms that
+need floating points (e.g., CoDel), or need more involved computations in their
+predicate (e.g., trTCM (I think)). Looking back, we find that the general pattern of
+if (g1(s, p)) s=f1(s, p)
+if (g2(s, p)) s=f2(s, p)
+seems to work well as a {\em structure} for these computations. But the details
+of it vary in terms of what we can do within each g and each f. In the cases
+where we had to extend the atoms, we only had to change the $f$s and $g$s and
+not the overall structure.
+
+(Maybe express all atoms in terms of this structure.)
