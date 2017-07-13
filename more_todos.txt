@@ -57,3 +57,5 @@ Maybe separate the discussion into the structure of the atom and the details of 
 only deal with the former here.
 
 14. The term fixed-function is a bit misleading.
+
+15. Proof of fixed-point algorithm in Marple
