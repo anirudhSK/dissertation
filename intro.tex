@@ -2,36 +2,58 @@
 \label{chap:intro}
 
 \section{Background}
+
+
+%TODO: How do we get into the intro without invoking the e2e principle?
+%Maybe remove all refs to the e2e principle
+
+
 %TODO: Diagram of net. arch.
+%Rewrite first two paragraphs to eliminate end-to-end principle
 Computer networks have two classes of elements: the \textit{end hosts} that
 generate packets and the \textit{routers}\footnote{We use the term router to
 refer to both switches and routers in this disseration.} that forward these
-packets between the end hosts. Traditionally, the architecture of these
-networks has followed the end-to-end principle~\cite{e2e}: the principle that
-most of the application-specific logic or intelligence in a network should
-reside at the end hosts, while the routers themselves should be fixed-function
-devices dedicated to forwarding packets as efficiently as possible. This
-dichotomy can be seen in any popular Internet application today. Whether it is
-video conferencing, Web browsing, or social networking, each application's
-distinctive application logic resides in clients and servers, while the routers
-themselves are only responsible for forwarding packets between these clients
-and servers. The end-to-end principle has in part been responsible for the
-dramatic success and heterogeneity of the Internet because applications can be
-deployed by implementing application-specific logic at end hosts without
-touching the routers inside the network.
+packets between the end hosts. Historically, the Internet was architected so
+that most of the intelligence in the Internet resided in the end hosts, while
+the routers themselves were simple. According to
+Clark~\cite{design_philosophy}, this architecture came about as a result of the
+overarching design goal of the Internet: the flexibility to connect together
+several existing networks with disparate network architectures (\eg long-haul
+networks, local-area networks, satellite networks, and radio networks) while
+providing acceptable end-to-end connectivity. Quoting Clark, "The Internet
+architecture achieves this flexibility by making a minimum set of assumptions
+about the function which the net will provide."
 
-Yet, today's reality is very different from the pristine network architecture
-presented by the end-to-end principle. It is increasingly clear that routers
-need to do much more than forward packets. A typical router today implements
-many features beyond packet forwarding, such as access control, measurement
-support, and tunneling, because these are important to network operators. A
-single router covers functionality that spans a few 1000
-RFCs~\cite{lavanya_compiler}. However, there's little consensus between
-operators and vendors on a router's feature set, and the routers themselves are
-fixed-function. Inevitably, there are operators whose needs fall outside the
-laundry list of features implemented by routers. In such cases, the operator is
-out of luck because there is no way to modify a fixed-function router to add a
-new feature that makese sense to a particular operator.
+This minimum functionality provided by the network was best-effort and
+unreliable packet forwarding. As a result, the early routers were singularly
+dedicated to forwarding packets as efficiently as possible. Notably absent from
+a router were reliable packet delivery, packet prioritization, monitoring
+features to attribute a router's resource usage to specific end hosts, and
+security features to prevent network breaches. While this architecture focused
+on interconnecting existing networks with minimum friction to broaden the
+Internet's reach, it largely ignored other goals such as improving network
+performance, security, and monitoring.
+ 
+But, today, four decades after ideas underlying the Internet were first
+published~\cite{cerf74}, it is clear that routers need to do much more than
+forward packets for at least two reasons. First, once the basic goal of
+interconnecting different networks is achieved, other goals rise in prominence.
+Second, many large-scale private networks (\eg datacenters, private wide-area
+networks, enterprise networks) do not need to concern themselves with
+interconnecting disparate networks as the Internet did. As a result, a typical
+router today implements many features beyond packet forwarding, such as access
+control (for security), counting the number of packets belonging to each flow
+transiting the router (for monitoring), and priority queues (to improve
+performance of specific flows). In aggregate, a single router covers
+functionality that spans a few 1000 RFCs~\cite{lavanya_compiler}.
+
+However, there's little consensus between operators and vendors on a router's
+feature set, and the routers themselves are {\em fixed-function}, \ie their
+functionality cannot be changed once the router has been built. Inevitably,
+there are network operators whose needs fall outside the laundry list of
+features implemented by routers. In such cases, the operator is out of luck
+because there is no way to modify a fixed-function router to add a new feature
+that makese sense to a particular operator.
 
 As a result, the rate of innovation in new router algorithms is outstripping
 our ability to get these algorithms into production routers, especially those
@@ -40,6 +62,7 @@ Figure~\ref{fig:router_algos} shows a timeline of prominent router algorithms
 that have been developed since the 1980s. Of these, only a handful are
 available in production routers because there is no way to program a new router
 algorithm on a production router.
+%TODO: What is a production router?
 
 \begin{figure}
 \centering
@@ -49,42 +72,43 @@ algorithm on a production router.
 \end{figure}
 
 As an operator who wants to introduce new functionality in their network, what
-are their choices? One is to give up on changing routers altogether and make
-all the required changes at end hosts. This has been done before, but relying
-solely on end hosts results in solutions that are cumbersome or suboptimal. As
-a first example, imagine measuring the queuing latency at a particular hop in
-the network. One could do this by collecting end-to-end ping measurements
-between a variety of vantage points and then fusing these measurements together
-to estimate per-hop queueing latency. Not only is this indirect, it is also
-inaccurate relatively to directly instrumenting the router at that hop to
-measure its own queueing latency. As a second example, consider the problem of
-congestion control, which divides up a network's capacity fairly among competing
-users. There are many in-network solutions to congestion control~\cite{xcp,
-rcp}, which outperform the end-host-only approaches to congestion control used
-today. But, there is no way to deploy them.
+are the operator's choices? One is to give up on changing routers altogether
+and make all the required changes at end hosts as the original Internet did.
+However, relying solely on end hosts results in solutions that are cumbersome
+or suboptimal. As a first example, imagine measuring the queuing latency at a
+particular hop in the network. One could do this by collecting end-to-end ping
+measurements between a variety of vantage points and then fusing these
+measurements together to estimate per-hop queueing latency. Not only is this
+indirect, it is also inaccurate relatively to directly instrumenting the router
+at that hop to measure its own queueing latency. As a second example, consider
+the problem of congestion control, which divides up a network's capacity fairly
+among competing users. There are many in-network solutions to congestion
+control~\cite{xcp, rcp}, which outperform the end-host-only approaches to
+congestion control used today. But, there is no way to deploy them.
 
-%TODO: Where to use the and where not to?
 Another alternative is to use a \textit{software router}: a catch-all term for
 a router built on top of some \textit{programmable} substrate, such as a
-general-purpose CPU~\cite{click, routebricks}, a network processor (a CPU with
-an instruction set tailored to packet processing)~\cite{ixp4xx, ixp2800}, a
-GPU~\cite{packetshader}, or an FPGA~\cite{netfpga}.
-Figure~\ref{fig:router_evolution} tracks the aggregate capacity of software
-routers over time and compares them against the fastest routers known at a any
-point in time. The figure shows two trends. First, up until the mid 90s,
-software routers were in fact the fastest routers; the early routers were
-minicomputers loaded with forwarding software. However, since the mid 90s,
-growing demands for higher link speeds, fueled by the Internet's explosive
-growth, have meant that the fastest routers are now built out of dedicated
-hardware, specialized for packet forwarding. As a result of hardware specialization,
-the performance of these routers is between 10 and 100 $\times$ better than software routers. This performance improvement is because software routers do not fully
-exploit the large degree of parallelism available in packet processing:
-within the processing of a single packet, across packets at different ports,
-and pipeline parallelism when carrying out different functions on the same
-packet. However, hardware specialization carries a cost: because these routers are
-built out of specialized hardware, they are fixed-function devices that can not be
+general-purpose CPU~\cite{click, routebricks}; a network processor, a CPU with
+an instruction set tailored to packet processing~\cite{ixp4xx, ixp2800}; a
+GPU~\cite{packetshader}; or an FPGA~\cite{netfpga}.
+Figure~\ref{fig:router_evolution} tracks the evolution of aggregate capacity of
+software routers compares them against the fastest routers known at a any point
+in time. The figure shows two trends. First, up until the mid 90s, software
+routers were in fact the fastest routers; the early routers were minicomputers
+loaded with forwarding software. However, since the mid 90s, growing demands
+for higher link speeds, fueled by the Internet's explosive growth, have meant
+that the fastest routers are now built out of dedicated hardware, specialized
+for packet forwarding. As a result of hardware specialization, the performance
+of these routers is between 10 and 100 $\times$ better than software routers.
+This performance improvement is because software routers do not fully exploit
+the large degree of parallelism available in packet processing: within the
+processing of a single packet, across packets at different ports, and pipeline
+parallelism when carrying out different functions on the same packet. However,
+hardware specialization comes at a cost: because these routers are built out of
+specialized hardware, they are fixed-function devices that can not be
 reconfigured in the field.
 
+%TODO: Define control plane and data plane
 Recent work in software-defined networking~\cite{openflow} (SDN) and
 reconfigurable match-action tables~\cite{rmt} (RMT) has made fast routers
 flexible to some degree: SDN allows operators to program the network control
