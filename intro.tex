@@ -134,20 +134,36 @@ then, however, the fastest routers have been built out of dedicated hardware.}
 \section{Primary contributions}
 
 This dissertation considers the problem of building routers that approach the
-speeds supported by today's fastest fixed-function routers, while also being
-programmable. In particular, the thesis of this disseration is that it is
-possible to design router hardware that is both fast and programmable, as long
-as we restrict ourselves to specific classes of router functionality. It is
-this specificity that allows us to resolve the programmability-performance
-tension; indeed, our designs provide a much more restricted form of
-programmability than a Turing-complete processor. The challenge here is to pick
-classes of router functionality that are simultaneously (1) practically useful
-to network operators, (2) broad enough to cover a range of current and future
-use cases within that class, and yet (3) narrow enough to permit a high-speed
-hardware implementation. We will describe high-speed programmable hardware
-designs and their corresponding programming models in software for three
-classes of router functionality: stateful data-plane algorithms, packet
-scheduling, and scalable network measurement.
+speeds of today's fastest fixed-function routers, while also being
+programmable. My thesis is that it is possible to design router hardware that
+is both fast and programmable, as long as we restrict ourselves to specific
+classes of router functionality. It is this specificity that allows us to
+resolve the programmability-performance tension; indeed, our designs provide a
+much more restricted form of programmability than a Turing-complete processor.
+The challenge here is to pick classes of router functionality that are
+simultaneously (1) practically useful to network operators, (2) broad enough to
+cover a range of current and future use cases within that class, and yet (3)
+narrow enough to permit a high-speed hardware implementation. We will describe
+high-speed programmable hardware primitives and their corresponding programming
+models in software for three classes of router functionality: stateful
+data-plane algorithms, packet scheduling, and scalable network measurement.
+Table~\ref{tab:contributions} summarizes our contributions.
+
+%Consider adding a crisp statement of limitations of each class of algorithms
+%Packet payload processing, Algorithms with loop bounds only known at run time \\
+\begin{table}
+\begin{tabular}{|l|l|l|l|l|}
+\hline
+Class of algorithms & Examples & Programming model & Hardware primitives & New finding \\
+\hline
+Stateful data-plane algorithms & In-network congestion control, active queue management & Packet transactions & Atoms & A small set of atoms can serve as the instruction set for many stateful algorithms \\
+Scheduling algorithms & Fair queueing, priority scheduling, deadline scheduling & Scheduling trees & Push-In First-Out Queue & A priority queue of packets with a program to set each packet's priority captures many scheduling algorithms \\
+Statistics measurement & Per-flow statistics (\eg moving averages, counters, loss rate) & Performance queries & Programmable hardware key-value store to scalably track per-flow statistics & There is a class of statistics measurements (linear-in-state) that can be scalably implemented without losing accuracy \\ 
+\hline
+\end{tabular}
+\caption{Contributions of this dissertation}
+\label{tab:contributions}
+\end{table}
 
 \subsection{Stateful data-plane algorithms}
 Domino (Chapter~\ref{chap:domino}) is a system to program \textit{data-plane
@@ -226,7 +242,6 @@ than 4\% additional chip area.
 %% Formally characterize linear-in-state operations here.
 %% Maybe give an example of why merging is hard in general and why there's
 %% something non-trivial here.
-%% Table with new contributions
 
 \TheSystem (Chapter~\ref{chap:perf_query}) provides a query language and
 supporting router hardware for network performance measurement queries. As
