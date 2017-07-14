@@ -59,37 +59,3 @@ only deal with the former here.
 14. The term fixed-function is a bit misleading.
 
 15. Proof of fixed-point algorithm in Marple
-
-16. Cite these papers (http://www.cc.gatech.edu/projects/canes/papers/icnp97.pdf and
-http://web.mit.edu/Saltzer/www/publications/endtoend/ANe2ecomment.html)
-because they relate the end-to-end argument with the active networks work. Some
-of it might be applicable to programmable routers as well. I guess one differnce
-relative to either capsule-based or switchware-based active networks is that we
-assume the programmability is something the network operator wants, not an application
-driven thing. So we are only providing useful programmability. Further, there isn't as much
-application heterogeneity in this private context (WANs, DCs) as opposed to the Internet.
-
-17. Fragment from David Wetherall's dissertation that is telling:
-
-"To design applications in this manner, a useful view is that of network
-processing as an optimization of end-to-end processing. This is compatible with
-reliability concerns and partial deployment. For example, in an online auction
-service, Legedza delegated bid rejection processing - but not bid acceptance
-processing - to network nodes [Wetherall et al., 1998]. Bid rejection within
-the network is an optimization because if it does not occur within the network
-then it can be handled at the edge of the network. On the other hand, bid
-acceptance cannot be modeled as an optimization because if it occurs within the
-network it must be reliably signaled to the edge of the network."
-
-I think the differences relative to active networks are that:
-(1) The applications/users program active networks as opposed to network operators here.
-(2) Hence the programs need to be isolated (e.g., JVM) degrading performance.
-(3) Also, you need to compose services/programs from multiple different operators, which
-hurts predictability (ref. http://web.mit.edu/Saltzer/www/publications/endtoend/ANe2ecomment.html) and also makes it hard to design the capsule execution system.
-
-Here, we have the network operator programming the network. The programming model is
-quite restricted and there are typically just a few applications using these networks
-(e.g., private WANs, DCs, etc.) Correspondingly, Clark's concerns from the original 1988
-paper about in-network functionality (e.g., reliability) affecting other applications are
-not as applicable anymore.
-
