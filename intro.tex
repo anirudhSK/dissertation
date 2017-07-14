@@ -108,21 +108,25 @@ on the same packet. However, hardware specialization comes at a cost: because
 these routers are built out of specialized hardware, they are fixed-function
 devices that can not be reconfigured in the field.
 
-%TODO: Define control plane and data plane
 Recent work in software-defined networking~\cite{openflow} (SDN) and
-reconfigurable match-action tables~\cite{rmt} (RMT) has made fast routers
-flexible to some degree: SDN allows operators to program the network control
-plane, while RMT allows operators to program parts of the data plane such as
-the parser and header manipulations that do not manipulate router state.
-However, these solutions are still not sufficient to express the grayed-out
-algorithms shown in Figure~\ref{fig:router_algos}.
-%TODO: Better description of SDN and RMT
+programmable switching chips~\cite{rmt, xpliant, flexpipe} has endowed fast
+routers with limited flexibility. SDN allows operators to program the network
+control plane, which is the part of the network that computes a network's
+routing tables, by moving route computations out of the routers and on to a
+programmable server. Programmable switching chips allow operators to program
+parts of the data plane, which is the part of the network that forwards packets
+based on the routing tables, such as packet header manipulations that do not
+modify router state.  However, these solutions are still not sufficient to
+express the grayed-out algorithms shown in Figure~\ref{fig:router_algos}
+because (1) these algorithms programmatically manipulate router state and (2)
+they require flexibility in packet scheduling, which is untouched by both SDN
+and programmable switching chips.
 
 \begin{figure}
 \centering
 \includegraphics[width=\columnwidth]{router_evolution.pdf}
 \caption{Aggregate capacity of routers since the first router on the ARPANET in
-1969~\cite{imp}. Until the mid 90s, software routers were sufficient; since
+1969~\cite{imp}. Until the mid 90s, software routers were sufficient. Since
 then, however, the fastest routers have been built out of dedicated hardware.}
 \label{fig:router_evolution}
 \end{figure}
