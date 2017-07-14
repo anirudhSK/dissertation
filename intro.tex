@@ -86,26 +86,28 @@ congestion control used today~\cite{cubic, compound}. But, there is no way to
 deploy them. 
 
 Another alternative is to use a \textit{software router}: a catch-all term for
-a router built on top of some \textit{programmable} substrate, such as a
-general-purpose CPU~\cite{click, routebricks}; a network processor, a CPU with
-an instruction set tailored to packet processing~\cite{ixp4xx, ixp2800}; a
-GPU~\cite{packetshader}; or an FPGA~\cite{netfpga}.
+a router built on top of some programmable substrate, such as a general-purpose
+CPU~\cite{click, routebricks}, a network processor\footnote{A CPU with an
+instruction set tailored to packet processing~\cite{ixp4xx, ixp2800}.}, a
+GPU~\cite{packetshader}, or an FPGA~\cite{netfpga}.
 Figure~\ref{fig:router_evolution} tracks the evolution of aggregate capacity of
-software routers and compares them to the fastest routers known at a any point
+software routers and compares them to the fastest routers known at that point
 in time. The figure shows two trends. First, up until the mid 90s, software
 routers were in fact the fastest routers; the early routers~\cite{imp} were
-minicomputers loaded with forwarding software. However, since the mid 90s,
-growing demands for higher link speeds, fueled by the Internet's explosive
-growth, have meant that the fastest routers are now built out of dedicated
-hardware, specialized for packet forwarding. As a result of hardware
-specialization, the performance of these routers is between 10 and 100 $\times$
-better than software routers.  This performance improvement is because software
-routers do not fully exploit the large degree of parallelism available in
-packet processing: within the processing of a single packet, across packets at
-different ports, and pipeline parallelism when carrying out different functions
-on the same packet. However, hardware specialization comes at a cost: because
-these routers are built out of specialized hardware, they are fixed-function
-devices that can not be reconfigured in the field.
+minicomputers loaded with forwarding software. Second, since the mid 90s,
+growing demands for higher link speeds, fueled by the Internet's growth, have
+meant that the fastest routers are now built out of dedicated hardware,
+specialized for packet forwarding.
+
+Hardware specialization gives these routers a 10--100 $\times$ performance
+improvement relative to software routers.  This performance improvement is the
+result of fully exploiting the abundant parallelism available in packet
+processing. First, data parallelism, the ability to simultaneously process
+either different parts of the same packet or packets belonging to different
+ports. Second, pipeline parallelism, the ability to simultaneously perform
+different operations on different packets. But, hardware specialization carries
+a cost: because routers are built out of specialized hardware, they are
+fixed-function devices that can not be reconfigured in the field.
 
 Recent work in software-defined networking~\cite{openflow} (SDN) and
 programmable switching chips~\cite{rmt, xpliant, flexpipe} has endowed fast
