@@ -22,7 +22,7 @@ The minimum functionality assumed of and provided by the network was
 best-effort and unreliable packet forwarding. Notably absent from a router's
 feature set were reliable packet delivery, packet prioritization, monitoring
 features to attribute a router's resource usage to specific end hosts, and
-security features to prevent network breaches. As a result, the early routers
+security features to detect network breaches. As a result, the early routers
 were singularly dedicated to packet forwarding. A minimal router feature set
 made it simpler to design high-speed routers and helped broaden the Internet's
 reach by interconnecting existing networks with minimum friction. But, it
@@ -32,26 +32,26 @@ performance, security, and monitoring.
 Today, four decades after ideas underlying the Internet were first
 published~\cite{cerf74}, it is clear that routers need to do much more than
 forward packets for at least two reasons. First, once the basic goal of
-interconnecting different networks is achieved, other goals rise in prominence.
-Second, many large-scale private networks (\eg datacenters, private wide-area
-networks, enterprise networks) do not need to concern themselves with
-interconnecting disparate networks as the Internet had to and hence can assume
-more of their network. As a result, a typical router today implements many
-features beyond packet forwarding, pertaining to security (\eg access control),
-monitoring (\eg counting the number of packets belonging to each flow
-transiting the router), and performance (\eg priority queues). In aggregate, a
-single router covers functionality that spans a few 1000
-RFCs~\cite{lavanya_compiler}.
+interconnecting different networks is achieved, other goals like performance,
+security, and monitoring rise in prominence.  Second, many large-scale private
+networks (\eg datacenters, private wide-area networks, enterprise networks) do
+not need to concern themselves with interconnecting disparate networks as the
+Internet had to and hence can expect more from their network. As a result, a
+typical router today implements many features beyond packet forwarding,
+pertaining to security (\eg access control), monitoring (\eg counting the
+number of packets belonging to each flow transiting the router), and
+performance (\eg priority queues).
 
-However, there's little consensus between network operators and router vendors
-on a router's feature set. Inevitably, there are network operators whose needs
-fall outside their router's feature set. But because today's fastest routers
-are built out of specialized forwarding hardware, they are largely {\em
-fixed-function} in that their functionality cannot be changed once the router
-has been built. In such cases, the operator has no alternative but to wait
-two--three years for the next generation of the router hardware, as best
-illustrated by the lag time between the standardization and availability of new
-overlay protocols~\cite{vxlan, nvgre}.
+However, despite the feature creep in routers, there's little consensus between
+network operators and router vendors on a router's feature set. Inevitably,
+there are network operators whose needs fall outside their router's feature
+set. But because today's fastest routers are built out of specialized
+forwarding hardware, they are largely {\em fixed-function} in that their
+functionality cannot be changed once the router has been built. In such cases,
+the operator has no alternative but to wait two--three years for the next
+generation of the router hardware---best illustrated by the lag time between
+the standardization and availability of new overlay protocols~\cite{vxlan,
+nvgre}.
 
 As a result, the rate of innovation in new router algorithms is outstripping
 our ability to get these algorithms into production routers, especially those
@@ -116,6 +116,7 @@ plane, while RMT allows operators to program parts of the data plane such as
 the parser and header manipulations that do not manipulate router state.
 However, these solutions are still not sufficient to express the grayed-out
 algorithms shown in Figure~\ref{fig:router_algos}.
+%TODO: Better description of SDN and RMT
 
 \begin{figure}
 \centering
