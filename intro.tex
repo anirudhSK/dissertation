@@ -153,16 +153,55 @@ Table~\ref{tab:contributions} summarizes our contributions.
 % Maybe add a technical challenges column?
 \begin{table}
 \begin{small}
-\begin{tabular}{|p{0.2\columnwidth}|p{0.12\columnwidth}|p{0.2\columnwidth}|p{0.3\columnwidth}|}
+Stateful data-plane algorithms (Chapter~\ref{chap:domino})
+\hline \\
+\hline \\
+Examples: in-network congestion control (XCP~\cite{xcp}, RCP~\cit{rcp}), active
+queue management (RED~\cite{red}, BLUE~\cite{blue}, CoDel~\cite{codel}) \\
+
+Technical challenge: How do we allow programmable router state modification at
+the router's line rate, where a new packet can be received every nanosecond? \\
+
+Programming model: Packet transactions (\S\ref{s:transactions})\\
+
+Hardware primitive: Atoms (\S\ref{s:absmachine}) \\
+
+New finding: A small set of atoms are simultaneously (1) expressive enough to
+serve as the instruction set for many stateful algorithms, and (2) simple
+enough to implement in high-speed hardware. \\ \\
+
+Scheduling algorithms (Chapter~\ref{chap:pifo})
+\hline \\
+\hline \\
+Examples: Fair queueing~\cite{wfq}, priority scheduling~\cite{srpt} \\
+
+Technical challenge: Can we find an abstraction that unifies many disparate
+scheduling algorithms? \\
+
+Programming model: Scheduling trees (\S\ref{s:pifo}) \\
+
+Hardware primitive: A priority queue data structure we call Push-In First-Out
+Queues (PIFOs) (\S\ref{s:design}) \\
+
+New finding: A priority queue of packets with a program to set each packet's
+priority can express many scheduling algorithms, and is feasible in high-speed
+hardware. \\
+
+Programmable and scalable per-flow statistics (Chapter~\ref{chap:perf_query}) \\
 \hline
-Class of algorithms & Programming model & Hardware primitives & New finding \\
 \hline
-Stateful data-plane algorithms (\eg in-network congestion control, active queue management) & Packet transactions & Atoms & A small set of atoms can serve as the instruction set for many stateful algorithms. \\
-\hline
-Scheduling algorithms (\eg fair queueing, priority classes) & Scheduling trees & Push-In First-Out Queue & A priority queue of packets with a program to set each packet's priority captures many scheduling algorithms. \\
-\hline
-Per-flow statistics measurement (\eg moving averages, counters, loss rate) & Performance queries & Programmable hardware key-value store. Keys correspond to flows and values to statistics. & A class of statistics measurements (linear-in-state) can be scaled to a large number of flows without losing accuracy. \\ 
-\hline
+Examples: Per-flow measurements of moving averages, counters, and loss rates \\
+
+Technical challenge: Can we allow programmers to flexibly define the per-flow
+statistics they want to measure, while scaling to a large number of flows?\\
+
+Programming model: Performance queries (\S\ref{sec:language}) \\
+
+Hardware primitive: Programmable hardware key-value store. Keys correspond to
+flows and values to statistics. (\S\ref{sec:aggregation}) \\
+
+New finding: A class of statistics measurements (linear-in-state) can be scaled
+to a large number of flows without losing accuracy.
 \end{tabular}
 \caption{Contributions of this dissertation}
 \label{tab:contributions}
