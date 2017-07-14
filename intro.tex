@@ -152,17 +152,21 @@ Table~\ref{tab:contributions} summarizes our contributions.
 %Consider adding a crisp statement of limitations of each class of algorithms
 %Packet payload processing, Algorithms with loop bounds only known at run time \\
 \begin{table}
-\begin{tabular}{|l|l|l|l|l|}
+\begin{small}
+\begin{tabular}{|p{0.1\columnwidth}|p{0.15\columnwidth}|p{0.12\columnwidth}|p{0.2\columnwidth}|p{0.3\columnwidth}|}
 \hline
 Class of algorithms & Examples & Programming model & Hardware primitives & New finding \\
 \hline
-Stateful data-plane algorithms & In-network congestion control, active queue management & Packet transactions & Atoms & A small set of atoms can serve as the instruction set for many stateful algorithms \\
-Scheduling algorithms & Fair queueing, priority scheduling, deadline scheduling & Scheduling trees & Push-In First-Out Queue & A priority queue of packets with a program to set each packet's priority captures many scheduling algorithms \\
-Statistics measurement & Per-flow statistics (\eg moving averages, counters, loss rate) & Performance queries & Programmable hardware key-value store to scalably track per-flow statistics & There is a class of statistics measurements (linear-in-state) that can be scalably implemented without losing accuracy \\ 
+Stateful data-plane algorithms & In-network congestion control, active queue management & Packet transactions & Atoms & A small set of atoms can serve as the instruction set for many stateful algorithms. \\
+\hline
+Scheduling algorithms & Fair queueing, priority scheduling, deadline scheduling & Scheduling trees & Push-In First-Out Queue & A priority queue of packets with a program to set each packet's priority captures many scheduling algorithms. \\
+\hline
+Statistics measurement & Per-flow statistics (\eg moving averages, counters, loss rate) & Performance queries & Programmable hardware key-value store. Keys correspond to flows and values to statistics. & A class of statistics measurements (linear-in-state) can be scaled to a large number of flows without losing accuracy. \\ 
 \hline
 \end{tabular}
 \caption{Contributions of this dissertation}
 \label{tab:contributions}
+\end{small}
 \end{table}
 
 \subsection{Stateful data-plane algorithms}
