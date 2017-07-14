@@ -154,9 +154,8 @@ Table~\ref{tab:contributions} summarizes our contributions.
 \begin{table}
 \begin{small}
 Stateful data-plane algorithms (Chapter~\ref{chap:domino})
-\hline \\
-\hline \\
-Examples: in-network congestion control (XCP~\cite{xcp}, RCP~\cit{rcp}), active
+\hrule \hrule
+Examples: in-network congestion control (XCP~\cite{xcp}, RCP~\cite{rcp}), active
 queue management (RED~\cite{red}, BLUE~\cite{blue}, CoDel~\cite{codel}) \\
 
 Technical challenge: How do we allow programmable router state modification at
@@ -171,8 +170,7 @@ serve as the instruction set for many stateful algorithms, and (2) simple
 enough to implement in high-speed hardware. \\ \\
 
 Scheduling algorithms (Chapter~\ref{chap:pifo})
-\hline \\
-\hline \\
+\hrule \hrule
 Examples: Fair queueing~\cite{wfq}, priority scheduling~\cite{srpt} \\
 
 Technical challenge: Can we find an abstraction that unifies many disparate
@@ -188,8 +186,7 @@ priority can express many scheduling algorithms, and is feasible in high-speed
 hardware. \\
 
 Programmable and scalable per-flow statistics (Chapter~\ref{chap:perf_query}) \\
-\hline
-\hline
+\hrule \hrule
 Examples: Per-flow measurements of moving averages, counters, and loss rates \\
 
 Technical challenge: Can we allow programmers to flexibly define the per-flow
@@ -201,8 +198,7 @@ Hardware primitive: Programmable hardware key-value store. Keys correspond to
 flows and values to statistics. (\S\ref{sec:aggregation}) \\
 
 New finding: A class of statistics measurements (linear-in-state) can be scaled
-to a large number of flows without losing accuracy.
-\end{tabular}
+to a large number of flows without losing accuracy.\\
 \caption{Contributions of this dissertation}
 \label{tab:contributions}
 \end{small}
