@@ -156,13 +156,14 @@ measurement.  Table~\ref{tab:contributions} summarizes our contributions.
 %Packet payload processing, Algorithms with loop bounds only known at run time \\
 
 \subsection{Stateful data-plane algorithms}
-We first consider the problem of programming {\em stateful data-plane
-algorithms} at high packet processing rates. These are algorithms that operate
-on a sequeunce of packets in a streaming manner, doing a bounded amount of work
-per packet and manipulating a bounded amount of router state in the process.
-They include algorithms for managing the router's buffer (\eg RED~\cite{red},
-BLUE~\cite{blue}), load balancing (\eg CONGA~\cite{conga}, Flare~\cite{flare}),
-and in-network congestion control (\eg XCP~\cite{xcp}, RCP~\cite{rcp}).
+First (Chapter~\ref{chap:domino}), we consider the problem of programming {\em
+stateful data-plane algorithms} at high packet processing rates. These are
+algorithms that operate on a sequeunce of packets in a streaming manner, doing
+a bounded amount of work per packet and manipulating a bounded amount of router
+state in the process.  They include algorithms for managing the router's buffer
+(\eg RED~\cite{red}, BLUE~\cite{blue}), load balancing (\eg CONGA~\cite{conga},
+Flare~\cite{flare}), and in-network congestion control (\eg XCP~\cite{xcp},
+RCP~\cite{rcp}).
 
 High-speed data-plane programming poses two challenges: (1) what hardware
 instructions are required to support programmable state modification at the
