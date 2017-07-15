@@ -274,8 +274,6 @@ cases, providing evidence that these atoms generalize and are useful beyond the
 algorithms that influenced their design in the first place.
 
 \subsection{Programmable packet scheduling}
-%TODO: This subsection seems imbalanced now
-
 Packet scheduling is an important determinant of network performance. The
 choice of scheduling algorithm is tied to a network's overarching goals. For
 instance, an algorithm that divides link capacity fairly is ideal in a
@@ -288,9 +286,9 @@ needs.
 Routers lack programmable scheduling because there is no single abstraction to
 express many scheduling algorithms. Push In First Out Queues (PIFOs) (Chapter~\ref{chap:pifo})
  provide
-such an abstraction. They exploit the fact that in many practical schedulers,
+such an abstraction. They exploit the observation that in many practical schedulers,
 the relative order of packets that are already buffered does not change in
-response to new packet arrivals. Put differently, when a packet arrives, it can
+response to new packet arrivals (\S\ref{s:deconstruct}). Hence, when a packet arrives, it can
 be pushed into the right location based on a packet priority (push in), but
 packets can always be dequeued from the head (first out). The PIFO abstraction
 is simple: a priority queue of packets with a small program to assign each
@@ -298,6 +296,12 @@ packet its priority. Yet, by flexibly programming a packet's priority
 assignment, a network operator can use the PIFO abstraction to program a
 variety of previously proposed scheduling algorithms. So far, these algorithms
 could only be run in simulation or on slower speed software routers.
+
+%TODO: Talk about programming model, at least scheduling and shaping transactions.
+%You could talk about the scheduling trees themselves if it's easy enough to explain.
+%TODO: Talk about the underlying hardware that backs this programming model.
+%TODO: Then talk about the evaluation in terms of both expressiveness and h/w cost.
+%Could make each of these a \Para
 
 As some examples of the expressivness of PIFOs, a single PIFO can express many
 classical scheduling algorithms, \eg token bucket shaping, weighted fair
@@ -366,3 +370,13 @@ hardware designs proposed here support a wide range of existing use cases and
 several new use cases that we had not anticipated initially. We hope these
 results provide guidance to router chip manufacturers when designing hardware
 for programmable routers.
+
+%%Lessons for programmable routers
+%% HW/SW co-design.
+%% Think vertically and design the entire stack from the ground up.
+%% Results in simpler solutions because you have more degrees of freedom.
+%% Judicious use of hardware and exposing it the right way in software is a big win.
+%% Non-Turing-complete designs have considerable richness to them. Turing complete processors
+%% have ruled the roost for many years but the end of Moore's law suggests that that might
+%% end very soon. This thesis can be seen as applying that kind of design philosophy to one
+%% specific domain: high-speed packet forwarding.
