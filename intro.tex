@@ -138,62 +138,92 @@ then, however, the fastest routers have been built out of dedicated hardware.}
 
 This dissertation considers the problem of building routers that approach the
 speeds of today's fastest fixed-function routers, while also being
-programmable. My thesis is that it is possible to design router hardware that
-is both fast and programmable, as long as we restrict ourselves to specific
-classes of router functionality. It is this specificity that allows us to
-resolve the programmability-performance tension; indeed, our designs provide a
-much more restricted form of programmability than a Turing-complete processor.
-The challenge here is to pick classes of router functionality that are
-simultaneously (1) practically useful to network operators, (2) broad enough to
-cover a range of current and future use cases within that class, and yet (3)
-narrow enough to permit a high-speed hardware implementation. We will describe
-high-speed programmable hardware primitives and their corresponding programming
-models in software for three classes of router functionality: stateful
-data-plane algorithms, packet scheduling, and scalable network measurement.
-Table~\ref{tab:contributions} summarizes our contributions.
+programmable. My thesis is that {\em it is possible to design router hardware
+that is both fast and programmable, if we restrict ourselves to programming
+specific classes of router functionality}. It is this specificity that allows
+us to resolve the programmability-performance tension; indeed, our designs
+provide a much more restricted form of programmability than a Turing-complete
+processor.  The challenge here is to pick classes of router functionality that
+are simultaneously (1) practically useful to network operators, (2) broad
+enough to cover a range of current and future use cases within that class, and
+yet (3) narrow enough to permit a high-speed hardware implementation. We will
+describe high-speed programmable hardware primitives and their corresponding
+programming models in software for three classes of router functionality:
+stateful data-plane algorithms, packet scheduling, and scalable network
+measurement.  Table~\ref{tab:contributions} summarizes our contributions.
 
 %Consider adding a crisp statement of limitations of each class of algorithms
 %Packet payload processing, Algorithms with loop bounds only known at run time \\
 
 \subsection{Stateful data-plane algorithms}
-Domino (Chapter~\ref{chap:domino}) is a system to program \textit{data-plane
-algorithms} on high-speed router hardware. Data-plane algorithms operate on a
-sequeunce of packets, doing a bounded amount of work per packet and
-manipulating a bounded amount of router state in the process.  They include
-algorithms for managing the router's buffer, load balancing, and in-network
-congestion control.
+We first consider the problem of programming {\em stateful data-plane
+algorithms} at high packet processing rates. These are algorithms that operate
+on a sequeunce of packets in a streaming manner, doing a bounded amount of work
+per packet and manipulating a bounded amount of router state in the process.
+They include algorithms for managing the router's buffer (\eg RED~\cite{red},
+BLUE~\cite{blue}), load balancing(\eg CONGA~\cite{conga}, Flare~\cite{flare}),
+and in-network congestion control (\eg XCP~\cite{xcp}, RCP~\cite{rcp}).
 
 High-speed data-plane programming poses two challenges: (1) what hardware
 instructions are required to support programmable state modification at the
-router's line rate and (2) what is the right programming model? In addressing
-each challenge, Domino makes two new contributions:
+router's line rate and (2) what is the right programming model? To address
+these challenges, we develop a system for data-plane programming, Domino, which
+contains three main components:
 \begin{CompactEnumerate}
 \item \textit{Atoms} capture a router's instruction set. They specify atomic
 units of packet processing provided by the router hardware, \eg an atomic
-counter or an atomic test-and-set. Atoms are atomic in that all state updated
-by an atom is visible to the next packet arriving at that atom.
-\item \textit{Packet Transactions} provide a programming model. A packet
-transaction is an atomic and isolated block of code capturing an algorithm's
-logic. It provides the semantics that any visible state is equivalent to a
-serial execution of packet transactions in the order of packet arrival---akin
-to an infinitely fast single-threaded router. Packet transactions are
-expressive and capture many important data-plane algorithms. Further, their
-serial semantics shield programmers from the hardware's parallelism, instead
-enlisting the Domino compiler to transform a serial packet transaction to a
-parallel atom pipeline.
-\end{CompactEnumerate}
-
-For the first time, atoms and packet transactions allow us to program several
-algorithms from Figure~\ref{fig:router_algos} (\eg the Adaptive Virtual
-Queue~\cite{avq} active queue management algorithm, the CONGA~\cite{conga} load
-balancing algorithm, bloom filters for measurement, and count-min sketches for
-detecting heavy hitters~\cite{opensketch}) on speeds approaching high-speed
-routers. P4~\cite{p4}, a packet-processing language that is emerging as an
-industry standard for programming router chips now supports the packet
-transaction abstraction.  P4 programmers can now use an @atomic annotation
+counter or an atomic test-and-set. Atoms are atomic in the sense that if some
+state is updated by an atom as part of processing a packet, the next packet
+arriving at that atom will see the updated value of that state.
+%TODO: Add a figure of an atom from your slides here.
+\item \textit{Packet Transactions} provide a programming model for data-plane
+algorithms. A packet transaction is an atomic and isolated block of code
+capturing an algorithm's logic written in a domain-specific language (DSL)
+called Domino. Packet transactions provide the semantics that any visible state
+is equivalent to a serial execution of packet transactions in the order of
+packet arrival---akin to an infinitely fast single-threaded router. Packet
+transactions are expressive and capture many important data-plane algorithms.
+Further, their serial semantics shield programmers from the hardware's
+parallelism. Packet transactions have been adopted in P4~\cite{p4}, a
+packet-processing language that is emerging as an industry standard for
+programming router chips.  P4 programmers can now use an @atomic annotation
 around a block of statements to specify that the block must execute atomically.
 
-%% Talk about the new atoms that the Domino created as the lasting contribution from the work
+%TODO: Need to clarify packet transaction semantics better. It's messy right now.
+%TODO: Add a figure of a packet transaction from your slides here.
+\item \textit{The Domino compiler}, which compiles packet transactions written
+in the Domino DSL to a pipeline of atoms provided by the router, and rejects
+the code if the router's atoms cannot support the packet transaction. The
+compiler provides an {\em all-or-nothing} guarantee: if the compiler compiles
+the packet transaction it will run at the line rate of the router; all other
+code that cannot run at line rate will be rejected. A conventional compiler for
+a general-purpose CPU compiles all programs, but a program's run-time
+performance depends on its complexity. Here, only programs that are simple
+enough to run at the router's line rate will even be compiled, obviating the
+need for any performance profiling.
+\end{CompactEnumerate}
+
+%TODO: Add figure of this iterative process from powerpoint slides
+Developing atoms for a router is a chicken-and-egg problem. A router's atoms
+determine what algorithms the router can support, while the algorithms
+determine what atoms are required in the first place. Designing the right atoms
+is especially important for a programmable line-rate router because---unlike a
+general-purpose CPU---there is no way to ``emulate'' functionality in software
+when hardware support is not available.
+
+To develop atoms, we use the Domino compiler here to experiment with different
+atoms and iteratively modify the atoms until they support enough algorithms.
+Using this process, we developed seven atoms (Table~\ref{tab:templates}) that
+allow us to program several algorithms from Figure~\ref{fig:router_algos} (\eg
+the Adaptive Virtual Queue~\cite{avq} active queue management algorithm, the
+CONGA~\cite{conga} load balancing algorithm, bloom filters for measurement, and
+count-min sketches for detecting heavy hitters~\cite{opensketch}) on speeds
+approaching high-speed routers.
+
+In two subsequent projects~\cite{hula, perf_query} that we carried out after
+the Domino work, we found that we could reuse the same atoms for other use
+cases, providing evidence that these atoms generalize and are useful beyond the
+algorithms that influenced their design in the first place.
 
 \subsection{Packet scheduling}
 
@@ -228,9 +258,9 @@ than 4\% additional chip area.
 
 \subsection{Scalable network measurement}
 
-%% Functional query language.
-%% Formally characterize linear-in-state operations here.
-%% Maybe give an example of why merging is hard in general and why there's
+%% TODO: Functional query language.
+%% TODO: Formally characterize linear-in-state operations here.
+%% TODO: Maybe give an example of why merging is hard in general and why there's
 %% something non-trivial here.
 
 \TheSystem (Chapter~\ref{chap:perf_query}) provides a query language and
