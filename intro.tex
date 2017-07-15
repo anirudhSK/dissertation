@@ -170,21 +170,23 @@ router's line rate and (2) what is the right programming model? To address
 these challenges, we develop a system for data-plane programming, Domino, which
 contains three main components:
 \begin{figure}
+\begin{minipage}{0.48\textwidth}
 \centering
-\includegraphics[width=0.5\textwidth]{atom.pdf}
+\vspace{0.38in}
+\includegraphics[width=0.85\textwidth]{atom.pdf}
 \caption{An atom that either adds either a constant or a packet field to a
 piece of state x and writes it back to x.}
 \label{fig:simple_atom}
-\end{figure}
-
-\begin{figure}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
 \centering
-\includegraphics[width=0.5\textwidth]{packet_transaction.pdf}
+\includegraphics[width=0.75\textwidth]{packet_transaction.pdf}
 \caption{A packet transaction that samples the src IP address of every 10th
 packet. State variables (count) are in red.}
 \label{fig:simple_transaction}
+\end{minipage}
 \end{figure}
-
 
 \begin{CompactEnumerate}
 \item \textit{Atoms} capture a router's instruction set. They specify atomic
@@ -212,7 +214,6 @@ programming router chips.  P4 programmers can now use an @atomic annotation
 around a block of statements to specify that the block must execute atomically.
 
 %TODO: Need to clarify packet transaction semantics better. It's messy right now.
-%TODO: Add a figure of a packet transaction from your slides here.
 \item \textit{The Domino compiler}, which compiles packet transactions written
 in the Domino DSL to a pipeline of atoms provided by the router, and rejects
 the code if the router's atoms cannot support the packet transaction. The
@@ -225,7 +226,6 @@ enough to run at the router's line rate will even be compiled, obviating the
 need for any performance profiling.
 \end{CompactEnumerate}
 
-%TODO: Add figure of this iterative process from powerpoint slides
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
 determine what algorithms the router can support, while the algorithms
 determine what atoms are required in the first place. Designing the right atoms
@@ -235,7 +235,7 @@ when hardware support is not available.
 
 \begin{figure}
 \centering
-\includegraphics[width=0.5\columnwidth]{iterative_design_process.pdf}
+\includegraphics[width=0.4\columnwidth]{iterative_design_process.pdf}
 \caption{Iterative atom design process}
 \label{fig:iterative_design}
 \end{figure}
