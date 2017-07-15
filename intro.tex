@@ -161,14 +161,15 @@ algorithms} at high packet processing rates. These are algorithms that operate
 on a sequeunce of packets in a streaming manner, doing a bounded amount of work
 per packet and manipulating a bounded amount of router state in the process.
 They include algorithms for managing the router's buffer (\eg RED~\cite{red},
-BLUE~\cite{blue}), load balancing(\eg CONGA~\cite{conga}, Flare~\cite{flare}),
+BLUE~\cite{blue}), load balancing (\eg CONGA~\cite{conga}, Flare~\cite{flare}),
 and in-network congestion control (\eg XCP~\cite{xcp}, RCP~\cite{rcp}).
 
 High-speed data-plane programming poses two challenges: (1) what hardware
 instructions are required to support programmable state modification at the
 router's line rate and (2) what is the right programming model? To address
 these challenges, we develop a system for data-plane programming, Domino, which
-contains three main components:
+contains three main components, described below.
+
 \begin{figure}
 \begin{minipage}{0.48\textwidth}
 \centering
@@ -188,8 +189,7 @@ packet. State variables (count) are in red.}
 \end{minipage}
 \end{figure}
 
-\begin{CompactEnumerate}
-\item \textit{Atoms} capture a router's instruction set. They specify atomic
+\Para{Atoms.} \textit{Atoms} capture a router's instruction set. They specify atomic
 units of packet processing provided by the router hardware, \eg an atomic
 counter or an atomic test-and-set. Atoms are atomic in the sense that if some
 state is updated by an atom as part of processing a packet, the next packet
@@ -199,7 +199,8 @@ the input-to-output latency of the atom's digital circuit is under a clock
 cycle, so that the output is updated to the correct value in time for the next
 packet arriving at the atom a clock cycle later. Figure~\ref{fig:simple_atom}
 shows an example atom.
-\item \textit{Packet Transactions} provide a programming model for data-plane
+
+\Para{Packet Transactions.} \textit{Packet transactions} provide a programming model for data-plane
 algorithms. A packet transaction is an atomic and isolated block of code
 capturing an algorithm's logic written in a domain-specific language (DSL)
 called Domino. Figure~\ref{fig:simple_transaction} shows an example packet transaction.
@@ -214,7 +215,7 @@ packet-processing language that is emerging as an industry standard for
 programming router chips.  P4 programmers can now use an @atomic annotation
 around a block of statements to specify that the block must execute atomically.
 
-\item \textit{The Domino compiler}, which compiles packet transactions written
+\Para{The compiler.} The Domino compiler compiles packet transactions written
 in the Domino DSL to a pipeline of atoms provided by the router, and rejects
 the code if the router's atoms cannot support the packet transaction.
 
@@ -238,9 +239,9 @@ conventional compiler for a general-purpose CPU compiles all programs, but a
 program's run-time performance depends on its complexity. In Domino, only
 programs that are simple enough to run at the router's line rate will be
 compiled, obviating the need for any performance profiling.
+%TODO: Figure for compiler
 
-\end{CompactEnumerate}
-
+\Para{Evaluation.}
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
 determine what algorithms the router can support, while the algorithms
 determine what atoms are required in the first place. Designing the right atoms
@@ -271,7 +272,8 @@ the Domino work, we found that we could reuse the same atoms for other use
 cases, providing evidence that these atoms generalize and are useful beyond the
 algorithms that influenced their design in the first place.
 
-\subsection{Packet scheduling}
+\subsection{Programmable packet scheduling}
+%TODO: This subsection seems imbalanced now
 
 Packet scheduling is an important determinant of network performance. The
 choice of scheduling algorithm is tied to a network's overarching goals. For
@@ -283,7 +285,8 @@ algorithms and do not allow an operator to program scheduling to suit their
 needs.
 
 Routers lack programmable scheduling because there is no single abstraction to
-express many scheduling algorithms. Push In First Out Queues (PIFOs) provide
+express many scheduling algorithms. Push In First Out Queues (PIFOs) (Chapter~\ref{chap:pifo})
+ provide
 such an abstraction. They exploit the fact that in many practical schedulers,
 the relative order of packets that are already buffered does not change in
 response to new packet arrivals. Put differently, when a packet arrives, it can
