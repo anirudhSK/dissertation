@@ -31,8 +31,9 @@ statistics they want to measure, while scaling to a large number of flows?\\
 \textbf{Programming model:} Performance queries (\S\ref{sec:language}) \\
 \textbf{Hardware primitive:} Programmable hardware key-value store. Keys correspond to
 flows and values to statistics. (\S\ref{sec:aggregation}) \\
-\textbf{Key finding:} A class of statistics measurements (linear-in-state) can be scaled
-to a large number of flows without losing accuracy (\S\ref{sec:aggregation}). This class
+\textbf{Key finding:} A class of statistics measurements, which we call the linear-in-state
+class (\S\ref{sec:linear-in-state-description}), can be scaled
+to a large number of flows without losing accuracy. This class
 covers many practically useful statistics such as counters, moving average filters, and
 conditional counters (\S\ref{sec:eval}). \\
 \caption{Contributions of this dissertation}
