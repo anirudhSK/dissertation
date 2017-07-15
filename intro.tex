@@ -203,17 +203,17 @@ shows an example atom.
 algorithms. A packet transaction is an atomic and isolated block of code
 capturing an algorithm's logic written in a domain-specific language (DSL)
 called Domino. Figure~\ref{fig:simple_transaction} shows an example packet transaction.
-Packet transactions provide the semantics that any visible state
-is equivalent to a serial execution of packet transactions in the order of
-packet arrival---akin to an infinitely fast single-threaded router. Packet
+Packet transactions provide programmers with the illusion that the transaction's body
+executes serially from start to finish on each packet, with
+no overlap in packet processing across packets---akin to an infinitely fast single-threaded
+processor carrying out packet processing on each packet. Packet
 transactions are expressive and capture many important data-plane algorithms.
-Further, their serial semantics shield programmers from the hardware's
+Further, their serial semantics shield programmers from the router's data and pipeline
 parallelism. Packet transactions have been adopted in P4~\cite{p4}, a
 packet-processing language that is emerging as an industry standard for
 programming router chips.  P4 programmers can now use an @atomic annotation
 around a block of statements to specify that the block must execute atomically.
 
-%TODO: Need to clarify packet transaction semantics better. It's messy right now.
 \item \textit{The Domino compiler}, which compiles packet transactions written
 in the Domino DSL to a pipeline of atoms provided by the router, and rejects
 the code if the router's atoms cannot support the packet transaction. The
