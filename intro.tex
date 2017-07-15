@@ -169,17 +169,39 @@ instructions are required to support programmable state modification at the
 router's line rate and (2) what is the right programming model? To address
 these challenges, we develop a system for data-plane programming, Domino, which
 contains three main components:
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{atom.pdf}
+\caption{An atom that either adds either a constant or a packet field to a
+piece of state x and writes it back to x.}
+\label{fig:simple_atom}
+\end{figure}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{packet_transaction.pdf}
+\caption{A packet transaction that samples the src IP address of every 10th
+packet. State variables (count) are in red.}
+\label{fig:simple_transaction}
+\end{figure}
+
+
 \begin{CompactEnumerate}
 \item \textit{Atoms} capture a router's instruction set. They specify atomic
 units of packet processing provided by the router hardware, \eg an atomic
 counter or an atomic test-and-set. Atoms are atomic in the sense that if some
 state is updated by an atom as part of processing a packet, the next packet
-arriving at that atom will see the updated value of that state.
-%TODO: Add a figure of an atom from your slides here.
+arriving at that atom will see the updated value of that state. The processing
+within atoms is constrained to meet the atomicity requirement by ensuring that
+the input-to-output latency of the atom's digital circuit is under a clock
+cycle, so that the output is updated to the correct value in time for the next
+packet arriving at the atom a clock cycle later. Figure~\ref{fig:simple_atom}
+shows an example atom.
 \item \textit{Packet Transactions} provide a programming model for data-plane
 algorithms. A packet transaction is an atomic and isolated block of code
 capturing an algorithm's logic written in a domain-specific language (DSL)
-called Domino. Packet transactions provide the semantics that any visible state
+called Domino. Figure~\ref{fig:simple_transaction} shows an example packet transaction.
+Packet transactions provide the semantics that any visible state
 is equivalent to a serial execution of packet transactions in the order of
 packet arrival---akin to an infinitely fast single-threaded router. Packet
 transactions are expressive and capture many important data-plane algorithms.
