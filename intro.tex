@@ -216,14 +216,29 @@ around a block of statements to specify that the block must execute atomically.
 
 \item \textit{The Domino compiler}, which compiles packet transactions written
 in the Domino DSL to a pipeline of atoms provided by the router, and rejects
-the code if the router's atoms cannot support the packet transaction. The
-compiler provides an {\em all-or-nothing} guarantee: if the compiler compiles
-the packet transaction it will run at the line rate of the router; all other
-code that cannot run at line rate will be rejected. A conventional compiler for
-a general-purpose CPU compiles all programs, but a program's run-time
-performance depends on its complexity. Here, only programs that are simple
-enough to run at the router's line rate will even be compiled, obviating the
-need for any performance profiling.
+the code if the router's atoms cannot support the packet transaction.
+
+The compiler has three phases. First (\S\ref{ss:preprocessing}), it
+preprocesses the code to make it easier to infer dependencies between
+packet-processing operations. Second (\S\ref{ss:pipelining}), the compiler then
+transforms the preprocessed, but still serial, packet transaction into a
+parallel pipeline of {\em codelets}. When pipelining, the compiler maintains
+the invariant that if each codelet executes atomically and passes off its
+results to the next codelet, the behavior will be indistinguishable from the
+packet transaction itself executing atomically on each packet. Third
+(\S\ref{ss:code_gen}), the compiler maps each codelet one-to-one to an atom
+provided by the underlying router, rejecting the code if the codelet cannot be
+supported by the atom.
+
+The compiler provides an {\em all-or-nothing} guarantee: if the compiler
+compiles the packet transaction it will run at the line rate of the router; all
+other programs that cannot run at line rate---because there isn't an atom to
+carry out the program's operations at line rate---will be rejected. A
+conventional compiler for a general-purpose CPU compiles all programs, but a
+program's run-time performance depends on its complexity. In Domino, only
+programs that are simple enough to run at the router's line rate will be
+compiled, obviating the need for any performance profiling.
+
 \end{CompactEnumerate}
 
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
@@ -307,6 +322,7 @@ aggregations.  The keys represent flows, while the values store and
 programmatically update per-flow state (\eg counters or a moving average
 filter) on every packet.
 
+%TODO: Diagram of the Marple's k-v store and contrast to standard k-v store
 At the heart of our key-value store is a technique to aggregate information
 across packets belonging to a flow, while scaling to a large number of flows.
 In order to scale to a large number of flows, we use a split design for our
