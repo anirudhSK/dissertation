@@ -211,14 +211,22 @@ is especially important for a programmable line-rate router because---unlike a
 general-purpose CPU---there is no way to ``emulate'' functionality in software
 when hardware support is not available.
 
-To develop atoms, we use the Domino compiler here to experiment with different
-atoms and iteratively modify the atoms until they support enough algorithms.
-Using this process, we developed seven atoms (Table~\ref{tab:templates}) that
-allow us to program several algorithms from Figure~\ref{fig:router_algos} (\eg
-the Adaptive Virtual Queue~\cite{avq} active queue management algorithm, the
-CONGA~\cite{conga} load balancing algorithm, bloom filters for measurement, and
-count-min sketches for detecting heavy hitters~\cite{opensketch}) on speeds
-approaching high-speed routers.
+\begin{figure}
+\includegraphics[width=\columnwidth]{iterative_design_process.pdf}
+\caption{Iterative atom design process}
+\label{fig:iterative_design}
+\end{figure}
+
+To develop atoms, we use the Domino compiler to experiment with different atoms
+and iteratively modify the atoms until they support enough algorithms
+(Figure~\ref{fig:iterative_design}).  Using this process, we developed seven
+atoms of increasing complexity (Table~\ref{tab:templates}) that allow us to
+progressively program more and more algorithms from
+Figure~\ref{fig:router_algos}. For instance, measurement using Bloom filters
+only requires simple read and write operations on state. On the other hand,
+heavy-hitter detection~\cite{opensketch} uses a counting
+sketch~\cite{count_min} that relies on a atomic counter. Finally, algorithms
+like flowlet switching~\cite{flare} require conditional updates to counters.
 
 In two subsequent projects~\cite{hula, perf_query} that we carried out after
 the Domino work, we found that we could reuse the same atoms for other use
