@@ -280,35 +280,139 @@ instance, an algorithm that divides link capacity fairly is ideal in a
 multi-tenant setting~\cite{wfq}, while the shortest remaining processing time
 algorithm is ideal for a single tenant who desires low flow completion
 time~\cite{pFabric}. Today's routers provide a fixed set of scheduling
-algorithms and do not allow an operator to program scheduling to suit their
-needs.
+algorithms. While configuration settings on these scheduling algorithms can be
+tweaked, there is no way for an operator to program a new scheduling algorithm
+that is tailored to their needs.
 
 Routers lack programmable scheduling because there is no single abstraction to
-express many scheduling algorithms. Push In First Out Queues (PIFOs) (Chapter~\ref{chap:pifo})
- provide
-such an abstraction. They exploit the observation that in many practical schedulers,
-the relative order of packets that are already buffered does not change in
-response to new packet arrivals (\S\ref{s:deconstruct}). Hence, when a packet arrives, it can
-be pushed into the right location based on a packet priority (push in), but
-packets can always be dequeued from the head (first out). The PIFO abstraction
-is simple: a priority queue of packets with a small program to assign each
-packet its priority. Yet, by flexibly programming a packet's priority
-assignment, a network operator can use the PIFO abstraction to program a
-variety of previously proposed scheduling algorithms. So far, these algorithms
-could only be run in simulation or on slower speed software routers.
+express many scheduling algorithms~\cite{wfq, srpt, srr, pFabric, lstf, csz}
+that appear so different at first brush. This lack of a single unifying
+abstraction is not merely an academic concern. It has practical consequences:
+in the absence of a single abstraction that can then be hardened in hardware,
+we are left with using a general-purpose substrate such as a CPU to program
+schedule. As we mentioned earlier, this can seriously hurt performance.
 
-%TODO: Talk about programming model, at least scheduling and shaping transactions.
-%You could talk about the scheduling trees themselves if it's easy enough to explain.
-%TODO: Talk about the underlying hardware that backs this programming model.
-%TODO: Then talk about the evaluation in terms of both expressiveness and h/w cost.
-%Could make each of these a \Para
+ Push In First Out Queues (PIFOs) (Chapter~\ref{chap:pifo}) provide such an
+abstraction.\footnote{PIFOs were first used as a proof construct to establish
+the equivalence of combined input-output queued routers and purely output
+queued routers~\cite{pifo}. Our contribution is to show that they can gainfully
+be used for programmable packet scheduling.} They exploit our observation that
+in many practical schedulers, the relative order of packets that are already
+buffered does not change in response to new packet arrivals
+(\S\ref{s:deconstruct}). Hence, when a packet arrives, it can be pushed into
+the right location based on a packet priority (push in), but packets can always
+be dequeued from the head (first out). A PIFO is simply a
+priority queue of packets with a small program to assign each packet its
+priority. Yet, by flexibly programming a packet's priority assignment, a
+network operator can use the PIFO abstraction to program a variety of
+previously proposed scheduling algorithms. So far, these algorithms could only
+be run in simulation or on software routers.
 
-As some examples of the expressivness of PIFOs, a single PIFO can express many
-classical scheduling algorithms, \eg token bucket shaping, weighted fair
-queueing, and strict priority scheduling. Further, PIFOs can be combined to
-express hierarchical schedulers. Finally, PIFOs are feasible in hardware: a
-hardware design for a programmable 5-level hierarchical scheduler costs less
-than 4\% additional chip area.
+\Para{Programming model for packet scheduling.} Our programming model for
+scheduling couples a PIFO with a program to determine a packet's {\em rank} in
+the PIFO. This rank can denote the packet's scheduling order (for
+work-conserving algorithms such as WFQ) or absolute wall-clock departure time
+(for non-work-conserving algorithms such as traffic shaping). This program is
+written as a packet transaction, introduced earlier.  Depending on whether the
+program determines the scheduling order or time, the program is called either a
+scheduling transaction or a shaping transaction.
+
+%TODO: Figure of WFQ as a scheduling transaction
+%TODO: Figure of traffic shaping as a shaping transaction
+A single PIFO coupled with a scheduling or shaping transaction can express many
+classical scheduling algorithms, \eg token bucket shaping
+(Figure~\ref{fig:tbf_trans}), and weighted fair queueing
+(Figure~\ref{fig:wfq_trans}). But, a single PIFO is still restricted to
+scheduling algorithms with the property that the relative order of packets that
+are already buffered does not change in response to new packet arrivals. A
+canonical class of scheduling algorithms that violate this relative order
+property is the class of hierarchical scheduling algorithms~\cite{hpfq}.
+ 
+To support hierarchical scheduling, we extend our programming model from a
+single PIFO to a tree of PIFOs, while allowing an entry in a PIFO to be either
+a packet or a reference to another PIFO. More formally, a node in a {\em scheduling
+tree} (Figure~\ref{fig:scheduling_tree}) has three attributes: (1) a predicate
+that determines which packets are handled by that node, (2) a scheduling
+transaction that determines a packet's rank in a scheduling PIFO attached to
+that node, and (3) an optional shaping transaction that determines a packet's
+rank in an optional shaping PIFO.
+
+We now explain the semantics of a scheduling tree during dequeues and enqueues.
+During a dequeue, we walk the scheduling tree starting from the root. We
+dequeue the scheduling PIFO at the root, resulting in either a reference to
+another scheduling PIFO or a packet. If the result is a packet, we are done,
+and we transmit the packet. If not, we continue recursively, dequeueing from
+the scheduling PIFO that is pointed to until we find a packet.
+
+When a packet is enqueued, we walk the tree from the leaf whose predicate
+captures the packet to the root, executing scheduling and (optionally) shaping
+transactions along the way. The scheduling transaction inserts either a packet
+or a PIFO reference into the scheduling PIFO. The shaping transaction at a node
+inserts a reference to the node's scheduling PIFO in the node's shaping PIFO.
+When that reference is dequeued from the shaping PIFO, it is enqueued into the
+node's parent's scheduling PIFO. It'll eventually be dequeued from the parent's
+scheduling PIFO when it makes its way to the head of the parent's scheduling
+PIFO. The shaping PIFO thus provides an optional mechanism to {\em defer}
+enqueues into a parent's scheduling PIFO. Figure~\ref{fig:shaping_timing}
+illustrates the timing of various operations related to a scheduling and a
+shaping PIFO.
+
+%TODO: Push-In First-Out or push-in first-out?
+%TODO: Should we capitalize every word in Weighted Fair Queueing or not? Just be consistent.
+% This may help: https://english.stackexchange.com/questions/40427/capitalization-of-explanation-of-abbreviations
+The PIFO-based programming model unifies several scheduling algorithms and
+allows us to program a wide variety of scheduling algorithms using the single
+construct of the push-in first-out queue, \eg Weighted Fair
+Queueing~\cite{wfq}, Token Bucket Filtering~\cite{tbf}, Hierarchical Packet
+Fair Queueing~\cite{hpfq}, Least-Slack Time-First~\cite{lstf}, the
+Rate-Controlled Service Disciplines~\cite{rcsd}, and fine-grained priority
+scheduling (\eg Shortest Job First).
+
+\Para{Hardware for PIFOs.} Supporting this programming model is a high-speed
+hardware design for PIFOs. When designing hardware for PIFOs, we set out to
+meet performance targets that are typical for a single-chip shared-memory
+router today. These are routers that are built out of a single
+application-specific integrated circuit (ASIC), and whose packet buffer and
+scheduling logic is shared across all ports. Sharing the packet buffer and
+scheduling logic reduces the memory and digital logic cost associated with
+packet scheduling.
+
+For concreteness, we picked a target clock frequency of 1 GHz to reflect a
+requirement of performing one enqueue and one dequeue every nanosecond (typical
+of high-speed routers today~\cite{rmt}). We targeted a packet buffer of size 12
+MByte based on the buffer size of the Broadcom Trident
+II~\cite{trident2_buffer}, a recent commercial single-chip shared memory
+router. With a cell size of 200 bytes,\footnote{A cell is the minimum unit of
+memory allocation in the packet buffer.} a 12 MByte buffer can support up to
+60000 packets.
+
+A naive way to implement a 60K-entry PIFO is to use a flat sorted array of 60K
+elements and insert an incoming element into this array in a manner reminiscent
+of insertion sort. Concretely, an incoming element's rank would be compared in
+parallel to the ranks of all 60K elements producing a bitmask denoting which
+elements were greater than or lesser than the incoming element. Because the
+PIFO is sorted, the bitmask would have a single 0-to-1 transition, the position
+of which could be detected using a priority encoder. Finally, the new element
+could be inserted into this position. The problem with this approach is that it
+is hard to lay out 60K parallel comparators, one for each element in the PIFO.
+
+Instead, we exploit the observation that in most practical scheduling
+algorithms, the scheduling is really across flows and not packets, because
+packet ranks increase monotonically within a flow to prevent packet reordering
+within a flow. Because ranks increase monotonically within a flow, we only need
+to look at the first packet of each flow to determine which packet to dequeue
+next. This reduces the number of elements that need to be sorted from 60K
+packets in the naive implementation to around 1K flows (again, we picked this
+number with reference to the Broadcom Trident II that supports \textasciitilde10 queues
+on each of its \textasciitilde100 ports).
+
+We find that transistor technology has evolved to the point where it is
+relatively cheap to build a sorted array of 1K flows, where a flow can be
+enqueued into or dequeued from the array every nanosecond. In a recent
+industry-standard 16 nm technology node, a hardware design for a programmable
+5-level hierarchical scheduler costs less than 4\% additional chip area
+relative to a 200 \milli\meter\squared baseline router
+chip~\cite{glen_parsing}.
 
 \subsection{Scalable network measurement}
 
