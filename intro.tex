@@ -544,36 +544,42 @@ support the typical eviction rate from a 64-port switch with 10 Gbit/s links.
 Our Mininet experiments show that \TheSystem can be used to iteratively
 troubleshoot problems such as occasional latency spikes happening as a result
 of bursty background traffic.
+
+\section{Lessons learned}
+\Para{The benefits of specialization.} The most important lesson we learned
+through the course of this dissertation is the idea of targeting hardware and
+software to specific classes of router functionality. As the three systems
+presented here demonstrate, narrowing our focus to specific router
+functionality allows us to resolve the performance-programmability tradeoff
+that has plagued routers so far. None of the systems presented here are as
+general as a CPU, but each covers a large number of example use cases within
+specific functionality classes (stateful data-plane algorithms, scheduling, and
+measurement queries) without giving up performance relative to a fixed-function
+router. Viewed a different way, each system provides an order of magnitude
+improvement in performance relative to a software router at the cost of
+restricted programmability. Intellectually, there is a considerably rich space
+of system designs that is as yet untapped if we choose to move away from
+non-Turing-complete systems. 
+
+\Para{Coping with the end of Moore's law.} We are entering an era where Moore's
+law has slowed down or effectively stopped~\cite{dark_silicon, four_horsemen}.
+In this new era, transistors are no longer guaranteed to get smaller or faster
+every year. Year on year, the greatest performance improvements will come from
+human creativity in specializing hardware to specific application needs by
+optimally utilizing a \textit{limited} budget of transistors for a specific
+application. This is already visible in many domains (\eg deep
+learning~\cite{tpu}, sensor data processing~\cite{m7}, and video
+decoding~\cite{qualcomm_video}). Yet, specializing hardware is at odds with
+future-proofing the hardware: any hardware that is specialized for one
+application risks being useless when the application invariably changes.  The
+approach advocated by this dissertation of tailoring programming abstractions
+to specific functionality classes provides one way around this: it extracts the
+most performance possible out of limited hardware while providing future
+proofness within that class.
+
+\Para{Vertical thinking.}
+More philosophically, the 
  
-\section{Towards a world of programmable networks}
-
-The results in this dissertation point towards a world of programmable
-networks, where network operators \textit{tell} routers what to do, without
-being \textit{told} that this is all that the router can do. In such a setting,
-operators could customize networks as they see fit.  They could program
-additional features that give them performance benefits.  More interestingly,
-they could remove needless features from their router, allowing them to
-simplify their routers' feature sets, which in turn could ease troubleshooting
-when things go wrong.
-
-Besides the benefits to network operators, a programmable router chip has
-benefits for router vendors as well. Router vendors can now add new features in
-firmware and sell different versions of the firmware to different market
-segments. Further, when bugs arise, it is much easier to fix these bugs in
-firmware, as opposed to redoing the hardware design for the router, which could
-easily take years. It also allows vendors to respond to new requests from
-network operators in a period of days as opposed to years.
-
-Whether the classes of router programmability described here will be sufficient
-and future proof remains to be seen, but we are encouraged by the fact that the
-hardware designs proposed here support a wide range of existing use cases and
-several new use cases that we had not anticipated initially. We hope these
-results provide guidance to router chip manufacturers when designing hardware
-for programmable routers.
-
-%%Lessons for programmable routers
-%% HW/SW co-design.
-
 %% Think vertically and design the entire stack from the ground up.
 %% Results in simpler solutions because you have more degrees of freedom.
 %% While there are undeniable benefits to working with commodity hardware components because
