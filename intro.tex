@@ -6,7 +6,7 @@
 %TODO: Diagram of net. arch.
 Computer networks have two classes of elements: the \textit{end hosts} that
 generate packets and the \textit{routers}\footnote{We use the term router to
-refer to both switches and routers in this disseration.} that forward these
+refer to both switches and routers in this dissertation.} that forward these
 packets between the end hosts. Historically, the Internet was architected so
 that most of the complexity resided in the end hosts, while the routers
 themselves were simple. According to Clark~\cite{design_philosophy}, this
@@ -546,49 +546,61 @@ troubleshoot problems such as occasional latency spikes happening as a result
 of bursty background traffic.
 
 \section{Lessons learned}
-\Para{The benefits of specialization.} The most important lesson we learned
-through the course of this dissertation is the idea of targeting hardware and
-software to specific classes of router functionality. As the three systems
-presented here demonstrate, narrowing our focus to specific router
-functionality allows us to resolve the performance-programmability tradeoff
-that has plagued routers so far. None of the systems presented here are as
-general as a CPU, but each covers a large number of example use cases within
-specific functionality classes (stateful data-plane algorithms, scheduling, and
-measurement queries) without giving up performance relative to a fixed-function
-router. Viewed a different way, each system provides an order of magnitude
-improvement in performance relative to a software router at the cost of
-restricted programmability. Intellectually, there is a considerably rich space
-of system designs that is as yet untapped if we choose to move away from
-non-Turing-complete systems. 
+\Para{The power of specialization.} The most important lesson we learned over
+the course of this dissertation was the power of specialization: the idea of
+targeting hardware and software to specific classes of router functionality.
+The three systems in the dissertation demonstrate how narrowing our focus to
+specific router functionality allows us to resolve the
+performance-programmability tradeoff that has plagued routers so far. Because
+each system is specialized to a specific task, each system has limited
+expressiveness. We refer the reader to \S\ref{domino_ss:limitations} and
+Table~\ref{tab:restrict} for Domino's limitations, \S\ref{pifo_ss:limitations}
+for PIFO's limitations, and \S\ref{pq_ss:limitations} for \TheSystem's
+limitations.
 
-\Para{Coping with the end of Moore's law.} We are entering an era where Moore's
-law has slowed down or effectively stopped~\cite{dark_silicon, four_horsemen}.
-In this new era, transistors are no longer guaranteed to get smaller or faster
-every year. Year on year, the greatest performance improvements will come from
-human creativity in specializing hardware to specific application needs by
-optimally utilizing a \textit{limited} budget of transistors for a specific
-application. This is already visible in many domains (\eg deep
-learning~\cite{tpu}, sensor data processing~\cite{m7}, and video
-decoding~\cite{qualcomm_video}). Yet, specializing hardware is at odds with
-future-proofing the hardware: any hardware that is specialized for one
-application risks being useless when the application invariably changes.  The
-approach advocated by this dissertation of tailoring programming abstractions
-to specific functionality classes provides one way around this: it extracts the
-most performance possible out of limited hardware while providing future
-proofness within that class.
+In the language of computability, none of our systems is Turing-complete in the
+sense that it cannot simulate a Turing machine, an idealization of the
+general-purpose CPU. Yet, each covers a large number of example use cases
+within specific functionality classes (stateful data-plane algorithms,
+scheduling, and measurement queries) without giving up performance relative to
+a fixed-function router. Viewed differently, each system provides an order of
+magnitude improvement in performance relative to a general-purpose software
+router at the cost of restricted programmability. Intellectually, these results
+suggest that there is a rich space of system designs that is as yet
+unexplored---if we choose to look beyond Turing-complete systems. 
 
-\Para{Vertical thinking.}
-More philosophically, the 
- 
-%% Think vertically and design the entire stack from the ground up.
-%% Results in simpler solutions because you have more degrees of freedom.
-%% While there are undeniable benefits to working with commodity hardware components because
-%% of ready deployment, there is also substantial performance and performance clarity to
-%% be gained from vertically integrated designs because you open up the black box
+\Para{Jointly designing hardware and software.} We are entering an era where
+Moore's law has slowed down or effectively stopped~\cite{dark_silicon,
+four_horsemen}.  In this new era, transistors are no longer guaranteed to get
+smaller or faster every year. In the heyday of Moore's law, processor hardware
+automatically got faster year on year, and software enjoyed the free lunch of
+improved performance because of the underlying improvements in hardware. With
+the end of Moore's law, it is no longer apparent how these performance
+improvements will be sustained.
 
-%% Judicious use of hardware and exposing it the right way in software is a big win.
+Jointly designing hardware and software in service of a higher-level
+application-level goal suggest a way to continue improving performance. Year on
+year, the greatest performance improvements will come from human creativity in
+specializing hardware to specific application needs and then appropriately
+exposing this specialized hardware to software. This is already visible in
+domains such as machine learning. For instance, the tensor processing
+unit~\cite{tpu} is an ASIC tailored to deep learning, and
+TensorFlow~\cite{tensorflow} is its corresponding programming model in
+software. The systems presented in this dissertation are also examples of joint
+hardware and software design in the context of networking, where we develop
+both the underlying hardware (atoms, PIFOs, and hardware key-value stores) and
+the corresponding software (packet transactions, scheduling trees, and
+performance queries) for specific application classes (stateful data-plane
+algorithms, scheduling, and statistics measurement).
 
-%% Non-Turing-complete designs have considerable richness to them. Turing complete processors
-%% have ruled the roost for many years but the end of Moore's law suggests that that might
-%% end very soon. This thesis can be seen as applying that kind of design philosophy to one
-%% specific domain: high-speed packet forwarding.
+\Para{Vertically integrated thinking.} Philosophically, the results in the
+dissertation advocate for vertically integrated thinking, where a single design
+incorporates the entire computing stack starting with programmable hardware, up
+through the compiler for this hardware, and finishing off with the language to
+program this hardware. For decades now, systems programmers have treated the
+hardware as programmable, but unmodifiable. There are undeniable benefits to
+writing software for off-the-shelf commodity hardware because it is immediately
+deployable in contrast to vertically integrated systems that need to be first
+designed in hardware and then programmed in software. At the same time, the
+results here suggest that there are substantial performance benefits from
+redesigning the entire stack from the ground up.
