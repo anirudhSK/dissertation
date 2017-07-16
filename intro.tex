@@ -411,44 +411,140 @@ relatively cheap to build a sorted array of 1K flows, where a flow can be
 enqueued into or dequeued from the array every nanosecond. In a recent
 industry-standard 16 nm technology node, a hardware design for a programmable
 5-level hierarchical scheduler costs less than 4\% additional chip area
-relative to a 200 \milli\meter\squared baseline router
+relative to a 200 \si{\milli\meter\squared} baseline router
 chip~\cite{glen_parsing}.
 
 \subsection{Scalable network measurement}
 
-%% TODO: Functional query language.
 %% TODO: Formally characterize linear-in-state operations here.
 %% TODO: Maybe give an example of why merging is hard in general and why there's
 %% something non-trivial here.
 
-\TheSystem (Chapter~\ref{chap:perf_query}) provides a query language and
-supporting router hardware for network performance measurement queries. As
-examples, an operator could ask for TCP flows with a high degree of packet
-reordering or a moving average of packet latencies for each flow. Our query
-language allows order-dependent aggregation of information across packets
-belonging to a single flow (\eg an exponentially weighted moving average over
-packet latencies), while traditional query languages (\eg SQL) only support
-order-independent aggregates like counts and averages. We designed a
-programmable key-value store that runs in the router's ASIC to support these
-aggregations.  The keys represent flows, while the values store and
-programmatically update per-flow state (\eg counters or a moving average
-filter) on every packet.
+Chapter~\ref{chap:perf_query} considers the problem of programmable and
+scalable network measurement. Can we have network operators specify the
+per-flow statistics they want to measure (\eg a moving average over queueing
+latencies or a count of packets or bytes) at the flow granularity they desire
+(\eg at the 5-tuple level or at the level of each distinct destination IP
+address)? Current router solutions for measurement~\cite{netflow, tetration}
+fix either the statistics that can be measured or the granularity at which the
+statistics can be measured. The challenge here is to provide a set of
+measurment primitives that can cover a range of statistics while scaling to a
+large number of flows.
 
+%TODO: Diagram of an example query
+\Para{Programming model.} To allow network operators to express a wide range of
+performance questions, we provide network operators with the abstraction of a
+performance packet stream: a stream of tuples, one for each packet, containing
+essential information identifying the packet (source and destination address,
+source and destination ports) and its performance information (the timestamp at
+which the packet was enqueued and dequeued).
+
+Network operators can query this performance packet stream using a functional
+query language, \TheSystem, with familiar constructs such as {\ct map}, {\ct
+filter}, and {\ct groupby} much like functional APIs in mainstream programming
+languages like Python, Java, Scala, and Haskell. These constructs take as input
+a stream of tuples and return an output stream that either transforms each
+tuple in the stream ({\ct map}), drops certain tuples based on a predicate
+({\ct filter}), or partitions the stream into substreams based on a predicate
+and then aggregates the tuples within each substream based on a user-defined
+aggregation function ({\ct groupby}).\footnote{Aggregation functions are also
+known as fold functions or reducers in functional languages~\cite{haskell,
+lisp}.  Our use of user-defined aggregation functions is distinct from the
+groupby constructs supported by traditional query languages (\eg SQL). SQL only
+supports specific order-independent aggregation functions like counts and
+averages, and does not allow general user-defined aggregation functions.}
+Because these constructs produce and consume streams, \TheSystem queries can be
+easily composed.
+
+\TheSystem allows operators to express both queries that do and do not require
+router state to execute. For instance, a stateless {\ct map} query could take
+an input packet stream, round off the enqueue timestamp of each packet in the
+stream to the nearest millisecond, and return the result as a new stream.  This
+query is stateless because it can operate independently on each packet without
+maintaining any state on the router that persists between packets. On the other
+hand, consider a {\ct groubpy} query that (1) partitions the packet stream into
+substreams based on the 5-tuple, and (2) counts the number of packets within
+each substream. This query is stateful because it needs to maintain a
+dictionary mapping each 5-tuple to its count as persistent router state; this
+dictionary is updated by incrementing some 5-tuple's counter on each packet.
+
+\Para{Router hardware for performance queries.}
+
+A naive implementation of the performance query abstraction is to stream out
+every packet to a centralized collection server, which executes the performance
+query against the incoming packet stream. However, this would require a large
+amount of computational resources on the server and almost a dedicated
+measurement network to stream every packet to the server. Instead, we use
+programmable routers as first-class citizens to perform early filtering,
+aggregation, and packet transformations to reduce the amount of data collected
+on the collection server.
+
+Supporting stateless queries ({\ct map} and {\ct filter}) is relatively
+straightforward. Emerging programmable router chips~\cite{rmt, xpliant,
+flexpipe, tofino} already provide an instruction set that performs stateless
+manipulations on packet headers. We leverage this instruction set as is to
+execute stateless queries.
+
+To support \TheSystem's stateful construct, the {\ct groupby}, we design a
+programmable key-value store in hardware. The keys represent the flows and the
+values represent the state being aggregated as packets are processed. For
+instance, the key could be a 5-tuple and the value could be a count of
+bytes/packets belonging to that 5-tuple.
+
+This key-value store has two requirements that are at odds with each other: it
+needs to be fast to process packets at the router's line rate (a packet every
+nanosecond), and it needs to be large to store a large number of flows. Static
+random-access memory (SRAM) can be accessed once every nanosecond, but has low
+memory density. On the other hand, dynamic random-access memory (DRAM) has much
+better density, but can be accessed once every tens of nanoseconds.
+
+We use caching to support both requirements: a fast SRAM cache stores the
+currently active flows, while a backing store in DRAM handles evictions from
+the cache. However, cache misses in traditional processor designs lead to
+unpredictable memory access latencies while the data is being fetched from the
+backing store. A processor handles this by occasionally stalling its pipeline
+to handle a cache miss. But stalling a router pipeline prevents us from
+providing the deterministic latency guarantees that routers are known for.
 %TODO: Diagram of the Marple's k-v store and contrast to standard k-v store
-At the heart of our key-value store is a technique to aggregate information
-across packets belonging to a flow, while scaling to a large number of flows.
-In order to scale to a large number of flows, we use a split design for our
-key-value store with an on-chip cache within the router's ASIC supported by a
-backing store sitting outside the router. A traditional cache would fetch the
-correct value from the backing store on a miss and incur variable access
-latencies in the process. Instead, our cache treats a cache miss as a packet
-from a new flow. When this flow is eventually evicted from the cache, it is
-merged with the current value for this flow in the backing store.  We
-mathematically characterize the set of aggregation functions that permit such
-merging, and show that it includes many useful aggregation functions such as
-rolling minimums, rolling maximums, counters, predicated counters, statistics
-computed over a bounded window of packets, and moving average filters.
 
+Instead, we treat a cache miss as the arrival of a packet from a new flow and
+initialize the cache entry the way we would if we had seen a new flow. When
+this cache entry is eventually evicted, we merge it against the old value for
+that entry in the backing store. It is easy to see that this would work when
+the value in the key-value store was a counter; the merge operation would
+simply add up the old and new counts. But is merging possible in general?
+
+We formalize characterize a class of aggregation functions for which such
+merging is possible without losing accuracy (\ie the value is equivalent to the
+value that would be obtained in an ideal system with an infinitely large
+cache). We call this class the class the {\em linear-in-state} class because
+aggregation functions in this class take on the form:
+\begin{equation}
+S = A(p) * S + B(p)
+\end{equation}
+Here $S$ is the state/value that is being updated by the aggregation function,
+while $A$ and $B$ are functions of a a bounded number of packets into the past
+including the current one. The linear-in-state class captures a variety of
+aggregation functions including counters, predicated counters, moving average
+filters, and arbitrary functions on sliding windows.
+
+\Para{Evaluation.} We evaluate \TheSystem by expressing several performance
+queries: tracking the loss rate on a per-flow basis, measuring the extent of
+reordering in a TCP flow, measuring a moving average of queueing latencies on a
+per-flow basis, and detecting the presence of TCP incast. Our \TheSystem
+compiler compiles these queries to two different targets: an atom pipeline to
+determine the hardware feasibility of \TheSystem queries and a P4-based
+software switch~\cite{p4_behavioral} for end-to-end case studies of \TheSystem
+in Mininet~\cite{mininet}. We find that \TheSystem queries occupy a small
+fraction of the router's hardware resources, both computationally in terms of
+the number of atoms they need, and memory-wise in terms of the size of the SRAM
+cache for our programmable key-value store. We find that the eviction rate from
+the SRAM cache is modest: a single 8-core server running REDIS~\cite{redis} can
+support the typical eviction rate from a 64-port switch with 10 Gbit/s links.
+Our Mininet experiments show that \TheSystem can be used to iteratively
+troubleshoot problems such as occasional latency spikes happening as a result
+of bursty background traffic.
+ 
 \section{Towards a world of programmable networks}
 
 The results in this dissertation point towards a world of programmable
