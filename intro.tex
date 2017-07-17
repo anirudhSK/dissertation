@@ -157,7 +157,7 @@ measurement.  Table~\ref{tab:contributions} summarizes our contributions.
 \section{Stateful data-plane algorithms}
 In Chapter~\ref{chap:domino}), we consider the problem of programming {\em
 stateful data-plane algorithms} at high packet processing rates. These are
-algorithms that operate on a sequeunce of packets in a streaming manner, doing
+algorithms that operate on a sequence of packets in a streaming manner, doing
 a bounded amount of work per packet and manipulating a bounded amount of router
 state in the process.  They include algorithms for managing the router's buffer
 (\eg RED~\cite{red} and BLUE~\cite{blue}), load balancing (\eg
@@ -246,7 +246,7 @@ piece of state x and writes it back to x.}
 \begin{minipage}{0.48\textwidth}
 \centering
 \includegraphics[width=0.75\textwidth]{packet_transaction.pdf}
-\caption{A packet transaction that samples the src IP address of every 10th
+\caption{A packet transaction that samples the source IP address of every 10th
 packet. State variables (count) are in red.}
 \label{fig:simple_transaction}
 \end{minipage}
@@ -495,7 +495,7 @@ latencies or a count of packets or bytes) at the flow granularity they desire
 address)? Current router solutions for measurement~\cite{netflow,
 tetration-telemetry} fix either the statistics that can be measured or the
 granularity at which the statistics can be measured. The challenge here is to
-provide a set of measurment primitives that can cover a range of statistics
+provide a set of measurement primitives that can cover a range of statistics
 while scaling to a large number of flows.
 
 \begin{figure}
