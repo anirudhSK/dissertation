@@ -615,13 +615,14 @@ the deterministic latency guarantees that routers are known for.
 
 Instead, as Figure~\ref{fig:hw_diff} shows, we treat a cache miss as the
 arrival of a packet from a new flow and initialize the cache entry as though we
-have just encountered a new flow. When this cache entry is eventually evicted,
-we merge it against the old value for that entry in the backing store. It is
-easy to see that this would work if the value in the key-value store was a
-counter; the merge operation would then simply add up the old and new counts.
-But is it always possible to merge an aggregation function accurately \ie the
-value after the merge should be the same as the value that would be obtained in
-an ideal system with an infinitely large cache that needs no merging.
+have just started aggregating packets from a new flow. When this cache entry is
+eventually evicted, we merge it against the old value for that entry in the
+backing store. It is easy to see that this would work if the value in the
+key-value store was a counter; the merge operation would then simply add up the
+old and new counts.  But is it always possible to merge an aggregation function
+accurately \ie the value after the merge should be the same as the value that
+would be obtained in an ideal system with an infinitely large cache that needs
+no merging?
 
 %TODO: Insert reference to theorems here.
 We can prove that there are aggregation functions for which it is not possible
@@ -638,22 +639,29 @@ including the current one. The linear-in-state class captures a variety of
 aggregation functions including counters, predicated counters, moving average
 filters, and arbitrary functions on sliding windows.
 
-\subsection{Evaluation} We evaluate \TheSystem by using it to express several
-diverse performance queries, \eg tracking the loss rate on a per-flow basis,
-measuring the extent of reordering in a TCP flow, measuring a moving average of
-queueing latencies on a per-flow basis, and detecting the presence of TCP
-incast. Our \TheSystem compiler compiles these queries to two different
-targets: an atom pipeline to determine the hardware feasibility of \TheSystem
-queries and a P4-based software switch~\cite{p4-bmv2} for end-to-end case
-studies of \TheSystem in Mininet~\cite{mininet}. We find that \TheSystem
-queries occupy a small fraction of the router's hardware resources, both
-computationally in terms of the number of atoms they need, and memory-wise in
-terms of the size of the SRAM cache for our programmable key-value store. We
-find that the eviction rate from the SRAM cache is modest: a single 8-core
-server running REDIS~\cite{redis} can support the typical eviction rate from a
-64-port switch with 10 Gbit/s links.  Our Mininet experiments show that
-\TheSystem can be used to iteratively troubleshoot problems such as occasional
-latency spikes happening as a result of bursty background traffic.
+\subsection{Evaluation} We evaluate \TheSystem's expressive power by using it
+to express several diverse performance queries, \eg tracking the loss rate on a
+per-flow basis, measuring the extent of reordering in a TCP flow, measuring a
+moving average of queueing latencies on a per-flow basis, and detecting the
+presence of TCP incast.
+
+Our \TheSystem compiler compiles queries to two different targets: an atom
+pipeline to determine the hardware feasibility of \TheSystem queries and a
+P4-based software switch~\cite{p4-bmv2} for end-to-end case studies of
+\TheSystem in Mininet~\cite{mininet}. We find that \TheSystem queries occupy a
+small fraction of the router's computational and memory resources.
+Computationally, they require a small number of atoms. Memory-wise, the
+programmable key-value store requires an SRAM cache that occupies a modest
+amount of additional chip area. Our Mininet experiments show that \TheSystem
+can be used to iteratively troubleshoot problems such as occasional latency
+spikes that occur because of bursty background traffic.
+
+ We determine the eviction rate from the SRAM cache using a trace-driven
+simulation on publicly available packet traces from CAIDA~\cite{caida2016,
+caida2014} and a university data center~\cite{theo_dc}. For a 64 Mbit on-chip
+cache, which occupies about 10\% of the area of a 64×10-Gbit/s switching chip,
+we estimate that the cache eviction rate from a single top-of-rack switch can
+be handled by a single 8-core server running Redis~\cite{redis}.
 
 \section{Lessons learned} We conclude this chapter by distilling some general
 lessons for programmable router design that go beyond the specific
