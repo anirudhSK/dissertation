@@ -220,11 +220,6 @@ conventional compiler for a general-purpose CPU compiles all programs, but a
 program's run-time performance depends on its complexity. In Domino, only
 programs that are simple enough to run at the router's line rate will be
 compiled, obviating the need for any performance profiling.
-\begin{figure}[!t]
-\includegraphics[width=\textwidth]{compiler_passes_example.pdf}
-\caption{The three passes of the Domino compiler illustrated on the packet transaction from Figure~\ref{fig:simple_transaction}.}
-\label{fig:compiler_passes_example}
-\end{figure}
 
 \Para{Evaluation.}
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
@@ -253,6 +248,12 @@ packet. State variables (count) are in red.}
 \end{minipage}
 \end{figure}
 
+\begin{figure}[!t]
+\includegraphics[width=\textwidth]{compiler_passes_example.pdf}
+\caption{The three passes of the Domino compiler illustrated on the packet transaction from Figure~\ref{fig:simple_transaction}.}
+\label{fig:compiler_passes_example}
+\end{figure}
+
 \begin{figure}
 \centering
 \includegraphics[width=0.4\columnwidth]{iterative_design_process.pdf}
@@ -271,7 +272,7 @@ heavy-hitter detection~\cite{opensketch} uses a counting
 sketch~\cite{count_min} that relies on a atomic counter. Finally, algorithms
 like flowlet switching~\cite{flare} require conditional updates to counters.
 
-In two subsequent projects~\cite{hula, perf_query} that we carried out after
+In a subsequent project~\cite{perf_query} (Chapter~\ref{chap:perf_query}) that we carried out after
 the Domino work, we found that we could reuse the same atoms for other use
 cases, providing evidence that these atoms generalize and are useful beyond the
 algorithms that influenced their design in the first place.
