@@ -154,35 +154,36 @@ stateful data-plane algorithms, packet scheduling, and scalable network
 measurement.  Table~\ref{tab:contributions} summarizes our contributions.
 %TODO: Try moving Table summarizes sentence ahead ...
 
-\subsection{Stateful data-plane algorithms}
+\section{Stateful data-plane algorithms}
 In Chapter~\ref{chap:domino}), we consider the problem of programming {\em
 stateful data-plane algorithms} at high packet processing rates. These are
 algorithms that operate on a sequeunce of packets in a streaming manner, doing
 a bounded amount of work per packet and manipulating a bounded amount of router
 state in the process.  They include algorithms for managing the router's buffer
-(\eg RED~\cite{red}, BLUE~\cite{blue}), load balancing (\eg CONGA~\cite{conga},
-flowlet switching~\cite{flowlets}), and in-network congestion control (\eg XCP~\cite{xcp},
-RCP~\cite{rcp}).
+(\eg RED~\cite{red} and BLUE~\cite{blue}), load balancing (\eg
+CONGA~\cite{conga} and flowlet switching~\cite{flowlets}), and in-network
+congestion control (\eg XCP~\cite{xcp} and RCP~\cite{rcp}).
 
 High-speed data-plane programming poses two challenges: (1) what hardware
 instructions are required to support programmable state modification at the
-router's line rate and (2) what is the right programming model? To address
+router's line rate, and (2) what is the right programming model? To address
 these challenges, we develop a system for data-plane programming, Domino, which
 contains three main components: an instruction set (atoms), a programming model
 (packet transactions), and a compiler.
 
-\Para{Atoms.} \textit{Atoms} capture a router's instruction set. They specify
-atomic units of packet processing provided by the router hardware, \eg an
-atomic counter or an atomic test-and-set. Figure~\ref{fig:simple_atom} shows an
-example atom. Atoms are atomic in the sense that if some state is updated by an
-atom as part of processing a packet, the next packet arriving at that atom will
-see the updated value of that state. The processing within atoms is constrained
-to meet the atomicity requirement by ensuring that the input-to-output latency
-of the atom's digital circuit is under a clock cycle, so that the output is
-updated to the correct value in time for the next packet arriving at the atom a
-clock cycle later.
+\subsection{Atoms} \textit{Atoms} capture a router's instruction set. They
+specify atomic units of packet processing provided by the router hardware, \eg
+an atomic counter or an atomic test-and-set. Figure~\ref{fig:simple_atom} shows
+an example atom. Atoms are atomic in the sense that if some state is updated by
+an atom as part of processing a packet, the next packet arriving at that atom
+will see the updated value of that state. The processing within atoms is
+constrained to meet the atomicity requirement: when designing atoms we ensure
+that the input-to-output latency of the atom's digital circuit is under a clock
+cycle. This ensures that any state updated by the atom has been updated to its
+correct value in time for the next packet arriving at the atom a clock cycle
+later.
 
-\Para{Packet Transactions.} \textit{Packet transactions} provide a programming
+\subsection{Packet transactions} \textit{Packet transactions} provide a programming
 model for data-plane algorithms. A packet transaction is an atomic and isolated
 block of code capturing an algorithm's logic written in a domain-specific
 language (DSL) called Domino. Figure~\ref{fig:simple_transaction} shows an
@@ -199,21 +200,21 @@ the router's data and pipeline parallelism.
 %%@atomic annotation around a block of statements to specify that the block must
 %%execute atomically.
 
-\Para{The compiler.} The Domino compiler compiles packet transactions written
-in the Domino DSL to a pipeline of atoms provided by the router, and rejects
-the code if the router's atoms cannot support the packet transaction.
+\subsection{The compiler} The Domino compiler compiles packet transactions
+written in the Domino DSL to a pipeline of atoms provided by the router. It
+rejects the code if the router's atoms cannot support the packet transaction.
 
 The compiler has three phases (Figure~\ref{fig:compiler_passes_example}). First
 (\S\ref{ss:preprocessing}), it preprocesses the code to make it easier to infer
 dependencies between packet-processing operations. Second
-(\S\ref{ss:pipelining}), the compiler then transforms the preprocessed, but
-still serial, packet transaction into a parallel pipeline of {\em codelets}.
-When pipelining, the compiler maintains the invariant that if each codelet
-executes atomically and passes off its results to the next codelet, the
-behavior will be indistinguishable from the packet transaction itself executing
-atomically on each packet. Third (\S\ref{ss:code_gen}), the compiler maps each
-codelet one-to-one to an atom provided by the underlying router, rejecting the
-code if the codelet cannot be supported by the atom.
+(\S\ref{ss:pipelining}), the compiler transforms the preprocessed, but still
+serial, packet transaction into a parallel pipeline of {\em codelets}.  When
+pipelining, the compiler maintains the invariant that if each codelet executes
+atomically and passes off its results to the next codelet, the behavior will be
+indistinguishable from the packet transaction itself executing atomically on
+each packet. Third (\S\ref{ss:code_gen}), the compiler maps each codelet
+one-to-one to an atom provided by the underlying router, rejecting the code if
+the codelet cannot be supported by the atom.
 
 The compiler provides an {\em all-or-nothing} guarantee: if the compiler
 compiles the packet transaction it will run at the line rate of the router; all
@@ -224,12 +225,12 @@ program's run-time performance depends on its complexity. In Domino, only
 programs that are simple enough to run at the router's line rate will be
 compiled, obviating the need for any performance profiling.
 
-\Para{Evaluation.}
+\subsection{Evaluation}
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
 determine what algorithms the router can support, while the algorithms
 determine what atoms are required in the first place. Designing the right atoms
-is especially important for a programmable line-rate router because---unlike a
-general-purpose CPU---there is no way to ``emulate'' functionality in software
+is especially important for a programmable router because, in contrast to a
+general-purpose CPU, there is no way to ``emulate'' functionality in software
 when hardware support is not available.
 
 \begin{figure}[!t]
@@ -259,7 +260,7 @@ packet. State variables (count) are in red.}
 
 \begin{figure}
 \centering
-\includegraphics[width=0.4\columnwidth]{iterative_design_process.pdf}
+\includegraphics[width=0.5\columnwidth]{iterative_design_process.pdf}
 \caption{Iterative atom design process}
 \label{fig:iterative_design}
 \end{figure}
@@ -271,18 +272,19 @@ atoms of increasing complexity (Table~\ref{tab:templates}) that allow us to
 progressively program more and more algorithms from
 Figure~\ref{fig:router_algos}. For instance, measurement using Bloom filters
 only requires simple read and write operations on state. On the other hand,
-heavy-hitter detection~\cite{opensketch} uses a counting
-sketch~\cite{cormode} that relies on a atomic counter. Finally, algorithms
-like flowlet switching~\cite{flowlets} require conditional updates to counters.
+heavy-hitter detection~\cite{opensketch} uses a count-min sketch~\cite{cormode}
+that relies on a atomic counter. Finally, algorithms like flowlet
+switching~\cite{flowlets} require conditional writes to a state variable.
 
-In a subsequent project~\cite{perf_query} (Chapter~\ref{chap:perf_query}) that we carried out after
-the Domino work, we found that we could reuse the same atoms for other use
-cases, providing evidence that these atoms generalize and are useful beyond the
-algorithms that influenced their design in the first place.
+In a subsequent project~\cite{perf_query} (Chapter~\ref{chap:perf_query}) that
+we carried out after the Domino work, we found that we could reuse the same
+atoms for other use cases, providing evidence that these atoms generalize and
+are useful beyond the algorithms that influenced their design in the first
+place.
 
-\subsection{Programmable packet scheduling}
+\section{Programmable packet scheduling}
 Packet scheduling is an important determinant of network performance. The
-choice of scheduling algorithm is tied to a network's overarching goals. For
+choice of scheduling algorithm is tied to a network's performance goals. For
 instance, an algorithm that divides link capacity fairly is ideal in a
 multi-tenant setting~\cite{wfq}, while the shortest remaining processing time
 algorithm is ideal for a single tenant who desires low flow completion
@@ -292,12 +294,12 @@ tweaked, there is no way for an operator to program a new scheduling algorithm
 that is tailored to their needs.
 
 Routers lack programmable scheduling because there is no single abstraction to
-express many scheduling algorithms~\cite{wfq, srpt, srr, pFabric, lstf}
-that appear so different at first brush. This lack of a single unifying
-abstraction is not merely an academic concern. It has practical consequences:
-in the absence of a single abstraction that can then be hardened in hardware,
-we are left with using a general-purpose substrate such as a CPU to program
-schedule. As we mentioned earlier, this can seriously hurt performance.
+express many scheduling algorithms~\cite{wfq, srpt, srr, pFabric, lstf} that
+appear so different at first brush. This lack of a single unifying abstraction
+is not merely an academic concern. It has practical consequences: in the
+absence of a single abstraction that can then be hardened in hardware, we are
+left with using a general-purpose substrate such as a CPU to program
+scheduling. As we mentioned earlier, this can seriously hurt performance.
 
  Push In First Out Queues (PIFOs) (Chapter~\ref{chap:pifo}) provide such an
 abstraction.\footnote{PIFOs were first used as a proof construct to establish
@@ -312,17 +314,17 @@ be dequeued from the head (first out). A PIFO is simply a
 priority queue of packets with a small program to assign each packet its
 priority. Yet, by flexibly programming a packet's priority assignment, a
 network operator can use the PIFO abstraction to program a variety of
-previously proposed scheduling algorithms. So far, these algorithms could only
-be run in simulation or on software routers.
+previously proposed scheduling algorithms. 
+%TODO: Clarify why we don't just use the term priority queue instead of a PIFO?
 
-\Para{Programming model for packet scheduling.} Our programming model for
+\subsection{Programming model for packet scheduling} Our programming model for
 scheduling couples a PIFO with a program to determine a packet's {\em rank} in
 the PIFO. This rank can denote the packet's scheduling order (for
-work-conserving algorithms such as WFQ) or absolute wall-clock departure time
-(for non-work-conserving algorithms such as traffic shaping). This program is
-written as a packet transaction, introduced earlier.  Depending on whether the
-program determines the scheduling order or time, the program is called either a
-scheduling transaction or a shaping transaction.
+work-conserving algorithms such as Weighted Fair Queueing) or absolute
+wall-clock departure time (for non-work-conserving algorithms such as traffic
+shaping). This program is written as a packet transaction, introduced earlier.
+Depending on whether the program determines the scheduling order or time, the
+program is called either a scheduling transaction or a shaping transaction.
 
 \begin{figure}
 \begin{minipage}[!h]{0.48\textwidth}
@@ -336,7 +338,8 @@ else: # p is first packet in f
 last_finish[f] = p.start + p.length/f.weight
 p.rank = p.start
 \end{lstlisting}
-\caption{Scheduling transaction for the Start-Time Fair Queueing implementation~\cite{stfq} of Weighted Fair Queueing.}
+\caption{Scheduling transaction for the Start-Time Fair Queueing
+implementation~\cite{stfq} of Weighted Fair Queueing.}
 \label{fig:wfq_trans}
 \hfill
 \end{minipage}
@@ -356,43 +359,44 @@ p.rank = p.send_time
 \caption{Shaping transaction for Token Bucket Shaping.}
 \label{fig:tbf_trans}
 \end{minipage}
-\caption{Examples of scheduling and shaping transactions. {\tt p.x} refers to a packet field {\tt x} in packet {\tt p}.  {\tt y} refers to a state variable
-that is persisted on the router across packets, \eg {\tt last\_finish}
-and {\tt virtual\_time} in this snippet. {\tt p.rank} denotes the
-packet's computed rank.}
+\caption{Examples of scheduling and shaping transactions. {\tt p.x} refers to a
+packet field {\tt x} in packet {\tt p}.  {\tt y} refers to a state variable
+that is persisted on the router across packets, \eg {\tt last\_finish} and {\tt
+virtual\_time} in this snippet. {\tt p.rank} denotes the packet's computed
+rank.}
 \end{figure}
 
 A single PIFO coupled with a scheduling or shaping transaction can express many
 classical scheduling algorithms, \eg token bucket shaping
-(Figure~\ref{fig:tbf_trans}), and weighted fair queueing
+(Figure~\ref{fig:tbf_trans}) and weighted fair queueing
 (Figure~\ref{fig:wfq_trans}). But, a single PIFO is still restricted to
 scheduling algorithms with the property that the relative order of packets that
 are already buffered does not change in response to new packet arrivals. A
 canonical class of scheduling algorithms that violate this relative order
 property is the class of hierarchical scheduling algorithms. A well-known
-example of this class is Hierarchical Packet Fair Queueing (HPFQ)~\cite{hpfq},
-which first divides up the link's capacity fairly among classes, and then when each
-class is scheduled, divides up the class's transmission opportunities fairly
-among its constituent flows.
+example of this class is Hierarchical Packet Fair Queueing (HPFQ)~\cite{hpfq}.
+HPFQ first divides up the link's capacity fairly among classes, and then when
+each class is scheduled, divides up the class's transmission opportunities
+fairly among its constituent flows.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=0.5\textwidth]{pifo_hpfq_program.pdf}
 \caption{Scheduling tree for HPFQ. The scheduling transactions WFQ\_Root,
 WFQ\_Left, and WFQ\_Right are similar to Figure~\ref{fig:wfq_trans} and differ
-only in how the flow is computed from the packet. Note that this tree has no
-shaping transaction.}
+only in how the flow is computed from the packet. This tree has no shaping
+transaction.}
 \label{fig:scheduling_tree}
 \end{figure}
 
 To support hierarchical scheduling, we extend our programming model from a
-single PIFO to a tree of PIFOs, while allowing an entry in a PIFO to be either
-a packet or a reference to another PIFO. More formally, a node in a {\em
+single PIFO to a tree of PIFOs. We also allow an entry in a PIFO to be either a
+packet or a reference to another PIFO. More formally, a node in a {\em
 scheduling tree} (Figure~\ref{fig:scheduling_tree}) has three attributes: (1) a
 predicate that determines which packets are handled by that node, (2) a
 scheduling transaction that determines a packet's rank in a scheduling PIFO
 attached to that node, and (3) an optional shaping transaction that determines
-a packet's rank in an optional shaping PIFO.
+a packet's rank in an optional shaping PIFO attached to that node.
 
 \begin{figure}[!t]
   \centering
@@ -411,28 +415,31 @@ and we transmit the packet. If not, we continue recursively, dequeueing from
 the scheduling PIFO that is pointed to until we find a packet.
 
 When a packet is enqueued, we walk the tree from the leaf whose predicate
-captures the packet to the root, executing scheduling and (optionally) shaping
-transactions along the way. The scheduling transaction inserts either a packet
-or a PIFO reference into the scheduling PIFO. The shaping transaction at a node
-inserts a reference to the node's scheduling PIFO in the node's shaping PIFO.
+captures the packet to the root. Along this leaf-to-root path, we execute
+scheduling and (optionally) shaping transactions attached to the path's nodes.
+Figure~\ref{fig:shaping_timing} illustrates the timing of various operations
+related to a node's scheduling and a shaping PIFO. A node's scheduling
+transaction inserts either a packet or a PIFO reference into the node's
+scheduling PIFO. A node's shaping transaction inserts a reference to the node's
+scheduling PIFO in the node's shaping PIFO. Once the shaping transaction has
+executed, execution of transactions for this packet is temporarily suspended.
 When that reference is dequeued from the shaping PIFO, it is enqueued into the
-node's parent's scheduling PIFO. It'll eventually be dequeued from the parent's
-scheduling PIFO when it makes its way to the head of the parent's scheduling
-PIFO. The shaping PIFO thus provides an optional mechanism to {\em defer}
-enqueues into a parent's scheduling PIFO. Figure~\ref{fig:shaping_timing}
-illustrates the timing of various operations related to a scheduling and a
-shaping PIFO.
+node's parent's scheduling PIFO using the parent's scheduling transaction and
+the rest of the leaf-to-root path is resumed.  The shaping PIFO thus provides
+an optional mechanism for a node to {\em defer} enqueues into its parent's
+scheduling PIFO, which is useful when combining hierarchical scheduling with
+traffic shaping (Figure~\ref{fig:hshaping} in Chapter~\ref{chap:pifo} shows an
+example).
 
 The PIFO-based programming model unifies several scheduling algorithms and
 allows us to program a wide variety of scheduling algorithms using the single
-construct of the push-in first-out queue, \eg Weighted Fair
-Queueing~\cite{wfq}, Token Bucket Shaping~\cite{tbf}, Hierarchical Packet
-Fair Queueing~\cite{hpfq}, Least-Slack Time-First~\cite{lstf}, the
-Rate-Controlled Service Disciplines~\cite{rcsd}, and fine-grained priority
-scheduling (\eg Shortest Job First).
+PIFO primitive, \eg Weighted Fair Queueing~\cite{wfq}, Token Bucket
+Shaping~\cite{tbf}, Hierarchical Packet Fair Queueing~\cite{hpfq}, Least-Slack
+Time-First~\cite{lstf}, the Rate-Controlled Service Disciplines~\cite{rcsd},
+and fine-grained priority scheduling (\eg Shortest Job First).
 
-\Para{Hardware for PIFOs.} Supporting this programming model is a high-speed
-hardware design for PIFOs. When designing hardware for PIFOs, we set out to
+\subsection{Hardware for PIFOs} We designed high-speed hardware to support a
+PIFO-based programming model. When designing hardware for PIFOs, we set out to
 meet performance targets that are typical for a single-chip shared-memory
 router today. These are routers that are built out of a single
 application-specific integrated circuit (ASIC), and whose packet buffer and
@@ -452,22 +459,24 @@ memory allocation in the packet buffer.} a 12 MByte buffer can support up to
 A naive way to implement a 60K-entry PIFO is to use a flat sorted array of 60K
 elements and insert an incoming element into this array in a manner reminiscent
 of insertion sort. Concretely, an incoming element's rank would be compared in
-parallel to the ranks of all 60K elements producing a bitmask denoting which
-elements were greater than or lesser than the incoming element. Because the
-PIFO is sorted, the bitmask would have a single 0-to-1 transition, the position
-of which could be detected using a priority encoder. Finally, the new element
-could be inserted into this position. The problem with this approach is that it
-is hard to lay out 60K parallel comparators, one for each element in the PIFO.
+parallel to the ranks of all 60K elements. This would produce a bitmask
+denoting which elements were greater than or lesser than the incoming element.
+Because the PIFO is sorted, the bitmask would have a single 0-to-1 transition.
+The position of this 0-to-1 transition could be detected using a priority
+encoder. Finally, the new element could be inserted into this position.
+However, the difficulty with this approach is that it is hard to lay out 60K
+parallel comparators, one for each element in the PIFO.
 
 Instead, we exploit the observation that in most practical scheduling
-algorithms, the scheduling is really across flows and not packets, because
-packet ranks increase monotonically within a flow to prevent packet reordering
-within a flow. Because ranks increase monotonically within a flow, we only need
-to look at the first packet of each flow to determine which packet to dequeue
-next. This reduces the number of elements that need to be sorted from 60K
-packets in the naive implementation to around 1K flows (again, we picked this
-number with reference to the Broadcom Trident II that supports \textasciitilde10 queues
-on each of its \textasciitilde100 ports).
+algorithms, the scheduling is really across flows and not packets. This is
+because packet ranks increase monotonically within a flow to prevent packet
+reordering within a flow. Because ranks increase monotonically within a flow,
+we only need to look at the first packet of each flow to determine which packet
+to dequeue next. This reduces the number of elements that need to be sorted
+from 60K packets in the naive implementation to around 1K
+flows.\footnote{Again, we picked this number with reference to the Broadcom
+Trident II that supports \textasciitilde10 queues on each of its
+\textasciitilde100 ports}
 
 We find that transistor technology has evolved to the point where it is
 relatively cheap to build a sorted array of 1K flows, where a flow can be
@@ -477,8 +486,8 @@ industry-standard 16 nm technology node, a hardware design for a programmable
 relative to a 200 \si{\milli\meter\squared} baseline router
 chip~\cite{glen_parsing}.
 
-\subsection{Scalable network measurement}
-
+\section{Scalable network measurement}
+%>>>Resume here >>>>
 Chapter~\ref{chap:perf_query} considers the problem of programmable and
 scalable network measurement. Can we have network operators specify the
 per-flow statistics they want to measure (\eg a moving average over queueing
