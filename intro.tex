@@ -317,8 +317,44 @@ written as a packet transaction, introduced earlier.  Depending on whether the
 program determines the scheduling order or time, the program is called either a
 scheduling transaction or a shaping transaction.
 
-%TODO: Figure of WFQ as a scheduling transaction
-%TODO: Figure of traffic shaping as a shaping transaction
+\begin{figure}
+\begin{minipage}[!h]{0.48\textwidth}
+\vspace{0.4in}
+\begin{lstlisting}[style=customcscriptsize]
+f = flow(p) # compute flow from packet p
+if f in last_finish:
+ p.start = max(virtual_time, last_finish[f])
+else: # p is first packet in f
+ p.start = virtual_time
+last_finish[f] = p.start + p.length/f.weight
+p.rank = p.start
+\end{lstlisting}
+\caption{Scheduling transaction for the Start-Time Fair Queueing implementation~\cite{stfq} of Weighted Fair Queueing.}
+\label{fig:wfq_trans}
+\hfill
+\end{minipage}
+\begin{minipage}[!h]{0.48\textwidth}
+\begin{lstlisting}[style=customcscriptsize]
+tokens = tokens + r * (now - last_time)
+if (tokens > B):
+  tokens = B
+if (p.length <= tokens):
+  p.send_time = now
+else:
+  p.send_time = now + (p.length - tokens) / r
+tokens = tokens - p.length
+last_time = now
+p.rank = p.send_time
+\end{lstlisting}
+\caption{Shaping transaction for Token Bucket Shaping.}
+\label{fig:tbf_trans}
+\end{minipage}
+\caption{Examples of scheduling and shaping transactions. {\tt p.x} refers to a packet field {\tt x} in packet {\tt p}.  {\tt y} refers to a state variable
+that is persisted on the router across packets, \eg {\tt last\_finish}
+and {\tt virtual\_time} in this snippet. {\tt p.rank} denotes the
+packet's computed rank.}
+\end{figure}
+
 A single PIFO coupled with a scheduling or shaping transaction can express many
 classical scheduling algorithms, \eg token bucket shaping
 (Figure~\ref{fig:tbf_trans}), and weighted fair queueing
