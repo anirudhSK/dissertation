@@ -158,7 +158,7 @@ algorithms that operate on a sequeunce of packets in a streaming manner, doing
 a bounded amount of work per packet and manipulating a bounded amount of router
 state in the process.  They include algorithms for managing the router's buffer
 (\eg RED~\cite{red}, BLUE~\cite{blue}), load balancing (\eg CONGA~\cite{conga},
-Flare~\cite{flare}), and in-network congestion control (\eg XCP~\cite{xcp},
+flowlet switching~\cite{flowlets}), and in-network congestion control (\eg XCP~\cite{xcp},
 RCP~\cite{rcp}).
 
 High-speed data-plane programming poses two challenges: (1) what hardware
@@ -250,7 +250,7 @@ packet. State variables (count) are in red.}
 
 \begin{figure}[!t]
 \includegraphics[width=\textwidth]{compiler_passes_example.pdf}
-\caption{The three passes of the Domino compiler illustrated on the packet transaction from Figure~\ref{fig:simple_transaction}.}
+\caption{The three passes of Domino's compiler shown on the packet transaction from Figure~\ref{fig:simple_transaction}.}
 \label{fig:compiler_passes_example}
 \end{figure}
 
@@ -269,8 +269,8 @@ progressively program more and more algorithms from
 Figure~\ref{fig:router_algos}. For instance, measurement using Bloom filters
 only requires simple read and write operations on state. On the other hand,
 heavy-hitter detection~\cite{opensketch} uses a counting
-sketch~\cite{count_min} that relies on a atomic counter. Finally, algorithms
-like flowlet switching~\cite{flare} require conditional updates to counters.
+sketch~\cite{cormode} that relies on a atomic counter. Finally, algorithms
+like flowlet switching~\cite{flowlets} require conditional updates to counters.
 
 In a subsequent project~\cite{perf_query} (Chapter~\ref{chap:perf_query}) that we carried out after
 the Domino work, we found that we could reuse the same atoms for other use
@@ -289,7 +289,7 @@ tweaked, there is no way for an operator to program a new scheduling algorithm
 that is tailored to their needs.
 
 Routers lack programmable scheduling because there is no single abstraction to
-express many scheduling algorithms~\cite{wfq, srpt, srr, pFabric, lstf, csz}
+express many scheduling algorithms~\cite{wfq, srpt, srr, pFabric, lstf}
 that appear so different at first brush. This lack of a single unifying
 abstraction is not merely an academic concern. It has practical consequences:
 in the absence of a single abstraction that can then be hardened in hardware,
@@ -366,16 +366,38 @@ classical scheduling algorithms, \eg token bucket shaping
 scheduling algorithms with the property that the relative order of packets that
 are already buffered does not change in response to new packet arrivals. A
 canonical class of scheduling algorithms that violate this relative order
-property is the class of hierarchical scheduling algorithms~\cite{hpfq}.
- 
+property is the class of hierarchical scheduling algorithms. A well-known
+example of this class is Hierarchical Packet Fair Queueing (HPFQ)~\cite{hpfq},
+which first divides up the link's capacity fairly among classes, and then when each
+class is scheduled, divides up the class's transmission opportunities fairly
+among its constituent flows.
+
+\begin{subfigure}[b]{.3\textwidth}
+\includegraphics[width=\textwidth]{pifo_hpfq_program.pdf}
+\caption{Scheduling tree for HPFQ. The scheduling transactions WFQ\_Root,
+WFQ\_Left, and WFQ\_Right are similar to Figure~\ref{fig:wfq_trans} and differ
+only in how the flow is computed from the packet. Note that this tree has no
+shaping transaction.}
+\label{fig:scheduling_tree}
+\end{subfigure}
+
 To support hierarchical scheduling, we extend our programming model from a
 single PIFO to a tree of PIFOs, while allowing an entry in a PIFO to be either
-a packet or a reference to another PIFO. More formally, a node in a {\em scheduling
-tree} (Figure~\ref{fig:scheduling_tree}) has three attributes: (1) a predicate
-that determines which packets are handled by that node, (2) a scheduling
-transaction that determines a packet's rank in a scheduling PIFO attached to
-that node, and (3) an optional shaping transaction that determines a packet's
-rank in an optional shaping PIFO.
+a packet or a reference to another PIFO. More formally, a node in a {\em
+scheduling tree} (Figure~\ref{fig:scheduling_tree}) has three attributes: (1) a
+predicate that determines which packets are handled by that node, (2) a
+scheduling transaction that determines a packet's rank in a scheduling PIFO
+attached to that node, and (3) an optional shaping transaction that determines
+a packet's rank in an optional shaping PIFO.
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.6\columnwidth]{pifo_shaping_semantics.pdf}
+  \caption{\textit{Child's} shaping transaction (1b) {\em defers} enqueue
+  into \textit{Parent's} scheduling PIFO (2) until time T.  Blue arrows
+  show enqueue paths. Red arrows show dequeue paths.  }
+  \label{fig:shaping_timing}
+\end{figure}
 
 We now explain the semantics of a scheduling tree during dequeues and enqueues.
 During a dequeue, we walk the scheduling tree starting from the root. We
@@ -418,7 +440,7 @@ For concreteness, we picked a target clock frequency of 1 GHz to reflect a
 requirement of performing one enqueue and one dequeue every nanosecond (typical
 of high-speed routers today~\cite{rmt}). We targeted a packet buffer of size 12
 MByte based on the buffer size of the Broadcom Trident
-II~\cite{trident2_buffer}, a recent commercial single-chip shared memory
+II~\cite{bcom_buffer}, a recent commercial single-chip shared memory
 router. With a cell size of 200 bytes,\footnote{A cell is the minimum unit of
 memory allocation in the packet buffer.} a 12 MByte buffer can support up to
 60000 packets.
@@ -458,7 +480,7 @@ scalable network measurement. Can we have network operators specify the
 per-flow statistics they want to measure (\eg a moving average over queueing
 latencies or a count of packets or bytes) at the flow granularity they desire
 (\eg at the 5-tuple level or at the level of each distinct destination IP
-address)? Current router solutions for measurement~\cite{netflow, tetration}
+address)? Current router solutions for measurement~\cite{netflow, tetration-telemetry}
 fix either the statistics that can be measured or the granularity at which the
 statistics can be measured. The challenge here is to provide a set of
 measurment primitives that can cover a range of statistics while scaling to a
@@ -512,8 +534,7 @@ tuple in the stream ({\ct map}), drops certain tuples based on a predicate
 ({\ct filter}), or partitions the stream into substreams based on a predicate
 and then aggregates the tuples within each substream based on a user-defined
 aggregation function ({\ct groupby}).\footnote{Aggregation functions are also
-known as fold functions or reducers in functional languages~\cite{haskell,
-lisp}.  Our use of user-defined aggregation functions is distinct from the
+known as fold functions or reduce functions in functional languages.  Our use of user-defined aggregation functions is distinct from the
 groupby constructs supported by traditional query languages (\eg SQL). SQL only
 supports specific order-independent aggregation functions like counts and
 averages, and does not allow general user-defined aggregation functions.}
@@ -605,7 +626,7 @@ reordering in a TCP flow, measuring a moving average of queueing latencies on a
 per-flow basis, and detecting the presence of TCP incast. Our \TheSystem
 compiler compiles these queries to two different targets: an atom pipeline to
 determine the hardware feasibility of \TheSystem queries and a P4-based
-software switch~\cite{p4_behavioral} for end-to-end case studies of \TheSystem
+software switch~\cite{p4-bmv2} for end-to-end case studies of \TheSystem
 in Mininet~\cite{mininet}. We find that \TheSystem queries occupy a small
 fraction of the router's hardware resources, both computationally in terms of
 the number of atoms they need, and memory-wise in terms of the size of the SRAM
