@@ -151,11 +151,8 @@ programming models in software for three classes of router functionality:
 stateful data-plane algorithms, packet scheduling, and scalable network
 measurement.  Table~\ref{tab:contributions} summarizes our contributions.
 
-%Consider adding a crisp statement of limitations of each class of algorithms
-%Packet payload processing, Algorithms with loop bounds only known at run time \\
-
 \subsection{Stateful data-plane algorithms}
-First (Chapter~\ref{chap:domino}), we consider the problem of programming {\em
+In Chapter~\ref{chap:domino}), we consider the problem of programming {\em
 stateful data-plane algorithms} at high packet processing rates. These are
 algorithms that operate on a sequeunce of packets in a streaming manner, doing
 a bounded amount of work per packet and manipulating a bounded amount of router
@@ -168,49 +165,52 @@ High-speed data-plane programming poses two challenges: (1) what hardware
 instructions are required to support programmable state modification at the
 router's line rate and (2) what is the right programming model? To address
 these challenges, we develop a system for data-plane programming, Domino, which
-contains three main components, described below.
+contains three main components: an instruction set (atoms), a programming model
+(packet transactions), and a compiler.
 
-\Para{Atoms.} \textit{Atoms} capture a router's instruction set. They specify atomic
-units of packet processing provided by the router hardware, \eg an atomic
-counter or an atomic test-and-set. Atoms are atomic in the sense that if some
-state is updated by an atom as part of processing a packet, the next packet
-arriving at that atom will see the updated value of that state. The processing
-within atoms is constrained to meet the atomicity requirement by ensuring that
-the input-to-output latency of the atom's digital circuit is under a clock
-cycle, so that the output is updated to the correct value in time for the next
-packet arriving at the atom a clock cycle later. Figure~\ref{fig:simple_atom}
-shows an example atom.
+\Para{Atoms.} \textit{Atoms} capture a router's instruction set. They specify
+atomic units of packet processing provided by the router hardware, \eg an
+atomic counter or an atomic test-and-set. Figure~\ref{fig:simple_atom} shows an
+example atom. Atoms are atomic in the sense that if some state is updated by an
+atom as part of processing a packet, the next packet arriving at that atom will
+see the updated value of that state. The processing within atoms is constrained
+to meet the atomicity requirement by ensuring that the input-to-output latency
+of the atom's digital circuit is under a clock cycle, so that the output is
+updated to the correct value in time for the next packet arriving at the atom a
+clock cycle later.
 
-\Para{Packet Transactions.} \textit{Packet transactions} provide a programming model for data-plane
-algorithms. A packet transaction is an atomic and isolated block of code
-capturing an algorithm's logic written in a domain-specific language (DSL)
-called Domino. Figure~\ref{fig:simple_transaction} shows an example packet transaction.
-Packet transactions provide programmers with the illusion that the transaction's body
-executes serially from start to finish on each packet, with
-no overlap in packet processing across packets---akin to an infinitely fast single-threaded
-processor carrying out packet processing on each packet. Packet
-transactions are expressive and capture many important data-plane algorithms.
-Further, their serial semantics shield programmers from the router's data and pipeline
-parallelism. Packet transactions have been adopted in P4~\cite{p4}, a
-packet-processing language that is emerging as an industry standard for
-programming router chips.  P4 programmers can now use an @atomic annotation
-around a block of statements to specify that the block must execute atomically.
+\Para{Packet Transactions.} \textit{Packet transactions} provide a programming
+model for data-plane algorithms. A packet transaction is an atomic and isolated
+block of code capturing an algorithm's logic written in a domain-specific
+language (DSL) called Domino. Figure~\ref{fig:simple_transaction} shows an
+example packet transaction.  Packet transactions provide programmers with the
+illusion that the transaction's body executes serially from start to finish on
+each packet, with no overlap in packet processing across packets---akin to an
+infinitely fast single-threaded processor carrying out packet processing on
+each packet. Packet transactions are expressive and capture many important
+data-plane algorithms.  Further, their serial semantics shield programmers from
+the router's data and pipeline parallelism.
+%%Packet transactions have been
+%%adopted in P4~\cite{p4}, a packet-processing language that is emerging as an
+%%industry standard for programming router chips.  P4 programmers can now use an
+%%@atomic annotation around a block of statements to specify that the block must
+%%execute atomically.
 
 \Para{The compiler.} The Domino compiler compiles packet transactions written
 in the Domino DSL to a pipeline of atoms provided by the router, and rejects
 the code if the router's atoms cannot support the packet transaction.
 
-The compiler has three phases. First (\S\ref{ss:preprocessing}), it
-preprocesses the code to make it easier to infer dependencies between
-packet-processing operations. Second (\S\ref{ss:pipelining}), the compiler then
-transforms the preprocessed, but still serial, packet transaction into a
-parallel pipeline of {\em codelets}. When pipelining, the compiler maintains
-the invariant that if each codelet executes atomically and passes off its
-results to the next codelet, the behavior will be indistinguishable from the
-packet transaction itself executing atomically on each packet. Third
-(\S\ref{ss:code_gen}), the compiler maps each codelet one-to-one to an atom
-provided by the underlying router, rejecting the code if the codelet cannot be
-supported by the atom.
+The compiler has three phases (Figure~\ref{fig:compiler_passes_example}). First
+(\S\ref{ss:preprocessing}), it preprocesses the code to make it easier to infer
+dependencies between packet-processing operations. Second
+(\S\ref{ss:pipelining}), the compiler then transforms the preprocessed, but
+still serial, packet transaction into a parallel pipeline of {\em codelets}.
+When pipelining, the compiler maintains the invariant that if each codelet
+executes atomically and passes off its results to the next codelet, the
+behavior will be indistinguishable from the packet transaction itself executing
+atomically on each packet. Third (\S\ref{ss:code_gen}), the compiler maps each
+codelet one-to-one to an atom provided by the underlying router, rejecting the
+code if the codelet cannot be supported by the atom.
 
 The compiler provides an {\em all-or-nothing} guarantee: if the compiler
 compiles the packet transaction it will run at the line rate of the router; all
@@ -220,7 +220,11 @@ conventional compiler for a general-purpose CPU compiles all programs, but a
 program's run-time performance depends on its complexity. In Domino, only
 programs that are simple enough to run at the router's line rate will be
 compiled, obviating the need for any performance profiling.
-%TODO: Figure for compiler
+\begin{figure}[!t]
+\includegraphics[width=\textwidth]{compiler_passes_example.pdf}
+\caption{The three passes of the Domino compiler illustrated on the packet transaction from Figure~\ref{fig:simple_transaction}.}
+\label{fig:compiler_passes_example}
+\end{figure}
 
 \Para{Evaluation.}
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
