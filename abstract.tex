@@ -16,15 +16,16 @@ operations and the constant demand for new features, programmability of routers
 has become as important as performance.  However, today's fastest routers,
 which run at line rate, use fixed-function hardware, which cannot be modified
 after deployment. This disseration will describe three router hardware
-primitives and their corresponding software programming models that allow
+primitives and their corresponding programming models in software that allow
 network operators to program specific classes of router functionality at line
 rate.
+%TODO: Say my thesis is that ...
 
 First, we develop a system for programming stateful packet-processing
 algorithms such as algorithms for in-network congestion control, buffer
 management, and data-plane traffic engineering. The challenge here is the fact
 that these algorithms maintain and update state on the router.  We develop a
-small, yet expressive, instruction set for stateful manipulation at the
+small but expressive instruction set for stateful manipulation at the
 router's line rate, and then expose this to the programmer through a high-level
 programming model and compiler.
 
