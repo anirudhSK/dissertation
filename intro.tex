@@ -614,38 +614,41 @@ Our Mininet experiments show that \TheSystem can be used to iteratively
 troubleshoot problems such as occasional latency spikes happening as a result
 of bursty background traffic.
 
-\section{Lessons learned}
-\Para{The power of specialization.} The most important lesson we learned over
-the course of this dissertation was the power of specialization: the idea of
-targeting hardware and software to specific classes of router functionality.
-The three systems in the dissertation demonstrate how narrowing our focus to
-specific router functionality allows us to resolve the
-performance-programmability tradeoff that has plagued routers so far. Because
-each system is specialized to a specific task, each system has limited
-expressiveness. We refer the reader to \S\ref{domino_ss:limitations} and
-Table~\ref{tab:restrict} for Domino's limitations, \S\ref{pifo_ss:limitations}
-for PIFO's limitations, and \S\ref{pq_ss:limitations} for \TheSystem's
-limitations.
+\section{Lessons learned} We conclude this chapter by distilling some general
+lessons for programmable router design that go beyond the specific
+contributions of each of the three systems.
 
-In the language of computability, none of our systems is Turing-complete in the
-sense that it cannot simulate a Turing machine, an idealization of the
-general-purpose CPU. Yet, each covers a large number of example use cases
-within specific functionality classes (stateful data-plane algorithms,
-scheduling, and measurement queries) without giving up performance relative to
-a fixed-function router. Viewed differently, each system provides an order of
+\Para{The power of specialization.} The most important lesson here  is the
+power of specialization: the idea of targeting hardware and software to
+specific classes of router functionality.  The three systems in the
+dissertation demonstrate how narrowing our focus to specific router
+functionality allows us to resolve the performance-programmability tradeoff
+that has plagued routers so far.
+
+In the language of computability, none of our systems is Turing-complete: they
+cannot simulate a Turing machine, an idealization of the general-purpose CPU.
+We refer the reader to \S\ref{domino_ss:limitations} and
+Table~\ref{tab:restrict}, \S\ref{pifo_ss:limitations}, and
+\S\ref{pq_ss:limitations} for specific examples of what each of the three
+systems cannot express.
+
+Yet, each covers a large number of example use cases within specific
+functionality classes (stateful data-plane algorithms, scheduling, and
+measurement queries) without giving up performance relative to a fixed-function
+router. Viewed differently, by specializing, each system provides an order of
 magnitude improvement in performance relative to a general-purpose software
-router at the cost of restricted programmability. Intellectually, these results
-suggest that there is a rich space of system designs that is as yet
-unexplored---if we choose to look beyond Turing-complete systems. 
+router. Intellectually, these results suggest that there is a rich space of
+system designs that is as yet unexplored---if we choose to look beyond
+Turing-complete systems. 
 
 \Para{Jointly designing hardware and software.} We are entering an era where
 Moore's law has slowed down or effectively stopped~\cite{dark_silicon,
 four_horsemen}.  In this new era, transistors are no longer guaranteed to get
 smaller or faster every year. In the heyday of Moore's law, processor hardware
-automatically got faster year on year, and software enjoyed the free lunch of
-improved performance because of the underlying improvements in hardware. With
-the end of Moore's law, it is no longer apparent how these performance
-improvements will be sustained.
+automatically got faster year on year, and software automatically enjoyed the
+free lunch of improved performance because of the underlying improvements in
+hardware. With the end of Moore's law, it is no longer apparent how these
+performance improvements will be sustained.
 
 Jointly designing hardware and software in service of a higher-level
 application-level goal suggest a way to continue improving performance. Year on
@@ -654,22 +657,23 @@ specializing hardware to specific application needs and then appropriately
 exposing this specialized hardware to software. This is already visible in
 domains such as machine learning. For instance, the tensor processing
 unit~\cite{tpu} is an ASIC tailored to deep learning, and
-TensorFlow~\cite{tensorflow} is its corresponding programming model in
-software. The systems presented in this dissertation are also examples of joint
-hardware and software design in the context of networking, where we develop
-both the underlying hardware (atoms, PIFOs, and hardware key-value stores) and
-the corresponding software (packet transactions, scheduling trees, and
-performance queries) for specific application classes (stateful data-plane
-algorithms, scheduling, and statistics measurement).
+TensorFlow~\cite{tensorflow} is its corresponding programming model.
+
+The systems presented in this dissertation are also examples of joint hardware
+and software design in the context of networking, where we develop both the
+underlying hardware (atoms, PIFOs, and hardware key-value stores) and the
+corresponding software (packet transactions, scheduling trees, and performance
+queries) for specific application classes (stateful data-plane algorithms,
+scheduling, and statistics measurement).
 
 \Para{Vertically integrated thinking.} Philosophically, the results in the
-dissertation advocate for vertically integrated thinking, where a single design
-incorporates the entire computing stack starting with programmable hardware, up
-through the compiler for this hardware, and finishing off with the language to
-program this hardware. For decades now, systems programmers have treated the
-hardware as programmable, but unmodifiable. There are undeniable benefits to
-writing software for off-the-shelf commodity hardware because it is immediately
-deployable in contrast to vertically integrated systems that need to be first
-designed in hardware and then programmed in software. At the same time, the
-results here suggest that there are substantial performance benefits from
-redesigning the entire stack from the ground up.
+dissertation advocate for vertically integrated thinking, where a single system
+design incorporates the entire computing stack starting with programmable
+hardware, up through the compiler for this hardware, and finishing off with the
+language to program this hardware. For decades now, systems programmers have
+treated the hardware as programmable, but unmodifiable. There are undeniable
+benefits to writing software for off-the-shelf commodity hardware because it is
+immediately deployable---in contrast to vertically integrated systems that need
+to be first designed in hardware and then programmed in software. At the same
+time, the results here suggest that there are substantial performance benefits
+from redesigning the entire stack from the ground up.
