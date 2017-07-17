@@ -1,42 +1,46 @@
 \begin{table}
 \textbf{Stateful data-plane algorithms (Chapter~\ref{chap:domino})}
 \\[-7pt]\rule{\textwidth}{1pt}\\[-7pt]\rule{\textwidth}{1pt} \\
-\textbf{Examples:} in-network congestion control (XCP~\cite{xcp}, RCP~\cite{rcp}), active
-queue management (RED~\cite{red}, BLUE~\cite{blue}, CoDel~\cite{codel}) \\
-\textbf{Technical challenge:} How do we allow programmable router state modification at
-the router's line rate, where a new packet can be received every nanosecond? \\
+\textbf{Examples:} in-network congestion control (\eg XCP~\cite{xcp} and
+RCP~\cite{rcp}), active queue management (\eg RED~\cite{red}, BLUE~\cite{blue},
+and CoDel~\cite{codel}) \\
+\textbf{Technical challenge:} How do we allow programmable router state
+modification at the router's line rate, when a new packet can be received as
+often as every nanosecond? \\
 \textbf{Programming model:} Packet transactions (\S\ref{s:transactions})\\
 \textbf{Hardware primitive:} Atoms (\S\ref{s:absmachine}) \\
-\textbf{Key finding:} A small set of atoms (Table~\ref{tab:templates}) are simultaneously (1) expressive enough to
-serve as the instruction set for many stateful algorithms, and (2) simple
-enough to implement in high-speed hardware (\S\ref{s:eval}). \\ \\
+\textbf{Key finding:} A small set of atoms (Table~\ref{tab:templates}) is
+simultaneously (1) expressive enough to serve as the instruction set for many
+stateful algorithms and (2) simple enough to implement in high-speed hardware
+(\S\ref{s:eval}). \\ \\
 
 \textbf{Scheduling algorithms (Chapter~\ref{chap:pifo})}
 \\[-7pt]\rule{\textwidth}{1pt}\\[-7pt]\rule{\textwidth}{1pt} \\
-\textbf{Examples:} Fair queueing~\cite{wfq}, priority scheduling~\cite{srpt} \\
+\textbf{Examples:} Weighted Fair Queueing~\cite{wfq} and priority scheduling~\cite{srpt} \\
 \textbf{Technical challenge:} Can we find an abstraction that unifies many disparate
 scheduling algorithms? \\
 \textbf{Programming model:} Scheduling trees (\S\ref{s:pifo}) \\
-\textbf{Hardware primitive:} A priority queue data structure we call Push-In First-Out
-Queues (PIFOs) (\S\ref{s:design}) \\
-\textbf{Key finding:} A priority queue of packets with a program to set each packet's
-priority can express many scheduling algorithms (\S\ref{s:expressive}), and is feasible in high-speed
-hardware (\S\ref{s:hardware}). \\\\
+\textbf{Hardware primitive:} A priority queue data structure called a Push-In First-Out
+Queue (PIFO) (\S\ref{s:design}) \\
+\textbf{Key finding:} A priority queue of packets with a program to set each
+packet's priority can express many scheduling algorithms
+(\S\ref{s:expressive}) and is feasible in high-speed hardware
+(\S\ref{s:hardware}). \\\\
 
-\textbf{Programmable and scalable per-flow statistics (Chapter~\ref{chap:perf_query})}
+\textbf{Scalable per-flow statistics (Chapter~\ref{chap:perf_query})}
 \\[-7pt]\rule{\textwidth}{1pt}\\[-7pt]\rule{\textwidth}{1pt} \\
 \textbf{Examples:} Per-flow measurements of moving averages, counters, and loss rates \\
-\textbf{Technical challenge:} Can we allow programmers to flexibly define the per-flow
-statistics they want to measure, while scaling to a large number of flows?\\
+\textbf{Technical challenge:} Can we allow programmers to flexibly define the
+per-flow statistics they want to measure and also scale to a large number of
+flows?\\
 \textbf{Programming model:} Performance queries (\S\ref{sec:language}) \\
 \textbf{Hardware primitive:} Programmable hardware key-value store. Keys correspond to
 flows and values to statistics. (\S\ref{sec:aggregation}) \\
-\textbf{Key finding:} A class of statistics measurements, which we call the linear-in-state
-class (\S\ref{sec:linear-in-state-description}), can be scaled
-to a large number of flows without losing accuracy. This class
-covers many practically useful statistics such as counters, moving average filters, and
+\textbf{Key finding:} A class of statistics measurements, which we call the
+linear-in-state class (\S\ref{sec:linear-in-state-description}), can be scaled
+to a large number of flows without losing accuracy. This class covers many
+practically useful statistics such as counters, moving average filters, and
 conditional counters (\S\ref{sec:eval}). \\
 \caption{Contributions of this dissertation}
 \label{tab:contributions}
 \end{table}
-
