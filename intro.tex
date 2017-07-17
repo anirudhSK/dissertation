@@ -393,7 +393,6 @@ enqueues into a parent's scheduling PIFO. Figure~\ref{fig:shaping_timing}
 illustrates the timing of various operations related to a scheduling and a
 shaping PIFO.
 
-%TODO: Push-In First-Out or push-in first-out?
 %TODO: Should we capitalize every word in Weighted Fair Queueing or not? Just be consistent.
 % This may help: https://english.stackexchange.com/questions/40427/capitalization-of-explanation-of-abbreviations
 The PIFO-based programming model unifies several scheduling algorithms and
@@ -452,10 +451,6 @@ chip~\cite{glen_parsing}.
 
 \subsection{Scalable network measurement}
 
-%% TODO: Formally characterize linear-in-state operations here.
-%% TODO: Maybe give an example of why merging is hard in general and why there's
-%% something non-trivial here.
-
 Chapter~\ref{chap:perf_query} considers the problem of programmable and
 scalable network measurement. Can we have network operators specify the
 per-flow statistics they want to measure (\eg a moving average over queueing
@@ -467,7 +462,37 @@ statistics can be measured. The challenge here is to provide a set of
 measurment primitives that can cover a range of statistics while scaling to a
 large number of flows.
 
-%TODO: Diagram of an example query
+\begin{figure}
+\begin{minipage}[!h]{\textwidth}
+\centering
+\begin{lstlisting}
+result = filter((*\pktlog,*) qid == Q && tout - tin > 1ms)
+// Filter out packets whose queueing delay at queue Q exceeds one ms.
+\end{lstlisting}
+\end{minipage}
+
+\begin{minipage}[!h]{\textwidth}
+\centering
+\begin{lstlisting}
+result = map((*\pktlog,*) [tin/epoch_size], [epoch])
+// Round off packet time stamps to the nearest epoch.
+\end{lstlisting}
+\end{minipage}
+
+\begin{minipage}[!h]{\textwidth}
+\begin{lstlisting}
+def count([c], []):
+  c = c + 1
+result = groupby((*\pktlog{}*), [(*\codeftuple{}*)], count)
+// Partition packets by 5-tuple and count the number of packets in each 5-tuple.
+\end{lstlisting}
+\end{minipage}
+\caption{Three example \TheSystem queries. {\ct \pktlog{}} refers to the
+original packet performance stream with one tuple for each packet seen in the
+network.}
+\label{fig:example_queries}
+\end{figure}
+
 \Para{Programming model.} To allow network operators to express a wide range of
 performance questions, we provide network operators with the abstraction of a
 performance packet stream: a stream of tuples, one for each packet, containing
@@ -478,7 +503,8 @@ which the packet was enqueued and dequeued).
 Network operators can query this performance packet stream using a functional
 query language, \TheSystem, with familiar constructs such as {\ct map}, {\ct
 filter}, and {\ct groupby} much like functional APIs in mainstream programming
-languages like Python, Java, Scala, and Haskell. These constructs take as input
+languages like Python, Java, Scala, and Haskell. Figure~\ref{fig:example_queries}
+shows some example queries in \TheSystem. These constructs take as input
 a stream of tuples and return an output stream that either transforms each
 tuple in the stream ({\ct map}), drops certain tuples based on a predicate
 ({\ct filter}), or partitions the stream into substreams based on a predicate
@@ -541,14 +567,21 @@ unpredictable memory access latencies while the data is being fetched from the
 backing store. A processor handles this by occasionally stalling its pipeline
 to handle a cache miss. But stalling a router pipeline prevents us from
 providing the deterministic latency guarantees that routers are known for.
-%TODO: Diagram of the Marple's k-v store and contrast to standard k-v store
 
-Instead, we treat a cache miss as the arrival of a packet from a new flow and
-initialize the cache entry the way we would if we had seen a new flow. When
-this cache entry is eventually evicted, we merge it against the old value for
-that entry in the backing store. It is easy to see that this would work when
-the value in the key-value store was a counter; the merge operation would
-simply add up the old and new counts. But is merging possible in general?
+\begin{figure}
+\centering
+\includegraphics[width=0.6\columnwidth]{pq_kv_store.pdf}
+\caption{\TheSystem's key-value store vs. a traditional cache}
+\label{fig:hw_diff}
+\end{figure}
+
+Instead, as Figure~\ref{fig:hw_diff} shows, we treat a cache miss as the
+arrival of a packet from a new flow and initialize the cache entry the way we
+would if we had seen a new flow. When this cache entry is eventually evicted,
+we merge it against the old value for that entry in the backing store. It is
+easy to see that this would work when the value in the key-value store was a
+counter; the merge operation would simply add up the old and new counts. But is
+merging possible in general?
 
 We formalize characterize a class of aggregation functions for which such
 merging is possible without losing accuracy (\ie the value is equivalent to the
