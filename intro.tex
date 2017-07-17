@@ -397,12 +397,10 @@ enqueues into a parent's scheduling PIFO. Figure~\ref{fig:shaping_timing}
 illustrates the timing of various operations related to a scheduling and a
 shaping PIFO.
 
-%TODO: Should we capitalize every word in Weighted Fair Queueing or not? Just be consistent.
-% This may help: https://english.stackexchange.com/questions/40427/capitalization-of-explanation-of-abbreviations
 The PIFO-based programming model unifies several scheduling algorithms and
 allows us to program a wide variety of scheduling algorithms using the single
 construct of the push-in first-out queue, \eg Weighted Fair
-Queueing~\cite{wfq}, Token Bucket Filtering~\cite{tbf}, Hierarchical Packet
+Queueing~\cite{wfq}, Token Bucket Shaping~\cite{tbf}, Hierarchical Packet
 Fair Queueing~\cite{hpfq}, Least-Slack Time-First~\cite{lstf}, the
 Rate-Controlled Service Disciplines~\cite{rcsd}, and fine-grained priority
 scheduling (\eg Shortest Job First).
