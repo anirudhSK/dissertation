@@ -1,3 +1,45 @@
+4. Move new SIGCOMM text into performance queries.
+5. More Domino programs.
+6. Move text of theorems into main text.
+7. Figure out how to keep marple's tech report and dissertation in sync.
+8. Reduce text from each chapter's introduction.
+
+10a. Add a multiply-accumulate atom to the Domino set. The only reason we
+didn't add it to the original Domino paper was because queue size information
+for RED was not available at enqueue. We knew of it all the way back to the
+2013 HotNets paper.
+
+10. Add a subsection on the generalizability of the Domino atoms.
+i.e., take the Domino atoms as of some time,
+and talk about whether all the algorithms that we wrote afterward could map to those atoms/not
+
+For instance, all the Domino code snippets, maybe STFQ in the PIFO paper,
+several PIFO examples, and the shift register that Domino uses. It's fair to
+say that the linear-in-state atom is also an example of generalizability
+because we should have added RED and hence EWMA to the instruction set early
+on. Could also add PIE etc.
+
+OK, we can't add STFQ because we had to modify the atom a little bit to support
+STFQ
+(https://github.com/packet-transactions/domino-examples/commit/344a8f74bbfaf37d63c479354cec38a4db24e08a)
+But I think DNS ttl change detection was an example of something where we didn't
+have to modify the atom, but we'll have to rerurn it on the old atom to be sure.
+Could add HULA to the list of Domino algorithms
+Could also try implementing HashPipe and some more algorithms from SNAP,
+and the papers that SNAP itself references.
+
+11. talk about why things don't generalize beyond the glib reason that CoDel needs floating point.
+Maybe separate the discussion into the structure of the atom and the details of the atom, i.e., all atom updates can be written out as if(guard) then atom. The detail is in how complicated a stateful guard is. This is a useful pattern to extract out of the atom design process. The structure is probably going to be future proof even if the stateful predicates themselves aren't
+
+12. Spend a decent amount of time explaining the machine model: packets come in, they are looked up, we carry out some action, and so on so forth.
+
+13. Distinguish single-pipeline and multi-pipeline routers and clarify that we
+only deal with the former here.
+
+14. The term fixed-function is a bit misleading.
+
+15. Proof of fixed-point algorithm in Marple
+
 * Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
 * Don't keep saying today in the text
 * domino_banzai.tex could use some more work
@@ -11,23 +53,3 @@
 * Be consistent with the project names and abstraction names TODO
 
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
-* Be consistent with I vs. we DONE
-* Traffic engineering vs. load balancing NOT IMPORTANT
-* Decide whether we are calling it Marple or NetAMA for real. DONE
-* Read the entire dissertation and trim as much as possible. DONE
-* Try and see if I can improve the introductory portions of each of the chapters (DONE)
-* Check that there are no e.g.,, in the text DONE
-* Maybe move text from pifo hotnets into the main text of the dissertation? (DONE)
-* Move the NetAMA proofs into the appendix instead of a separate TR. DONE
-* Write an acks.tex (DONE)
-* Rewrite portions of text that refer to the Domino paper DONE
-* Rename occurences of "this paper" to "this thesis". DONE
-* Rename switch to router everywhere. DONE
-* Use non-title case for all sections. DONE
-* Expand each of the three projects in the introduction to make it self contained. DONE
-* Fix the Domino code transformation diagrams. DONE
-* Rename Marple to NetAMA in figures (DONE)
-* Check that citations to PIFO cite the correct SIGCOMM 17 paper, not the older 1999 JSAC paper. (DONE)
-* Make chapter summaries more matter of fact and less philosophical (DONE)
-* Consider using oneside for a tighter finish (IGNORE)
-* Dangling refs (DONE)
