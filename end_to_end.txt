@@ -2,7 +2,7 @@
 http://web.mit.edu/Saltzer/www/publications/endtoend/ANe2ecomment.html)
 because they relate the end-to-end argument with the active networks work. Some
 of it might be applicable to programmable routers as well. I guess one differnce
-relative to either capsule-based or switchware-based active networks is that we
+relative to capsule-based active networks is that we
 assume the programmability is something the network operator wants, not an application
 driven thing. So we are only providing useful programmability. Further, there isn't as much
 application heterogeneity in this private context (WANs, DCs) as opposed to the Internet.
