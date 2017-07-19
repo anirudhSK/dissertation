@@ -7,6 +7,29 @@ scheduler. We discuss performance requirements
 (\S\ref{ss:interconnect}).  Finally, we estimate the additional chip area
 incurred by our design (\S\ref{ss:feasibility}).
 
+%Relate our hardware implementation to hardware impl. of heaps
+%%\Para{Hardware designs for priority queues.}
+%%\an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
+%%pheap}.  However, each P-heap supports traffic belonging to a {\em single} 10
+%%Gbit/s input port in an input-queued router; there is a separate P-heap
+%%instance for each port~\cite{bhagwan}.  Having a separate P-heap per port incurs prohibitive
+%%area overhead on a shared-memory router, and prevents sharing of the data
+%%buffer and binary heap across output ports. Conversely, it is not easy to
+%%overlay multiple logical PIFOs over a single P-heap, which would allow the
+%%P-heap to be shared across ports.}
+
+%%
+%%\an{
+%%In contrast to a hardware implementation of a generic priority queue as a heap,
+%%our design for the PIFO exploits two domain-specific insights. First, there is
+%%considerable structure in the ranks: ranks within a flow strictly increase with
+%%time.  Second, the packet buffers on shared-memory routers used in datacenters
+%%today are much smaller than those on deep-buffered core routers in the past.
+%%This permits a simpler, albeit less scalable, design relative to heaps.
+%%}
+
+
+
 \subsection{Performance requirements}
 \label{ss:performance}
 

@@ -2,6 +2,8 @@
 \chapter{Related Work}
 \label{chap:related}
 
+%TODO: Maybe divide this up into historical background and concurrent related work
+%TODO: Do we unify and present all the concurrent related work upfront or at the end?
 This chapter provides a chronological overview of related work on programamble
 networks, with an emphasis on how past work relates to this dissertation.
 
@@ -131,8 +133,8 @@ algorithms.
 
 \section{Concurrent work on enabling network programmability (2013 to now)}
 % FastPass/Flexplane: Centralized data plane
-% TPP, INT (modest version of active networks)
-% Eden
+
+% Edge-based programmability: TPP, INT (modest version of active networks), Eden
 Eden~\cite{eden} provides a programmable data plane using commodity routers by
 programming end hosts alone. \pktlanguage targets programmable routers that
 provide more flexibility relative to an end-host-only solution. For instance,
@@ -142,7 +144,15 @@ schemes, which are beyond Eden's capabilities.  Tiny Packet Programs
 which are then executed by the router. TPPs use a restricted instruction set to
 facilitate router execution; we show that router instructions must and can be
 substantially richer (Table~\ref{tab:templates}).
-% NetASM:
+
+%Endpoint-based monitoring.
+Owing to limited router support for
+measurement, many systems monitor network performance from endpoints
+alone~\cite{netpoirot, minlan-snap, dapper-sosr, trumpet, azure-smartnic}.
+While endpoint solutions are necessary for application context (\eg socket
+calls), they are inadequate to debug all network problems. A real network needs
+both endpoint and router-based systems because each sees something the other
+cannot.
 
 % Abstract machines for line-rate routers.
 The closest work related to the \absmachine machine model is
@@ -156,7 +166,6 @@ models practical constraints required for line-rate operation
 instance, \absmachine machines do not permit sharing state between atoms and use
 atom templates to limit computations that can happen at the router's line rate.
 
-% SNAP (network transactions)
 % \Para{Stateful packet-processing abstractions.}
 SNAP~\cite{snap} programs stateful data-plane algorithms using a network
 transaction: an atomic block of code that treats the entire network as one
@@ -165,7 +174,6 @@ transactions into rules on each router. SNAP needs a compiler to compile these
 router-local rules to a router's pipeline, and can use \pktlanguage for this
 purpose.
 
-% FAST
 FAST~\cite{fast} provides router support and software abstractions for
 state machines. \absmachine's atoms support more general stateful processing
 beyond state machines that enable a much wider class of data-plane algorithms.
@@ -223,41 +231,6 @@ multiple PIFOs together, PIFOs express a wider class of scheduling algorithms.}
 % allows us to get more systems leverage, demonstrating the power of joint design, relative 
 % to SNAP, UnivMon, SONATA, Eden, and maybe even UPS (depending on how you interpret it)
 
-%TODO
-%%\Para{Packet scheduling algorithms.}
-%%The literature is replete with scheduling algorithms~\cite{pFabric, hpfq,
-%%stopngo, stfq, lstf, srpt, drr, rcsd} . Yet, line-rate routers support only a
-%%few: DRR, traffic shaping, and strict priorities. As \S\ref{s:expressive}
-%%shows, PIFOs allow a line-rate router to run many of these scheduling
-%%algorithms, which, so far, have only been run on software routers.
-
-\Para{Hardware designs for priority queues.}
-\an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
-pheap}.  However, each P-heap supports traffic belonging to a {\em single} 10
-Gbit/s input port in an input-queued router; there is a separate P-heap
-instance for each port~\cite{bhagwan}.  Having a separate P-heap per port incurs prohibitive
-area overhead on a shared-memory router, and prevents sharing of the data
-buffer and binary heap across output ports. Conversely, it is not easy to
-overlay multiple logical PIFOs over a single P-heap, which would allow the
-P-heap to be shared across ports.}
-%%
-%%\an{
-%%In contrast to a hardware implementation of a generic priority queue as a heap,
-%%our design for the PIFO exploits two domain-specific insights. First, there is
-%%considerable structure in the ranks: ranks within a flow strictly increase with
-%%time.  Second, the packet buffers on shared-memory routers used in datacenters
-%%today are much smaller than those on deep-buffered core routers in the past.
-%%This permits a simpler, albeit less scalable, design relative to heaps.
-%%}
-
-\Para{Endpoint-based monitoring.} Owing to limited router support for
-measurement, many systems monitor network performance from endpoints
-alone~\cite{netpoirot, minlan-snap, dapper-sosr, trumpet, azure-smartnic}.
-While endpoint solutions are necessary for application context (\eg socket
-calls), they are inadequate to debug all network problems. A real network needs
-both endpoint and router-based systems because each sees something the other
-cannot.
-
 \Para{Router-based monitoring.} Traditionally, router-based monitoring has
 focused on per-flow counts, not performance measurement. For example,
 NetFlow~\cite{netflow} and sFlow~\cite{sflow} provide traffic summaries
@@ -306,13 +279,7 @@ Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
 router.
 %functional and relational constructs
 
-\Para{Language-directed computer design.} Language-directed hardware design (Chapter~\ref{chap:perf_query})
-is inspired by language-directed computer design~\cite{language-directed-computer-design,
-ditzel_patterson, soar}, aimed at designing efficient hardware to support
-expressive high-level languages.
-
-% Other related work, which needs to be mentioned somewhere
-
+% Formalizing parallel aggregations
 %%%9. http://www.srl.inf.ethz.ch/papers/sosp15-symple.pdf is very related work to our linear-in-state characterization:
 %%%
 %%%This system (called Symple) shares many of the same goals as Marple's aggregation
@@ -330,4 +297,3 @@ expressive high-level languages.
 %%%
 %%%It might be worthwhile understanding more deeply what the differences
 %%%and similarities between Marple and Symple are.
-%%%
