@@ -1,35 +1,111 @@
 \newcommenter{an}{1.0,0.0,0.0}
-% An abridged history of programmability in routers and how it relates to this dissertation
+\chapter{Related Work}
+\label{chap:related}
 
-% The early days of routers: 1969 through the mid 90s
-% Everything was in software
+This chapter provides a chronological overview of related work on programamble
+networks, with an emphasis on how past work relates to this dissertation.
 
-% Active Networks: mid to late 90s
-% Execute programs carried by packets
+\section{Early routers (1969 to the mid 90s)}
+The earliest documented router on a packet-switched network is the Interface
+Message Processor (IMP) on the ARPANET in 1969~\cite{imp}. The IMP described in
+the original IMP paper~\cite{imp} was implemented on the Honeywell DDP-516
+minicomputer. In today's terminology, such a router would be called a software
+router because it was implemented as software on top of a general-purpose
+Turing-complete computer.
 
-% Software routers and NPUs: 99 to present: Click (99), IXPs (2001), RouteBricks, PacketShader, NetFPGA, etc., and associated languages for software routers (packetC, Intel's C dialects, etc.).
+This approach of implementing routers on top of minicomputers was sufficient
+for the modest forwarding rates required at the time. For instance, the IMP
+paper reports that the maximum throughput of the IMP was around 700 Kbit/s.
+Implementing routers on top of minicomputers was also eminently programmable:
+changing the functionality of the router simply required upgrading the
+forwarding software and loading the minicomputer with a new piece of software.
+
+This software router approach to building routers continued into the mid 90s.
+Notable examples of software routers during the 1970s were David Mills'
+Fuzzball router~\cite{fuzzball}. The most well known examples from 1980s are
+probably Noel Chiappa's C Gateway~\cite{cgw}, which was the basis for the MIT
+startup Proteon~\cite{proteon}, and William Yeager's ``Ships in the Night''
+multiple-protocol router~\cite{ships}, which was the basis for the Stanford
+startup Cisco Systems.
+
+This approach of building routers in software lasted up until the mid 90s, when
+software could no longer keep up with the increase in link speeds that caused
+by the rapid adoption of the Internet and the World Wide Web. Juniper Network's
+M40 router~\cite{juniperm40} was an early example of a hardware router in 1998.
+As we described in Chapter~\ref{chap:intro}, since the mid 90s, the fastest
+routers have predominantly been architected out of dedicated hardware because
+hardware specialization is the only way to sustain the yearly increases in link
+speeds (Figure~\ref{fig:router_evolution}).
+
+\section{Active Networks (mid 90s)}
+The mid 90s saw the development of active networks~\cite{ants, switchware}, an
+approach that advocated that the network be programmable or ``active'' to allow
+the deployment of new services in the network infrastructure. There were at
+least two approaches to active networks. First, the programmable router
+approach~\cite{switchware}, which allowed a network operator to program a
+router in a restricted manner. Second, the capsule approach~\cite{ants}, where
+end hosts would embed whole programs into packets as capsules, which would then
+be executed by the router.
+
+Active networks came to be associated mostly with the capsule
+approach~\cite{sdn_history}, which raised important security concerns. Because
+programs were embedded into packets by end users, it raised the possibility
+that a malicious or erroneous program could corrupt the entire router. These
+concerns were resolved by executing the program within an application-level
+virtual machine like the Java virtual machine~\cite{ants}, but this came at the
+cost of degraded forwarding performance. As an example, the SNAP~\cite{snap}
+system that prototyped the capsule approach had a forwarding rate of 100
+Mbit/s, which was two orders of magnitude slower than the Catalyst 32 Gbit/s
+hardware router at that time~\cite{catalyst}.
+%TODO Check this.
+
+%TODO: E2e argument and active networks
+%Reed's critique and Wetherall's response
+
+\section{Software routers (1999 to present)}
+%In a sense, NFV is an embodiment of software routers.
+%So is AT&T's domain 2.0
+% Cite the EPC paper from SIGCOMM 2017?
+% Cite netbricks
+% So are all the WiFi access points
+% Click (99), IXPs (2001), RouteBricks, PacketShader, NetFPGA, etc., and associated languages for software routers (packetC, Intel's C dialects, etc.).
 % Turn a CPU/GPU/FPGA/multi-core into a router
 
-% Software-defined networking (2008 to now): SANE, Ethane, OpenFlow, and associated languages (Pyretic, Frenetic, etc.). Could incorporate OpenSketch, FAST, DevoFlow, etc. here
+%%Software routers~\cite{routebricks, click} and network processors~\cite{ixp4xx}
+%%are flexible, but at least 10$\times$--100$\times$ slower than programmable
+%%routers~\cite{xpliant, tofino}.  FPGA-based platforms like the Corsa DP
+%%6440~\cite{corsa}, which supports an aggregate capacity of 640 Gbit/s, are
+%%faster, but still 5$\times$--10$\times$ slower than programmable
+%%routers~\cite{tofino, xpliant}.
+
+% We borrow from the early languages for programming software routers
+Many programming languages target
+the network control plane~\cite{frenetic, maple}. \pktlanguage focuses on the
+data plane. Several DSLs target the data plane. Click~\cite{click} uses C++ for
+packet processing on software routers. packetC~\cite{packetc}, Intel's
+auto-partitioning C compiler~\cite{intel_uiuc_pldi}, and Microengine
+C~\cite{microenginec} target network processors. \pktlanguage's C-like syntax
+and sequential semantics are inspired by these DSLs. However, because it
+targets line-rate routers, \pktlanguage is more constrained. For instance,
+because compiled programs run at line rate, \pktlanguage forbids loops, and
+because \absmachine has no shared state, \pktlanguage has no synchronization
+constructs.
+
+\section{Software-defined networking (2003 to now)}
+% RCP, 4D, FORCES
+% SANE, Ethane, OpenFlow, and
+% associated languages (Pyretic, Frenetic, etc.).
+% Could incorporate OpenSketch, FAST, DevoFlow, etc. here
 % Unified interface to high-speed switching chips
 % Promise: this unified interface will solve all our programmability problems
 
+\section{Edge-based software-defined networking (2013 to now)}
+%https://www.sdxcentral.com/articles/news/scott-shenker-preaches-revised-sdn-sdnv2/2014/10/
 % One possibility for SDNv2.0: Fabric-based SDN (HotSDN 2013), edge-core split
 % Too much feature creep in OpenFlow; propose that routers just do source routing, edge does rest
+% Middleboxes,
 
-% Another possibility for SDNv2.0: Programmable switching chips (2013): XPliant, FlexPipe, Tofino, RMT, Gibbs parsing paper
-% Actually make routers programmable, but restricted to match-action processing and parsing
-
-% Concurrent work (since 2013): FastPass/Flexplane, TPP, INT, SNAP, UPS, UnivMon, SONATA etc.
-
-\chapter{Background and Related Work}
-\label{chap:related}
-
-We now survey related work beginning with work that is related to the broader
-goals of this dissertation, and then focus on work that is related to specific
-chapters.
-
-\Para{Programmable and fast routers.}
+\section{Programmable switching chips (2013 to now)}
 Recent academic work~\cite{rmt} and commercial router chips~\cite{tofino,
 flexpipe, xpliant} have considered the problem of building routers that are
 both fast and programmable. The P4 programming language~\cite{p4} has emerged
@@ -46,7 +122,29 @@ program what statistics a router must measure. We hope this
 dissertation suggests directions in which programmable router
  chips could evolve in the future.
 
-\Para{Abstract machines for line-rate routers.}
+% Lavanya's work
+Jose et al.~\cite{lavanya_compiler} focus on compiling P4 programs to
+programmable data planes such as the RMT and FlexPipe~\cite{flexpipe} architectures. Their work
+focuses only on compiling stateless data-plane tasks such as forwarding and
+routing, while the \pktlanguage compiler handles stateful data-plane
+algorithms.
+
+\section{Concurrent work on enabling network programmability (2013 to now)}}
+% FastPass/Flexplane: Centralized data plane
+% TPP, INT (modest version of active networks)
+% Eden
+Eden~\cite{eden} provides a programmable data plane using commodity routers by
+programming end hosts alone. \pktlanguage targets programmable routers that
+provide more flexibility relative to an end-host-only solution. For instance,
+\pktlanguage allows us to program in-network congestion control and AQM
+schemes, which are beyond Eden's capabilities.  Tiny Packet Programs
+(TPP)~\cite{tpp} allow end hosts to embed small programs in packet headers,
+which are then executed by the router. TPPs use a restricted instruction set to
+facilitate router execution; we show that router instructions must and can be
+substantially richer (Table~\ref{tab:templates}).
+% NetASM:
+
+% Abstract machines for line-rate routers.
 The closest work related to the \absmachine machine model is
 NetASM~\cite{netasm}. NetASM is an abstract machine and intermediate
 representation (IR) for programmable data planes that is portable across
@@ -58,69 +156,21 @@ models practical constraints required for line-rate operation
 instance, \absmachine machines do not permit sharing state between atoms and use
 atom templates to limit computations that can happen at the router's line rate.
 
-\Para{End-host-centric programmability.}
-Eden~\cite{eden} provides a programmable data plane using commodity routers by
-programming end hosts alone. \pktlanguage targets programmable routers that
-provide more flexibility relative to an end-host-only solution. For instance,
-\pktlanguage allows us to program in-network congestion control and AQM
-schemes, which are beyond Eden's capabilities.  Tiny Packet Programs
-(TPP)~\cite{tpp} allow end hosts to embed small programs in packet headers,
-which are then executed by the router. TPPs use a restricted instruction set to
-facilitate router execution; we show that router instructions must and can be
-substantially richer (Table~\ref{tab:templates}).
-%for stateful data-plane
-%algorithms.
-%%
-%%Software routers~\cite{routebricks, click} and network processors~\cite{ixp4xx}
-%%are flexible, but at least 10$\times$--100$\times$ slower than programmable
-%%routers~\cite{xpliant, tofino}.  FPGA-based platforms like the Corsa DP
-%%6440~\cite{corsa}, which supports an aggregate capacity of 640 Gbit/s, are
-%%faster, but still 5$\times$--10$\times$ slower than programmable
-%%routers~\cite{tofino, xpliant}.
-
-\Para{Programming languages for networks.} Many programming languages target
-the network control plane~\cite{frenetic, maple}. \pktlanguage focuses on the
-data plane. Several DSLs target the data plane. Click~\cite{click} uses C++ for
-packet processing on software routers. packetC~\cite{packetc}, Intel's
-auto-partitioning C compiler~\cite{intel_uiuc_pldi}, and Microengine
-C~\cite{microenginec} target network processors. \pktlanguage's C-like syntax
-and sequential semantics are inspired by these DSLs. However, because it
-targets line-rate routers, \pktlanguage is more constrained. For instance,
-because compiled programs run at line rate, \pktlanguage forbids loops, and
-because \absmachine has no shared state, \pktlanguage has no synchronization
-constructs.
-
-% TODO: Not sure if the below paragraph should be here.
-\Para{Compiling to programmable routers.}
-Jose et al.~\cite{lavanya_compiler} focus on compiling P4 programs to
-programmable data planes such as the RMT and FlexPipe~\cite{flexpipe} architectures. Their work
-focuses only on compiling stateless data-plane tasks such as forwarding and
-routing, while the \pktlanguage compiler handles stateful data-plane
-algorithms.
-
-\Para{Stateful packet-processing abstractions.}
+% SNAP (network transactions)
+% \Para{Stateful packet-processing abstractions.}
 SNAP~\cite{snap} programs stateful data-plane algorithms using a network
 transaction: an atomic block of code that treats the entire network as one
 router~\cite{onebigswitch}. It then uses a compiler to translate network
 transactions into rules on each router. SNAP needs a compiler to compile these
 router-local rules to a router's pipeline, and can use \pktlanguage for this
-purpose. FAST~\cite{fast} provides router support and software abstractions for
+purpose.
+
+% FAST
+FAST~\cite{fast} provides router support and software abstractions for
 state machines. \absmachine's atoms support more general stateful processing
 beyond state machines that enable a much wider class of data-plane algorithms.
 
-\Para{The Push-in First-out Queue.}
-\an{PIFOs were first introduced as a proof construct to prove that a
-combined input-output queued router could exactly emulate an output-queued
-router~\cite{pifo}. We show here that PIFOs can be used as an abstraction for
-programmable scheduling at line rate.}
-
-%TODO
-%%\Para{Packet scheduling algorithms.}
-%%The literature is replete with scheduling algorithms~\cite{pFabric, hpfq,
-%%stopngo, stfq, lstf, srpt, drr, rcsd} . Yet, line-rate routers support only a
-%%few: DRR, traffic shaping, and strict priorities. As \S\ref{s:expressive}
-%%shows, PIFOs allow a line-rate router to run many of these scheduling
-%%algorithms, which, so far, have only been run on software routers.
+% UPS (programmable scheduling from the edge)
 
 \Para{Universal Packet Scheduling (UPS).} UPS~\cite{ups} shares our goal of
 flexible packet scheduling by seeking a single scheduling algorithm that is
@@ -166,6 +216,20 @@ multiple PIFOs together, PIFOs express a wider class of scheduling algorithms.}
 %  scheduling.}
 %  \label{fig:state}
 %\end{figure}
+
+% UnivMon (single mechanism for measurement of counters)
+% SONATA etc (measurement using OpenFlow switches; similar programming model, but doesn't innovate on the hardware front)
+% Difference relative to all this work is that we focus on both hardware and software, which
+% allows us to get more systems leverage, demonstrating the power of joint design, relative 
+% to SNAP, UnivMon, SONATA, Eden, and maybe even UPS (depending on how you interpret it)
+
+%TODO
+%%\Para{Packet scheduling algorithms.}
+%%The literature is replete with scheduling algorithms~\cite{pFabric, hpfq,
+%%stopngo, stfq, lstf, srpt, drr, rcsd} . Yet, line-rate routers support only a
+%%few: DRR, traffic shaping, and strict priorities. As \S\ref{s:expressive}
+%%shows, PIFOs allow a line-rate router to run many of these scheduling
+%%algorithms, which, so far, have only been run on software routers.
 
 \Para{Hardware designs for priority queues.}
 \an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
