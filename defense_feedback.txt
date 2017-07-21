@@ -43,3 +43,15 @@ chapter 2 unless they want detail.
 19. Add a related work/background subsection that talks about concurrent research:
 * Fastpass, Flexplane, UPS, SNAP, Flexplane, Xpliant, P4, Tofino
 
+More feedback:
+==============
+1. Killer app for programmability: Measurement maybe?
+2. Bridging gap between applications and the network (could be one item in future work).
+3. Distinguish between availability of state and the computation that actually happens on the state.
+For instance, RED is limited by the availability of queue size information in the ingress pipeline,
+while the RED computation is definitely possible using a simple multiply-and-accumulate atom.
+4. Crisply state the boundaries of the systems, especially atoms. Why can't you do trTCM? CoDel is a little
+bit of a glib example: no floating point isn't sufficiently satisfying as an explanation.
+5. The middle plane of networking: add this to future work.
+6. What are the abstraction disadvantages to determining the packet's priority at the enqueue? Correspondingly,
+what are the implementation advantages to determining the packet's priority at the enqueue?
