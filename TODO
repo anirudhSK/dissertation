@@ -1,7 +1,6 @@
-4. Move new SIGCOMM text into performance queries.
+0. Address feedback from thesis defense that I wrote down on a piece of paper
 5. More Domino programs.
 6. Move text of theorems into main text.
-7. Figure out how to keep marple's tech report and dissertation in sync.
 8. Reduce text from each chapter's introduction.
 
 10a. Add a multiply-accumulate atom to the Domino set. The only reason we
