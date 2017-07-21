@@ -1,175 +1,66 @@
-\subsection{Network-wide to router-level queries}
-\label{sec:network-to-router-local}
+\subsection{Network-wide to switch-local queries}
+\label{sec:network-to-switch-local}
 
-%%\input{network-to-local-algorithm}
-
-The compiler should partition a network-wide query (\Sec{language}) into a
-router-level query to generate a router-specific configuration. We achieve this
-in two steps. First, we determine the routers that contribute tuples to the
-query output stream. Then we determine how to partition aggregation functions
-written over the entire network into router-local aggregations.
-
-\Para{Determining stream output locations.} It is straightforward to determine
-the locations, \ie set of routers, that contribute tuples to the query output
-stream. The {\ct filter}s are the only operators which restrict the routers
-that contribute tuples. We evaluate the set of routers implied by the {\ct
-  filter} predicate through basic syntactic checks of the form {\ct router ==
-  X}, and combining the implied sets for more complex predicates using set union
-and intersection. The {\ct zip} operator has outputs that appear at the
-intersection of the locations of its two inputs. The {\ct map} and {\ct groupby}
-operators appear at the same locations as their inputs. Starting from the {\ct
-  \pktlog}, we recursively evaluate the stream locations.
-
-The stream output locations for the running example are shown in
-\Fig{compiler-ast-manipulations}(b). The incoming {\ct \pktlog} appears at {\em
-  all} network routers, but is restricted to just {\ct S1} and {\ct S2} by the
-filter in the query (left branch). These locations are propagated to the root of
-the AST through the {\ct zip} operator.
-
-%% We transform a network-wide AST to a router-local
-%% AST by annotating the nodes in the AST with an attribute involving the {\ct
-%%   locations} at which the query results may appear.
-%% %%\Alg{global-analysis} computes two values for each node in the query AST.
-%% The location is expressed as a set of routers.
-
-%% It is straightforward to write down the locations where each node in the query
-%% AST must be active, given a list of locations where the operands appear. We
-%% start by assuming that the {\ct \pktlog} appears at all routers in the
-%% network. For the {\ct map} and {\ct groupby} nodes, the resulting location is
-%% the same as the operand; for the {\ct zip} operator, it is the intersection of
-%% the locations of the operands.
-
-%% For a {\ct filter}, the output location may be restricted by the predicate. Let
-%% us suppose the network has routers {\ct S1, ..., S10}. From the {\ct filter}
-%% predicate, we extract a set of routers that is implied by it. For example, a
-%% predicate {\ct router == S4} implies the location set {\ct \{S4\}}, whereas a
-%% predicate {\ct router == S1 || router != S3} implies the locations {\ct \{S1,
-%%   S2, S4, ..., S10\}}, \ie all the routers except {\ct S3}. The final location
-%% of a {\ct filter} query is the intersection of the locations implied by its
-%% predicate and the locations of its operand.
-
-%% A {\ct filter} removes all routers not implied by the defined predicate (line
-%% \ref{line:get-routers}): for example, {\ct filter(router == 10)} removes all
-%% routers but the router with identifier 10. Unless the retained set only has one
-%% router, the {\ct filter} output retains the type of its operand (lines
-%% \ref{line:filter-retains-start}-\ref{line:filter-retains-end}). A {\ct map}
-%% retains its operands' information, as a {\ct map} neither affects the routers
-%% nor type of packet stream processed (line \ref{line:map-return}).
-
-%% A {\ct groupby} stream appears at the same locations as its operand. However, it
-%% converts a multi-router stream into a single-router stream (SSS) if the {\ct
-%%   router} attribute appears in the list of fields by which the stream is
-%% aggregated (line \ref{line:fold-router}). Otherwise, it checks whether the
-%% stream is aggregated by the unique packet identifier {\ct packetUid}, or
-%% involves an associative function at the top of the query AST (lines
-%% \ref{line:fold-packet} and \ref{line:fold-associative}). If none of these
-%% conditions is true, the algorithm throws an error (line \ref{line:fold-error})
-%% since the conditions for correct aggregation processing are unmet.
-
-%% A {\ct zip} operator simply returns the type of its operands if the operand
-%% types match (SSS/MSS) and SSS otherwise (lines
-%% \ref{line:zip-type-match-start}-\ref{line:zip-type-match-end}). The resulting
-%% stream appears at the intersection of the routers where the operand streams
-%% appear.
-
-\Para{Partition network-wide aggregations.} \TheSystem provides the abstraction
-of a single network-wide input stream of tuples. However, this makes some
-aggregations challenging to implement correctly over a {\em distributed} network
-of routers. For example, consider computing an EWMA over packet latencies,
-processing tuples in the order of packet arrivals {\em across} routers. This
-aggregation cannot be partitioned cleanly over routers, because the
-computation requires accounting for packet interleavings across multiple
-routers.
-
-We simplify our implementation by only allowing aggregations which can be
-cleanly decomposed into independent router operations, without explicit
-coordination among routers.
-%% and then re-combined. This prevents
-%% users from writing aggregations that depend on processing {\em multiple packets
-%%   across multiple routers} in order. We believe this is not a major restriction
-%% since none of our example aggregations require this.
-Concretely, we only allow aggregation functions which either (i) operate on one
-router, (ii) operate on one packet (identified by {\ct uid}), or (iii)
-are associative.
-%%
-%% We check three conditions: The aggregation is either (i) by router (and may
-%% include other aggregation fields), (ii) per-packet, or (iii) an associative
-%% function. 
-%TODO: Stream type is very confusing.
-\Para{Determining stream type.}
-We label each AST node with an additional attribute, the stream {\em type},
-corresponding to whether its output stream consists of tuples from a single
-router or multiple routers. Stream type is distinct from stream location: for
-example, a {\ct groupby} aggregating by {\ct router} produces a stream which has
-the type of a single-router-stream, though its tuples may appear at multiple
-routers.
-
-Determining and propagating the stream type up an AST is straightforward. The
-base {\ct \pktlog} is a multi-router-stream. The {\ct filter} or {\ct zip}
-operators produce a single-router-stream if their output only appears at a
-single router. The {\ct groupby} produces a single-router-stream if it
-aggregates by {\ct router.} In all other cases, the operators retain the stream
-type of their operands. If all {\ct groupby}s either produce
-single-router-streams or aggregate information per-packet, they can be trivially
-partitioned. If they violate both conditions, they must be declared associative
-by the programmer, using the {\ct assoc} keyword in the definition of the
-aggregation.
-
-The stream types for our running example are shown in
-\Fig{compiler-ast-manipulations}(c). The {\ct filter} produces output streams at
-two routers, hence is still a multi-router-stream. The {\ct groupby} aggregates
-by {\ct router} and hence is a single-router-stream. The output of this process
-is a set of independent router-level ASTs corresponding to each router location
-that the AST root operator appears in, \ie {\ct S1, S2}.
+The compiler partitions a network-wide query written over all packets at all
+queues in the network (\Sec{language}) into switch-local queries to generate
+switch-specific configurations. We achieve this in two steps. First, we
+determine the {\em stream location}, \ie the set of switches that contribute
+tuples to a stream, for the final output stream of query. For instance, the
+output stream of a query that filters by switch id $s$ has a stream location
+equal to the singleton set $s$. Second, we determine how to partition queries
+with aggregation functions written over the entire network into switch-local
+queries.
+\Anirudh{Mohammad said he didn't get some sentence here. I don't know if it was
+the first or second :). NG, can you read the above paragraph once carefully.}
 
 
-%% \Para{Recognize aggregations that cannot be distributed over the network.} In
-%% the same pass, we also recognize whether aggregation functions can be faithfully
-%% distributed over multiple routers in the network. Specifically, while the
-%% abstract model of query processing permits writing aggregation functions over
-%% packets appearing at multiple routers, in general this may require out-of-band
-%% communication between the routers.
+\Para{Determining stream location for the final output stream.} The stream
+location of {\ct \pktlog} is the set of all switches in the network. The stream
+location of the output of a {\ct filter} is the set of switches implied by the
+filter's predicate. Concretely, we evaluate the set of switches contributing
+tuples to the output of a {\ct filter} operation through basic syntactic checks
+of the form {\ct switch == X} on the {\ct filter} predicate.  We combine switch
+sets for boolean combinators ({\ct or} and {\ct and}) inside filter predicates
+using set operations (union and intersection respectively). The stream location
+of the output
+of a {\ct zip} operator is the intersection of the stream locations of the two
+inputs.  Stream locations are unchanged by the {\ct map} and {\ct groupby}
+operators.
 
-%% We restrict such out-of-band communication between routers, and simplify our
-%% query implementation by disallowing aggregations that depend on the order of
-%% arrivals of {\em multiple packets} across {\em multiple routers}. We mandate
-%% that all aggregation functions fall into one of three classes:
-%% \begin{enumerate}
-%% \item \label{req:per-router} aggregation is over multiple packets but a result
-%%   is desired for each router;
-%% \item \label{req:per-packet} aggregation is over multiple routers but a result
-%%   is desired for each packet; or
-%% \item \label{req:associative} the aggregation operation is associative and at
-%%   the root of the query AST.
-%% \end{enumerate}
+The stream locations for the running example are shown in
+\Fig{compiler-ast-manipulations}b. The stream location of {\ct \pktlog} is
+the set of all network switches, but is restricted to just {\ct S1} and {\ct
+S2} by the {\ct filter} in the query (left branch). This location is then propagated
+to the root of the AST through the {\ct zip} operator in the query.
 
-%% We recognize whether aggregation functions adhere to these restrictions by
-%% annotating each query AST node with a second attribute, namely the {\em type} of
-%% the output stream: whether the result of the operator should be treated as a
-%% stream seen at just one router, or at multiple routers. Note that the stream
-%% type is distinct from the stream location. A query performing a {\ct groupby}
-%% using the {\ct router} field may produce a stream appearing at all network
-%% routers, but the output stream only appears on one router as far as operators
-%% consuming the stream are concerned.
+\Para{Partitioning network-wide aggregations.}
+As described in \S\ref{sec:language}, we only permit aggregations that satisfy
+one of three conditions: they operate independently on each switch, operate
+independently on each packet, or are associative and commutative.
+We describe below how we
+check the first condition, failing which we simply check the last two
+conditions syntactically: either the {\ct groupby} aggregates by {\ct uid}
+(condition 2) or contains programmer annotations {\ct assoc} and {\ct comm}
+(condition 3).
 
-%% We can recursively determine the type of query AST nodes to verify conditions
-%% (\ref{req:per-router}) and (\ref{req:per-packet}) above. We start with the fact
-%% that the {\ct \pktlog} is a multi-router-stream. It is only transformed to a
-%% single-router-stream on recursing through the query AST under two
-%% circumstances: \begin{enumerate}
-%% \item A {\ct groupby} operator aggregates the input stream by {\ct router}; or
-%% \item A {\ct filter} or {\ct zip} operator produces a result whose location only
-%%   contains one router.
-%% \end{enumerate}
-%% Given a type annotation for each node in the query AST, it is straightforward to
-%% check conditions on aggregations involving only a single router or a single
-%% packet.
+%TODO: The stuff on top still needs to be rewritten ...
+To check if an aggregation operates independently on each switch, we label each
+AST node with an additional boolean attribute, {\em switch-partitioned},
+corresponding to whether the output stream has been partitioned by the switch
+at which it appears. Intuitively, if a stream is switch-partitioned, we allow
+packet-order-dependent aggregations over multiple packets of that stream;
+otherwise, we do not.
 
-%% However, checking associativity (condition \ref{req:associative}) is difficult
-%% in practice. We take the programmer's aid by requiring that such functions
-%% prefix the keyword {\ct assoc} to the definition of the aggregation function.
+Determining and propagating {\em switch-partitioned} through an AST is
+straightforward. The base {\ct \pktlog} is not switch-partitioned. The {\ct
+  filter} and {\ct zip} operators produce a switch-partitioned stream if their
+output only appears at a single switch. The {\ct groupby} produces a
+switch-partitioned stream if it aggregates by {\ct switch.} In all other cases,
+the operators retain the operands' switch-partitioned attribute.
 
-%% The result of the transformations in this section is a network-wide query AST
-%% with router locations annotated on the root of the AST, from which we can easily
-%% produce query ASTs for each router. In \ngs{figure forthcoming}, we show the
-%% annotated query AST for the running example.
+The switch-partitioned attributes for our running example are shown in
+\Fig{compiler-ast-manipulations}c. The {\ct filter} produces output streams at
+two switches, hence is not switch-partitioned. The {\ct groupby} aggregates by
+{\ct switch} and hence is switch-partitioned. After the partitioning checks have
+succeeded, we are left with a set of independent switch-local ASTs corresponding
+to each switch location that the AST root operator appears in, \ie {\ct S1, S2}.

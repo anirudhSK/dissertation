@@ -1,38 +1,44 @@
 \section{Query compiler}
 \label{sec:compiler}
 
-Our query compiler transforms a \TheSystem query to target two router backend
-targets: (1) the P4 behavioral model~\cite{p4-bmv2} configured by emitting
-P4~\cite{p4}, and (2) the Banzai machine model, configured by emitting
-Domino code. The emitted code configures a router pipeline,
-where each stage is a match-action table~\cite{openflow} or our key-value store.
+We compile \TheSystem queries to two targets: the P4 behavioral
+model~\cite{p4-bmv2}, configured by emitting P4 code~\cite{p4_16}, and the
+Banzai machine model, configured by emitting Domino code~\cite{domino_sigcomm}.
+In both cases, the emitted code configures a switch pipeline, where each stage
+is a match-action table~\cite{rmt} or our key-value
+store.\footnote{In this paper, we do not consider the problem of reconfiguring
+the switch pipeline on the fly as queries change.}
 
 A preliminary pass of the compiler over the input query converts the query to an
-abstract syntax tree (AST) of functional operators. The compiler then
+abstract syntax tree (AST) of functional operators (\Fig{compiler-ast-manipulations}a). The compiler then:
 \begin{enumerate}
-\item produces router-local ASTs from a global AST
-  (\Sec{network-to-router-local});
-\item produces \pfs~\cite{p4_16} and Domino pipeline configurations from router-level ASTs
+\item produces switch-local ASTs from a global AST
+  (\Sec{network-to-switch-local});
+\item produces P4 and Domino pipeline configurations from switch-local ASTs
   (\Sec{pipeline-layout}); and
-\item recognizes linear-in-state aggregation functions, setting up
-  auxiliary state for merging later (\Sec{linear-in-state-compilation}).
+\item specifically recognizes linear-in-state aggregation functions, and sets up
+  auxiliary state required to merge such functions for a scalable implementation
+  (\Sec{linear-in-state-compilation}). To scalably implement associative
+  aggregation functions (\S\ref{sec:associative}), we use the programmer
+  annotation {\ct assoc} to determine if an aggregation is associative. If it is
+  associative, the merge function is the aggregation function itself.
 \end{enumerate}
 
 \begin{figure}[!t]{
 \figcodesize
 \begin{lstlisting}
-def oos_count(count, lastseq, tcpseq, payload_len):
+def oos_count([count, lastseq], [tcpseq, payload_len]):
   if lastseq != tcpseq:
     count = count + 1
     emit()
   lastseq = tcpseq + payload_len
 
 tcps    = filter((*\pktlog{}*), proto == TCP
-                 and (router == S1 or router == S2));
-tslots  = map((*\pktlog{}*), tin/epoch_size, epoch);
+                 and (switch == S1 or switch == S2));
+tslots  = map((*\pktlog{}*), [tin/epoch_size], [epoch]);
 joined  = zip(tcps, tslots);
 oos     = groupby(joined,
-                  [(*\codeftuple{}*), router, epoch],
+                  [(*\codeftuple{}*), switch, epoch],
                   oos_count);
 \end{lstlisting}
 }
@@ -44,30 +50,26 @@ oos     = groupby(joined,
   \centering
   \[
   \begin{array}{ccc}
-    \includegraphics[width=0.31\columnwidth]{pq_running-example-AST.pdf} &
-    \includegraphics[width=0.31\columnwidth]{pq_running-example-annotated-AST-2.pdf} &
-    \includegraphics[width=0.31\columnwidth]{pq_running-example-annotated-AST.pdf}
+    \includegraphics[width=0.31\columnwidth]{running-example-AST.pdf} &
+    \includegraphics[width=0.31\columnwidth]{running-example-annotated-AST-2.pdf} &
+    \includegraphics[width=0.31\columnwidth]{running-example-annotated-AST-3.pdf}
     \\
     \mbox{(a)} & \mbox{(b)} & \mbox{(c)} \\
   \end{array}
   \]
-\caption{Compiler manipulations of the Abstract Syntax Tree (AST) for the
-  running example (\Sec{compiler}). (a) Operator AST. (b) Stream
-  location. (c) Stream type (single/multi-router).}
+\caption{Abstract Syntax Tree (AST) manipulations for the running example
+  (\Sec{compiler}). (a) Operator AST. (b) Stream location (set of switches). (c)
+  Stream switch-partitioned (boolean).}
 \label{fig:compiler-ast-manipulations}
 \end{figure}
 
 We use the query shown in \Fig{running-example-code} as a running example to
 illustrate the details in the compiler. The query counts the number of
-out-of-sequence TCP packets over each time epoch, measured at two routers {\ct
+out-of-sequence TCP packets over each time epoch, measured at two switches {\ct
   S1} and {\ct S2} in the network.
 
-The compiler begins by parsing the query into an Abstract Syntax Tree (AST) that
-is shown in \Fig{compiler-ast-manipulations}(a).
 
 %% four main pieces of compilation
-\input{pq_compiler-global-to-local}
-\input{pq_compiler-ast-to-pipeline}
-\input{pq_compiler-bph}
-%%\input{compiler-emitting-p4-domino}
-
+\input{compiler-global-to-local}
+\input{compiler-ast-to-pipeline}
+\input{compiler-bph}

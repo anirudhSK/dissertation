@@ -1,5 +1,6 @@
 \begin{figure}[!t]
 \centering
+\resizebox{\textwidth/2}{!}{%
 \begin{tabular}{ll}
 \hline
 
@@ -20,10 +21,10 @@ Output tuples in {\ct R} satisfying predicate {\ct pred}. \\
 \hline
 
 {\ct map(R, [exprs],} &
-Evaluate expressions over fields of {\ct R}, emitting \\
+Evaluate expressions, {\ct [exprs]}, over fields of {\ct R}, \\
 
 {\ct \ \ [fields])} &
-tuples with new fields. \\
+emitting tuples with new fields, {\ct [fields]}. \\
 
 \hline
 
@@ -44,6 +45,7 @@ Merge fields in incoming {\ct R} and {\ct S} tuples.\\
 \hline
 
 \end{tabular}
+}
 \caption{Summary of \TheSystem language constructs.}
 \label{fig:language-constructs-table}
 \end{figure}

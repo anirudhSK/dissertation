@@ -7,7 +7,7 @@
 \begin{figure*}[!t]
 \centering
 \resizebox{\textwidth}{!}{%
-\begin{tabular}{lllllll}
+\begin{tabular}{llllllll}
 \hline
 
 {\textbf{Example}} &
@@ -16,7 +16,8 @@
 {\textbf{Linear}} &
 {\textbf{Scales?}} &
 {\textbf{Pipe}} &
-{\textbf{Pipe}} \\
+{\textbf{Pipe}} & 
+{\textbf{\# of}} \\
 
 &
 &
@@ -24,28 +25,40 @@
 {\textbf{in state?}} &
 &
 {\textbf{depth}} &
-{\textbf{width}} \\
+{\textbf{width}} &
+{\textbf{atoms}} \\
 
 \hline
 \hline
 
 Packet counts &
-{\ct result = groupby(\pktlog, srcip, count);} &
+{\ct def count([cnt], []): cnt = cnt + 1; emit() } &
 Count packets per source IP. &
 Yes &
 Yes &
 5 &
-2 \\
+2 &
+7 \\
+
+&
+{\ct result = groupby(\pktlog, [srcip], count);} &
+&
+&
+&
+&
+&
+\\
 
 \hline
 
 EWMA over latencies &
-{\ct def ewma(avg, tin, tout):} &
+{\ct def ewma([avg], [tin, tout]):} &
 Maintain a moving EWMA over &
 Yes &
 Yes &
 6 &
-4 \\
+4 &
+11 \\
 
 &
 {\ct \ \ avg = (1-alpha)*avg + (alpha)*(tout-tin)} &
@@ -56,7 +69,7 @@ packet latencies per flow. &
 \\
 
 &
-{\ct ewma\_q = groupby(\pktlog, \codeftuple, ewma);} &
+{\ct ewma\_q = groupby(\pktlog, [\codeftuple{}], ewma);} &
 &
 &
 &
@@ -66,15 +79,16 @@ packet latencies per flow. &
 \hline
 
 TCP out-of-sequence &
-{\ct def oos(lastseq, count, tcpseq, payload\_len):} &
+{\ct def oos([lastseq, cnt], [tcpseq, payload\_len]):} &
 Count the number of packets per &
 Yes &
 Yes &
 7 &
-4 \\
+4 & 
+14 \\
 
 &
-{\ct \ \ if lastseq != tcpseq: count = count + 1} &
+{\ct \ \ if lastseq != tcpseq: cnt = cnt + 1} &
 connection arriving with a sequence &
 &
 &
@@ -90,7 +104,7 @@ number that is non-consecutive with &
 \\
 
 &
-{\ct oos\_q = groupby(\pktlog, \codeftuple, oos);} &
+{\ct oos\_q = groupby(\pktlog, [\codeftuple{}], oos);} &
 the last packet. &
 &
 &
@@ -100,15 +114,16 @@ the last packet. &
 \hline
 
 TCP non-monotonic &
-{\ct def nonmt(maxseq, count, tcpseq):} &
+{\ct def nonmt([maxseq, cnt], [tcpseq]):} &
 Count the number of packets per &
 No &
 No &
 5 &
-2 \\
+2 &
+6 \\
 
 &
-{\ct \ \ if maxseq > tcpseq: count = count + 1} &
+{\ct \ \ if maxseq > tcpseq: cnt = cnt + 1} &
 connection with sequence numbers &
 &
 &
@@ -124,7 +139,7 @@ lower than the maximum so far. &
 \\
 
 &
-{\ct nm\_q = groupby(\pktlog, \codeftuple, nonmt);} &
+{\ct nm\_q = groupby(\pktlog, [\codeftuple{}], nonmt);} &
 &
 &
 &
@@ -134,12 +149,13 @@ lower than the maximum so far. &
 \hline
 
 Flowlet size &
-{\ct def fl\_detect(last\_time, size, tin):} &
+{\ct def fl\_detect([last\_time, size], [tin]):} &
 Compute a histogram over the &
 Yes &
 No &
 11 &
-6 \\
+6 & 
+31 \\
 
 histogram &
 {\ct \ \ if tin - last\_time > delta:} &
@@ -166,7 +182,7 @@ balancing schemes, \eg\cite{conga}. &
 \\
 
 &
-{\ct last\_time = tin} &
+{\ct \ \ last\_time = tin} &
 &
 &
 &
@@ -174,7 +190,7 @@ balancing schemes, \eg\cite{conga}. &
 \\
 
 &
-{\ct R1 = groupby(\pktlog, \codeftuple, fl\_detect);} &
+{\ct R1 = groupby(\pktlog, [\codeftuple{}], fl\_detect);} &
 &
 &
 &
@@ -182,7 +198,7 @@ balancing schemes, \eg\cite{conga}. &
 \\
 
 &
-{\ct fl\_hist = groupby(R1, size, count);} &
+{\ct fl\_hist = groupby(R1, [size], count);} &
 &
 &
 &
@@ -192,24 +208,33 @@ balancing schemes, \eg\cite{conga}. &
 \hline
 
 High E2E latency &
-{\ct def sum\_lat(count, tin, tout): } &
+{\ct def sum\_lat([e2e\_lat], [tin, tout]): } &
 Capture packets experiencing high &
 Yes &
 Yes &
 5 &
-3\\
+3 &
+8 \\
 
 &
-{\ct \ \ count = count + tout - tin} &
-end to end latency. &
+{\ct \ \ e2e\_lat = e2e\_lat + tout - tin} &
+end-to-end queueing latency, by &
 &
 &
 &
 \\
 
 &
-{\ct e2e = groupby(\pktlog, uid, sum\_lat);} &
+{\ct e2e = groupby(\pktlog, [uid], sum\_lat);} &
+adding time spent in the queue at &
 &
+&
+&
+\\
+
+&
+{\ct high\_e2e = filter(e2e, e2e\_lat > 10);} &
+each hop. &
 &
 &
 &
@@ -218,15 +243,16 @@ end to end latency. &
 \hline
 
 Count concurrently &
-{\ct def new\_flow(count):} &
+{\ct def new\_flow([cnt], []):} &
 Count the number of active &
 No &
 No &
 4 &
-3 \\
+3 & 
+10 \\
 
 active connections &
-{\ct \ \ if count == 0: emit(); count = 1} &
+{\ct \ \ if cnt == 0: emit(); cnt = 1} &
 connections in a queue over a &
 &
 &
@@ -250,7 +276,7 @@ period of time (``epoch''). &
 \\
 
 &
-{\ct num\_conns = groupby(R2, epoch, count);} &
+{\ct num\_conns = groupby(R2, [epoch], count);} &
 &
 &
 &
@@ -260,38 +286,40 @@ period of time (``epoch''). &
 \hline
 
 TCP incast &
-{\ct R4 = zip(num\_conns, \pktlog);} &
-Detect scenarios with many &
+{\ct R3 = zip(num\_conns, \pktlog);} &
+Detect when many connections use &
 No &
 No &
 7 &
-4 \\
+4 &
+14 \\
 
 &
-{\ct ic = filter(R4, qin > 100 and count < 25);} &
-connections fanning into a long &
+{\ct ic\_q = filter(R3, qin > 100 and cnt < 25);} &
+a long queue. Uses the query above. &
 &
 &
 &
 \\
 
-&
-{\ct } &
-queue. Builds on the query above. &
-&
-&
-&
-\\
+%&
+%{\ct } &
+%queue. Builds on the query above. &
+%&
+%&
+%&
+%\\
 
 \hline
 
 Lossy connections &
-{\ct total = groupby(\pktlog, \codeftuple, count);} &
+{\ct total = groupby(\pktlog, [\codeftuple{}], count);} &
 Compute packet loss rate per &
 Yes &
 No &
 8 &
-4 \\
+4 &
+19 \\
 
 &
 {\ct R1 = filter(\pktlog, tout == infinity);} &
@@ -302,7 +330,7 @@ connection, reporting connections &
 \\
 
 &
-{\ct lost = groupby(R1, \codeftuple, count);} &
+{\ct lost = groupby(R1, [\codeftuple{}], count);} &
 with packet drop rate higher than &
 &
 &
@@ -310,7 +338,7 @@ with packet drop rate higher than &
 \\
 
 &
-{\ct R4 = zip(total, lost);} &
+{\ct Z = zip(total, lost);} &
 a threshold {\ct p.} &
 &
 &
@@ -318,7 +346,7 @@ a threshold {\ct p.} &
 \\
 
 &
-{\ct lc = filter(R4, loss.count > p*total.count);}
+{\ct lc\_q = filter(Z, lost.cnt > p*total.cnt);}
 &
 &
 &
@@ -328,12 +356,13 @@ a threshold {\ct p.} &
 \hline
 
 TCP timeouts &
-{\ct def timeout(count, last\_time, tin):} &
+{\ct def timeout([cnt], [last\_time, tin]):} &
 Count the number of timeouts for &
 Yes &
 Yes &
 8 &
-3 \\
+3 &
+15 \\
 
 &
 {\ct \ \ timediff = tin - last\_time } &
@@ -352,7 +381,7 @@ for packet inter-arrival times &
 \\
 
 &
-{\ct \ \ \ \ count = count + 1} &
+{\ct \ \ \ \ cnt = cnt + 1} &
 around 300 ms (retransmission &
 &
 &
@@ -368,7 +397,7 @@ timer). &
 \\
 
 &
-{\ct to\_q = groupby(\pktlog, \codeftuple, timeout);} &
+{\ct to\_q = groupby(\pktlog, [\codeftuple{}], timeout);} &
 &
 &
 &
@@ -385,14 +414,17 @@ timer). &
 
 \end{tabular}
 }
-\caption{Some example performance queries in \TheSystem. We label the query {\em
-    linear-in-state} if all its stateful updates are linear-in-state.  We report
-  that a query {\em scales} to a large number of keys either if (i) there are no
-  stateful updates involved, or (ii) all stateful updates are linear-in-state
-  {\em and} terminate the flow of tuples. Using the Domino compiler (\S\ref{s:compiler}), we report the hardware resources, \ie pipeline depth and width,
-  required to map the queries to a pipeline. Linear-in-state queries use the
-  multiply-accumulate atom (\Sec{aggregation}); others use a {\em nested-if}
-  atom (Table~\ref{tab:templates}) that supports updates predicated on the state value
-  itself.}
+\caption{Examples of performance queries. We
+report that a query {\em scales} to a large number of keys either if (1) there
+are no stateful updates involved, or (2) all its stateful updates are
+linear-in-state {\em and} there are no {\ct emit()}s. We use
+Domino~\cite{domino_sigcomm} to report the hardware resources, \ie atom count and pipeline depth and width. Linear-in-state queries use the
+multiply-accumulate atom (\Sec{aggregation}); others use a NestedIf
+atom~\cite{domino_sigcomm} that supports updates predicated on the state value
+itself.}
+\vspace{-0.1in}
+%
+%We label the query
+%{\em linear-in-state} if all its stateful updates are linear-in-state. 
 \label{fig:example-perf-queries}
 \end{figure*}

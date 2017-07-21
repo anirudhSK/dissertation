@@ -1,151 +1,159 @@
-\section{\TheSystem query language}
+\section{The \TheSystem Query language}
 \label{sec:language}
-%TODO: We seem to keep mixing up folds and groupbys
-% SK->NG: We need to say somewhere that the result of any query is a stream
-% and a table both of which reside on the measurement servers
+This section describes the \TheSystem query language.
+\S\ref{sec:aggregation} then covers the switch implementation of the
+language constructs, while \S\ref{sec:compiler} describes the compiler.
 \TheSystem provides the abstraction of a network-wide stream of performance
 information. The tuples in the stream contain performance metadata, such as
-queue lengths and timestamps when a packet entered and departed queues, for {\em
-  each packet} and {\em each queue} in the network. Network administrators write
-{\em queries} on this stream as if the entire stream is processed at a single
-compute node executing the query.
+queue lengths and timestamps when a packet entered and departed queues, for
+each packet at each queue in the network. Network operators write queries
+on this stream as if the entire stream is processed by a single hypothetical
+server running the query. In reality, the compiler partitions the query across the
+network and executes each part on individual switches.
 
 \TheSystem programs process the performance stream using familiar functional
-constructs like {\ct filter}, {\ct map}, {\ct fold} and {\ct zip}, all of which
-take streams as inputs and produce a stream as output. This {\em functional}
-language model is both expressive enough to support diverse performance monitoring use
-cases and simple enough to support in high-speed hardware.
+constructs ({\ct filter}, {\ct map}, {\ct groupby}, and {\ct zip}), all of
+which take streams as inputs and produce a stream as output. This functional
+language model is expressive enough to support diverse performance monitoring
+use cases, but still simple enough to implement in high-speed hardware.
+\TheSystem's language constructs are summarized in
+\Fig{language-constructs-table}.
 
-\Para{Packet performance stream.} \TheSystem provides tuples for each packet at
-each queue with the following fields:
+\input{constructs}
+
+\Para{Packet performance stream.} As part of the base input stream, which we
+call {\ct \pktlog}, \TheSystem provides one tuple for each packet at each queue
+with the following fields.
 \begin{lstlisting}
-(router, qid, hdrs, uid, tin, tout, qsize)
+(switch, qid, hdrs, uid, tin, tout, qsize)
 \end{lstlisting}
-Here {\ct router} and {\ct qid} denote the router and router queue at which the
+{\ct switch} and {\ct qid} denote the switch and queue at which the
 packet was observed. A packet may traverse multiple queues even within a single
-router, so we provide distinct fields. The regular packet headers (Ethernet, IP,
-TCP, \etc) are available in the {\ct hdrs} set of fields, with a {\ct uid} that
-uniquely determines a packet.\footnote{In many networks, it may be possible to
-  use a combination of the \txtftuple and IP ID field for the {\ct uid} field.}
+switch, so we provide distinct fields. The regular packet headers (Ethernet,
+IP, TCP, \etc) are available in the {\ct hdrs} set of fields, with a {\ct uid}
+that uniquely determines a packet.\footnote{It is usually possible to
+use a combination of the \txtftuple and IP ID field as the {\ctfoot uid}.}
 
-We provide access to a variety of performance metadata: {\ct tin} and {\ct tout}
-denote the timestamps of ingress and egress of the packet in the queue, while
-{\ct qsize} denotes the queue depth at the enqueue time of the packet. It is
-beneficial to have two timestamps to detect co-habitation of the queue by
-packets belonging to different flows. Additionally, it is beneficial to have a
-queue size since we cannot always determine the queue size from the two
-timestamps, as links may service multiple queues. If a packet
-is dropped, the {\ct tout} and {\ct qsize} values are {\ct infinity.} We now
-give a few example use cases that can be supported by \TheSystem.
+The packet performance stream provides access to a variety of performance
+metadata: {\ct tin} and {\ct tout} denote the enqueue and dequeue timestamps of
+a packet, while {\ct qsize} denotes the queue depth when
+a packet is enqueued. It is beneficial to have two timestamps to detect
+co-habitation of the queue by packets belonging to different flows.
+Additionally, it is beneficial to have a queue size, since we cannot always
+determine the queue size from the two timestamps: a link may service multiple
+queues, and the speed at which a queue drains may not be known. 
 
-%% The {\ct path} field provides information about the path of the packet in the
-%% network, which may be used to detect route changes or aggregate information by
-%% the path of a packet~\cite{path_query}. It may be a VXLAN or MPLS tunnel
-%% header.
-%% We leave the precise meaning of the field up to the implementation.
-% Anirudh: We leave ... maybe better way to word it?
+Tuples in {\ct \pktlog} are processed in
+order of packet dequeue time
+({\ct tout}), since this is the earliest time at which all tuple fields in {\ct
+\pktlog} are known.\footnote{We assume clock synchronization
+to let us compare {\ctfoot tin} and {\ctfoot tout} values from different
+switches. Without
+synchronization, the programmer can still write queries
+that do not compare time-valued fields {\ctfoot tin} and {\ctfoot tout} across
+switches.}
+%
+\Anirudh{NG: I think the sentence above is important. Mohammad's confusion with
+  time at which something happens is partly because of this.}
+%
+If a packet is dropped, {\ct tout} and {\ct qsize} are {\ct
+infinity.} Tuples corresponding to dropped packets may be processed in an
+arbitrary order.
 
 \Para{Restricting packet performance metadata of interest.} Consider the
-example of tracking packets that experience spikes in queueing latencies at a
-specific queue (identified by {\ct Q}). This is expressed by the query
+example of tracking packets that experience high queueing latencies at a
+specific queue ({\ct Q}) and switch ({\ct S}). This is expressed by
+the query:
 \begin{lstlisting}
-result = filter((*\pktlog,*) qid == Q && tout - tin > 1ms)
+result = filter((*\pktlog,*) qid == Q and switch == S
+                and tout - tin > 1ms)
 \end{lstlisting}
-The {\ct filter} operator restricts the user's attention just to the packets
-with the relevant performance metadata. A filter has the form {\ct filter(R,
-pred)} where {\ct R} is some stream containing performance metadata (\eg {\ct
-\pktlog}), and the filter predicate {\ct pred} may involve packet headers or
-performance metadata or both. The result of a filter is another stream that
-only contains tuples that satisfy the predicate.
+The {\ct filter} operator restricts the user's attention to those packets with
+the relevant performance metadata. A filter has the form {\ct filter(R, pred)}
+where {\ct R} is some stream containing performance metadata (\eg {\ct
+\pktlog}), and the filter predicate {\ct pred} may involve packet headers,
+performance metadata, or both. The result of a {\ct filter} is another stream that
+contains only tuples satisfying the predicate.
 
 \Para{Computing stateless functions over packets.} \TheSystem lets users compute
-functions of the fields available in the incoming stream, to express new metrics
+functions of the fields available in the incoming stream, to express new quantities
 of interest. A simple example is rounding packet timestamps to an `epoch':
 \begin{lstlisting}
 result = map((*\pktlog,*) [tin/epoch_size], [epoch]);
 \end{lstlisting}
-A {\ct map} evaluates an expression, \ie {\ct tin/epoch\_size}, written over the
-fields available in the tuple stream and produces a new field, \ie {\ct
+The {\ct map} operator evaluates the expression {\ct tin/epoch\_size}, written over the
+fields available in the tuple stream, and produces a new field {\ct
   epoch}. The general form of this construct is {\ct map(R, [expression],
   [field])} where a list of {\ct expression}s over fields in the input stream
 {\ct R} creates a list of new {\ct field}s in the {\ct map} output stream.
 
 \Para{Aggregating statefully over multiple packets.} \TheSystem allows
-aggregating statistics over multiple packets with the same values of headers
-and/or performance metadata, to track information at user-specified
-granularities. For example, the following query counts packets belonging to each
-transport-level connection:
+aggregating statistics over multiple tuples at user-specified
+granularities. For example, the following query counts packets belonging to
+each transport-level flow (\ie 5-tuple):
 \begin{lstlisting}
-  result = groupby((*\pktlog{}*), [(*\codeftuple{}*)], count);
+result = groupby((*\pktlog{}*), [(*\codeftuple{}*)], count)
 \end{lstlisting}
-Here, the {\ct groupby} construct partitions the incoming {\ct \pktlog} into
-substreams based on the transport five-tuple, and then applies the aggregation
-function {\ct count} over the tuples of each substream.
-% Anirudh: I use the term aggregate slightly different in Section 1.
-% We should make sure they mean the same thing everywhere. I think
-% your sense of using it to mean flow is better.
-\TheSystem allows users to write flexible aggregation functions over the
-tuples of each substream. For example, a user can track latency spikes {\em
-for each connection} by maintaining an exponentially weighted moving average
-(EWMA) of the queueing latencies:
+Here, the {\ct groupby} partitions the incoming {\ct \pktlog} into substreams
+based on the transport 5-tuple, and then applies the aggregation function {\ct
+count} to count the number of tuples in each substream.  \TheSystem allows users to write
+flexible order-dependent aggregation functions over the tuples of each substream. For example,
+a user can track latency spikes for each connection by maintaining an
+exponentially weighted moving average (EWMA) of queueing latencies:
 \begin{lstlisting}
-result = groupby((*\pktlog{}*), [(*\codeftuple{}*)], ewma);
-def ewma(avg, tin, tout):
+result = groupby((*\pktlog{}*), [(*\codeftuple{}*), switch], ewma);
+def ewma([avg], [tin, tout]):
   avg = ((1-alpha)*avg) + (alpha*(tout-tin));
 \end{lstlisting}
-Here the aggregation function, {\ct ewma}, evolves an EWMA {\ct avg} using the
+Here the aggregation function {\ct ewma} evolves an EWMA {\ct avg} using the
 current value of {\ct avg} and incoming packet timestamps. Unlike the previous
-example using the {\ct count} aggregation function, the EWMA aggregation
-function depends on the order of packets being processed.
+{\ct count} example, the EWMA aggregation function depends on the order of
+packets being processed.%%, \ie the order of their $tout$ values.
 
-A {\ct groupby} takes the general form {\ct groupby(R, [aggFields], fun)} where
-the function {\ct fun} operates over tuples sharing attributes in a list {\ct
-  aggFields} of headers and performance metadata. This construct is inspired by
-{\ct fold}s in functional programming applied to
-aggregates~\cite{comprehensive-comprehensions}. Such {\ct fold}s, which are order-dependent
-, are challenging to express concisely with query languages like SQL.
-% Anirudh: I like the term partitions over aggregates. Not sure what is better?
+{\ct groupby}s take the general form {\ct groupby(R, [aggFields], fun)}, where
+the aggregation function {\ct fun} operates over tuples sharing attributes in a
+list {\ct aggFields} of headers and performance metadata. This construct is
+inspired by folds in functional
+programming~\cite{comprehensive-comprehensions}.  Such order-dependent folds
+are challenging to express in existing query languages. For instance, SQL only
+allows order-independent commutative aggregations, whether built-in (\eg count,
+average, sum) or user-defined.
 
-The aggregation function {\ct fun} itself is written in an imperative form, with
-arguments corresponding to the stored state and relevant incoming tuple
-fields. Each statement in {\ct fun} can be an assignment to an expression, \ie
-{\ct x = ...} or a branching statement, \ie {\ct if pred \{...\} else \{...\}},
-or a special {\ct emit()} statement that controls the {\ct groupby} output
-stream. Below, we show an example of an aggregation function that detects a new
-connection:
+The aggregation function {\ct fun} is written in an imperative form, with two
+arguments: a list of state variables and a list of
+relevant incoming tuple fields. Each statement in {\ct fun} can be an
+assignment to an expression ({\ct x = ...}), a branching statement ({\ct if pred \{...\} else \{...\}}), or a special {\ct emit()} statement that
+controls the output stream of the {\ct groupby}. Below, we show an example of an
+aggregation that detects a new connection:
 \begin{lstlisting}
 result = groupby((*\pktlog{}*), [(*\codeftuple{}*)], new_flow);
-def new_flow(fcount):
+def new_flow([fcount], []):
   if fcount == 0:
     fcount = 1
     emit()
 \end{lstlisting}
-The result of a {\ct groupby} is a stream containing the aggregation fields (\ie
-\txtftuple) and the aggregated values (\ie {\ct fcount}). The output stream only
-contains tuples for which the {\ct emit()} statement is encountered during
-execution. So an aggregation function without an {\ct emit()} results in an empty
-output stream. For example, the output stream of {\ct new\_flow} consists of the
-first packet of every new transport-level connection. The user can also read off
-the current state of all the aggregated fields and corresponding values as a table.
-%% If there are no {\ct
-%%   emit()} statements in the aggregation function, \TheSystem allows the user to
-%% read off all the key-value entries as a table.
+The output of a {\ct groupby} is a stream containing the aggregation fields
+(\eg \txtftuple) and the aggregated values (\eg {\ct fcount}). The output
+stream contains only tuples for which the {\ct emit()} statement is encountered
+during execution of the aggregation function. For example, the output stream of
+{\ct new\_flow} consists of the first packet of every new transport-level
+connection. If the function has no {\ct emit()}s, the user can still
+read the aggregated fields and their
+current aggregated state values as a table.
+%%\Anirudh{Changed read off to read. I don't know if it's clearer, but we do need
+%% to say that the table is part of the interface exposed to the user.}
 
-% Anirudh: Maybe talk about emit before talking about composing queries
-\Para{Composing results of multiple queries.}
-%\TheSystem provides an intuitive model for query composition.
-It is natural to compose queries over the results of previous queries, since the
-functional operators both produce and consume streams. A stream of tuples flows
-from one query to the next, and each query operator may add or filter out
-information from the flowing tuple, or even drop the tuple entirely. For
-example, the program below tracks the distribution of the sizes of {\em
-  flowlets}, \ie bursts of packets from the same \txtftuple separated by more
-than a fixed time amount {\ct delta}.%% Flowlets
-%% provide a useful traffic granularity to load-balance network
-%% traffic~\cite{flowlets}.
+\Para{Chaining together multiple queries.}
+Because all \TheSystem constructs produce and consume streams, \TheSystem
+allows users to write queries that take in the results of previous queries as
+inputs. A stream of tuples flows from one query to the next, and each query may
+add or filter out information from the incoming tuple, or even drop the tuple
+entirely. For example, the program below tracks the size distribution of
+flowlets, \ie bursts of packets from the same \txtftuple separated by more than
+a fixed time amount {\ct delta}.
 \begin{lstlisting}
 fl_track = groupby((*\pktlog{}*), [(*\codeftuple{}*)], fl_detect);
-def fl_detect(last_time, size, tin):
+def fl_detect([last_time, size], [tin]):
   if (tin - last_time > delta):
     emit()
     size = 1
@@ -153,13 +161,10 @@ def fl_detect(last_time, size, tin):
     size = size + 1
   last_time = tin
 \end{lstlisting}
-Here, the function {\ct fl\_detect} detects new flowlets using the last time a
-packet from the same flow was seen. Because of the location of the {\ct emit()}
-statement, the flowlet size from {\ct fl\_track} is only streamed to other
-operators on encountering the first packet of a new flowlet.
-%% A special statement within aggregation functions, {\ct emit()}, explicitly
-%% decides that a tuple containing the current value of the state (\ie flowlet
-%% size) should be streamed to queries consuming the result, shown below:
+The function {\ct fl\_detect} detects new flowlets using the last time a
+packet from the same flow was seen. Because of the {\ct emit()}
+statement's location, the flowlet size from {\ct fl\_track} is only streamed out
+to other operators upon seeing the first packet of a new flowlet.
 \begin{lstlisting}
 fl_bkts  = map(fl_track, [size/16], [bucket]);
 fl_hist  = groupby(fl_bkts, [bucket], count);
@@ -168,22 +173,16 @@ The map {\ct fl\_bkts} bins the flowlet size emitted by {\ct fl\_track} into a
 bucket index, which is used to count the number of flowlets in the corresponding
 bucket in {\ct fl\_hist}.
 
-%Anirudh: In general a table of each operator would probably help more than grammer.
-% Anirudh: Explicitly say what the result of each query is. A map's result is ...
-% Anirudh: We seem to mixup tuples and packets.
 \Para{Joining results across queries.} \TheSystem provides a {\ct zip} operator
-to ``join'' the results of two queries to check whether two conditions hold
+that ``joins'' the results of two queries to check whether two conditions hold
 simultaneously. Consider the example of detecting the fan-in of packets from
 many connections into a single queue, characteristic of TCP
 incast~\cite{tcpincast}. This can be checked by combining two distinct
-conditions: (i) the number of active flows in a queue over a short interval of
-time is high, and (ii) the queue occupancy is large.
-
-\input{pq_constructs}
+conditions: (1) the number of active flows in a queue over a short interval of
+time is high, and (2) the queue occupancy is large.
 
 A user can first compute the number of active flows over the current epoch using
 two aggregations:
-% Anirudh: new_flow is not declared here.
 \begin{lstlisting}
 R1 = map((*\pktlog{}*), [tin/epoch_size], [epoch]);
 R2 = groupby(R1, [(*\codeftuple{}*), epoch], new_flow);
@@ -196,28 +195,54 @@ operator:
 R4 = zip(R3, (*\pktlog{}*));
 result = filter(R4, qsize > 100 and count > 25);
 \end{lstlisting}
-The result of a {\ct zip} operation over two input streams is a concatenation of
-all the fields in the operands, whenever both input streams contain valid tuples
-processed from the same original packet tuple (\ie {\ct pktstream}). A {\ct zip} is a special kind of
-stream join where the result can be computed without any blocking, since tuples
-of both streams originate from the same packet tuple. The result of the {\ct
-  zip}, \ie {\ct R4}, can be processed like any other stream as before: the {\ct
-  filter} in the {\ct result} query checks the two incast conditions above.
+The result of a {\ct zip} operation over two input streams is a single stream
+containing tuples that are a concatenation
+of all the fields in the two streams, whenever both input streams contain valid
+tuples processed from the same original packet tuple. A {\ct zip} is a special
+kind of stream join where the result can be computed without having to synchronize
+the two streams, because tuples of both streams originate from {\ct \pktlog}. The result
+of the {\ct zip} can be processed like any other stream:
+the {\ct filter} in the {\ct result} query checks the two incast
+conditions above.
 
-For our use cases, we did not find a need for more general joins akin to
-streaming query languages. The general semantics of streaming joins can be quite
-complex~\cite{cql-vldb}, and such joins may produce large results, \ie
-$O(\#pkts^2)$.
-%% More general joins may lead to large query result sizes
-%% (\ie $O(\#pkts^2)$). Further, the semantics of streaming joins in general can be
-%% quite complex~\cite{cql-vldb}. Hence, \TheSystem restricts users to simple {\ct
-%%   zip} joins.
+We did not find a need for more general joins akin to joins in streaming query languages
+like CQL~\cite{cql-vldb}. Streaming joins have semantics that can be quite
+complex and may produce large results, \ie $O(\#pkts^2)$.
+Hence, \TheSystem restricts users to simple {\ct zip} joins.
 
-\Fig{language-constructs-table} summarizes the language constructs in
-\TheSystem. We find the full generality of well-established query languages like
-SQL or streaming SQL~\cite{aurora, sparksql} neither necessary nor sufficient
-for asking performance questions. We show several examples of \TheSystem queries
-in \Fig{example-perf-queries}. The language is useful to express measurements of
-simple counters, TCP reordering of various forms, high-loss connections, flows
-with high end-to-end network latencies, and TCP fan-in.
+We show several examples of \TheSystem queries in \Fig{example-perf-queries}.
+For instance, \TheSystem can express measurements of simple counters, TCP
+reordering of various forms, high-loss connections, flows with high end-to-end
+network latencies, and TCP fan-in. 
 
+%Further, the \TheSystem compiler
+%(\Sec{compiler}) rejects queries that require processing multiple packets in
+%order across multiple switches.
+
+\Para{Restrictions on \TheSystem queries.}
+Some aggregations are challenging to implement over a network-wide stream. For
+example, consider an EWMA over some packet field across all packets seen
+anywhere in the entire network, while processing packets in the order of their
+{\ct tout} values. Even with clock synchronization, this aggregation is hard to
+implement because it requires us to either coordinate between switches or
+stream all packets to a central location.
+
+\TheSystem's compiler rejects queries with aggregations that need to process
+{\em multiple packets} at {\em multiple switches} in {\em order of their {\ct tout}
+values}. Concretely, we only allow aggregations that relax one of these three
+conditions, and thus either
+\begin{enumerate}
+\item operate independently on each switch, in which case we naturally
+  partition queries by switch (\eg a per-flow EWMA of queueing latencies on a
+  particular switch), or
+\item operate independently on each packet, in which case we have the packet
+  perform the coordination by carrying the aggregated state to the next switch on
+  its path (\eg a rolling average link utilization seen by the packet
+  along its path), or
+\item are associative and commutative, in which case independent switch-local results can be
+  combined in any order to produce a correct overall result for the network~\cite{theory-tr},
+  \eg a count of how many times packets from a flow
+  appeared throughout the network. In this case, we rely on the
+  programmer to annotate the aggregation function with the
+  {\ct assoc} and {\ct comm} keywords.
+\end{enumerate}

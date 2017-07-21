@@ -1,172 +1,160 @@
-%Effective monitoring can
-%also help evaluate new techniques for improving network performance, \eg
-%\cite{hedera, dctcp, pfabric}.
+\section{Introduction}
+\label{sec:intro}
 
-In this chapter, we turn to the question of developing hardware primitives and
-programming abstractions for programmable network performance monitoring. This
-question is especially of interest to operators of large-scale networks when
-they need to quickly localize diverse performance problems in their network,
-such as high queueing latencies~\cite{int}, TCP incast~\cite{tcpincast},
-microbursts~\cite{tpp}, and load imbalance~\cite{conga}.
-
+Effective performance monitoring of large networks is crucial to quickly
+localize problems like high queueing latency~\cite{int}, TCP
+incast~\cite{tcpincast}, and load imbalance across network links~\cite{conga}.
 A common approach to network monitoring is to collect information from the
-endpoint network stack~\cite{minlan-snap, dapper-sosr, pathdump, trumpet} or
-end-to-end probes~\cite{pingmesh} to diagnose performance problems.  While
+endpoint network stack~\cite{minlan-snap, pathdump, trumpet} or
+to use end-to-end probes~\cite{pingmesh} to diagnose performance problems.  While
 endpoints provide application context, they lack visibility to localize
-performance problems in links deep in the network. For example, it is
-challenging to localize queue buildup to a particular router, or pinpoint
+performance problems at links deep in the network. For example, it is
+challenging to localize queue buildup to a particular switch or pinpoint
 traffic causing the queue buildup, forcing operators to infer the network-level
 root causes indirectly~\cite{pingmesh}.
-%% Endpoints only see the end-to-end symptom of a
-%% problem, not its root cause (\eg it is challenging to attribute high end-to-end
-%% latency to queue buildup on a particular router queue). Some
-%% systems\cite{pingmesh, netsight} infer root causes by combining endpoint
-%% measurements, but combining endpoint measurements requires network bandwidth to
-%% stream endpoint information to collection servers.
 
-Router-based monitoring could allow operators to diagnose problems with more
-direct visibility into performance statistics. However, traditional router
+Switch-based monitoring could allow operators to diagnose problems with more
+direct visibility into performance statistics. However, traditional switch
 mechanisms like sampling~\cite{netflow, sflow}, mirroring~\cite{cisco-span,
-  netsight, everflow} and counting~\cite{cormode, univmon} are limited in enabling
-performance monitoring.
-%
-Sampling and mirroring miss events of interest as it is infeasible to collect
+netsight, everflow}, and counting~\cite{cormode, univmon} are quite restrictive.  Sampling
+and mirroring miss events of interest as it is infeasible to collect
 information on all packets, while counters only track traffic volume
 statistics. None of these mechanisms provides relevant performance data, like
 queueing delays.
-%% Routers provide traffic information through packet sampling (\eg
-%% NetFlow~\cite{netflow}, sflow~\cite{sflow}), packet mirroring (\eg
-%% SPAN~\cite{cisco-span}), and counting~\cite{cormode}. These mechanisms do not
-%% expose performance information like queue depths, making performance diagnoses
-%% challenging.
 
-%endpoint vs. end host
 Some upcoming technologies recognize the need for better performance monitoring
-using routers. In-band network telemetry~\cite{int} writes queueing delays
+using switches. In-band network telemetry~\cite{int} writes queueing delays
 experienced by a packet on the packet itself, allowing endpoints to localize
-delay spikes. The Tetration router chip~\cite{tetration-telemetry} provides a
-``flow cache'' that measures flow-level performance metrics.
-%
-These metrics are useful, but they are exposed at a fixed granularity, and
-aggregated with fixed functions. For example, the list of exposed metrics
-includes flow-level latency and packet size variation, but not latency
-variation, \ie jitter.
-%% While these efforts expose useful performance information, they only compute a
-%% fixed set of flow-level performance metrics.  Given the ever-changing needs of
-%% operators, fixed hardware invariably falls short of an operator's needs.
-%% Because hardware redesign is expensive,  it is worthwhile building router
-%% measurement {\em primitives} that support programmable performance diagnoses as
-%% opposed to measurement {\em functionality} that supports a useful---but
-%% fixed--set of diagnoses. While we share this goal with programmable
-%% routers~\cite{xpliant, tofino, flexpipe, corsa}, today's programmable router
-%% architectures only support programmable parsing~\cite{gibb_parsing}, header
-%% processing~\cite{rmt, domino} and scheduling~\cite{pifo}.
-% not fine-grained programmable measurement. 
+delay spikes. The Tetration switching chip~\cite{tetration-telemetry} provides
+a flow cache that measures flow-level performance metrics.  These metrics are
+useful, but they are exposed at a fixed granularity (\eg per 5-tuple), and the metrics themselves
+are fixed. For example, the list of exposed metrics includes flow-level latency
+and packet size variation, but not latency variation, \ie jitter.
 
 Operator requirements are ever-changing, and redesigning hardware is expensive.
-Instead of adding fixed-function router monitoring piecemeal as needs arise,
-we propose that we build performance monitoring {\em
-primitives} that can be flexibly reused for a variety of operator needs, both
-in the present and in the future.
-%% Given the
-%% ever-changing needs of operators, fixed hardware invariably falls short of an
-%% operator's needs.  Because hardware redesign is expensive, it is worthwhile
-%% building router measurement {\em primitives} that support programmable
-%% performance diagnoses as opposed to measurement {\em functionality} that support
-%% a useful---but fixed--set of diagnoses. 
-%% While we share this goal with programmable routers~\cite{xpliant, tofino,
-%%   flexpipe, corsa}, today's programmable router architectures only support
-%% programmable parsing~\cite{gibb_parsing}, header processing~\cite{rmt, domino}
-%% and scheduling~\cite{pifo}.
-% not fine-grained programmable measurement.
+We believe that the trajectory of adding fixed-function switch monitoring
+piecemeal is unsustainable. Instead, we advocate building performance
+monitoring primitives that can be flexibly reused for a variety of
+needs. Programmable switches~\cite{flexpipe, tofino, xpliant} now support flexible
+parsing~\cite{gibb_parsing}, header processing~\cite{rmt, domino_sigcomm}, and
+scheduling~\cite{pifo_sigcomm}. Our goal is to add monitoring to this list.
 
-%TODO: Commenting out parsing, header processing, scheduling etc.
-%%%Today's programmable routers support flexible parsing~\cite{gibb_parsing},
-%%%header processing~\cite{rmt, domino_sigcomm}, and
-%%%scheduling~\cite{pifo_sigcomm}. Our goal is to add monitoring to this list.
+This paper applies {\em language-directed hardware design} to the problem of
+flexible performance monitoring, inspired by early efforts on designing
+hardware to support high-level
+languages~\cite{language-directed-computer-design, ditzel_patterson, soar}.
+Specifically, we design a language that can express a broad variety of
+performance monitoring use cases, and then design high-speed switch hardware
+primitives in service of this language. By designing hardware to support an
+expressive language, we believe the resulting hardware design can support a
+wide variety of current and future performance monitoring needs.
 
-%TODO: Not sure if this language-directed is over-the-top? It seems to
-%complicate things.
-% Anirudh: I might just remove this and retain language-directed in the title
-% alone.
-To develop these primitives, we propose {\em language-directed hardware design}: we design a
-language that can express a broad variety of performance monitoring use cases,
-and then design high-speed router hardware primitives in service of this
-language.
-%% By designing hardware to support an expressive language, 
-We believe the resulting hardware design can support a wide variety of current
-and future performance monitoring needs that fall within the language. Specifically,
-we make three contributions.
+\begin{figure}[!t]
+\includegraphics[width=\columnwidth]{overview.pdf}
+\caption{Operators issue \TheSystem queries, which are compiled into switch
+programs for programmable switches augmented with our new programmable
+key-value store primitive. Switches stream results from this query to
+collection servers that also house the backing store for the key-value store.}
+\label{fig:overview}
+\end{figure}
 
-% Anirudh: again, we say stream here, but log in the next section :)
-\Para{Performance query language.} We propose {\em \TheSystem}, a language that
-uses familiar functional primitives like {\ct map}, {\ct filter}, and {\ct fold} for
-performance monitoring.  \TheSystem provides the abstraction of a stream that
-contains performance information for {\em every packet} at {\em every queue} in
-the network (\Sec{language}). Using \TheSystem, programmers can focus their
-attention on traffic experiencing interesting performance (\eg get packets with
-high queueing latencies), aggregate information across packets in flexible ways
-(\eg compute a moving average over queueing latency per flow), and detect
-simultaneous performance conditions in the network (\eg detect when the queue
-depth is large {\em and} the number of connections using the queue is high).
-\TheSystem also enables composing multiple queries to compute more complex
-statistics, \eg a flowlet~\cite{flowlets} size histogram to evaluate
-load balancing~\cite{conga}.
-%TODO: Do we need to talk about multiple queries?
+\Fig{overview} provides an overview of our performance monitoring system. To
+use the system, an operator writes a query in a domain-specific language called
+{\em \TheSystem,} either to implement a long-running monitor for a statistic (\eg
+detecting TCP timeouts), or to troubleshoot a specific problem (\eg incast~\cite{tcpincast}) at hand. The
+query is compiled into a switch program that runs on the network's programmable
+switches, augmented with new switch hardware primitives that we design in
+service of \TheSystem.  The switches stream results out to collection servers,
+where the operator can retrieve query results. We now briefly describe the
+three components of our system: the query language, the switch hardware, and
+the query compiler.
 
-\Para{Hardware design for performance queries.} To support the \TheSystem query
-language, we are able to leverage many existing router hardware primitives like
-INT~\cite{int} and flexible header processing~\cite{rmt}. To support flexible
-aggregations over packets, we design a {\em programmable key-value store} in
-hardware (\Sec{aggregation}), where the keys represent flow identifiers and values
-represent the state computed by the aggregation function. This key-value store
-should support two requirements: it should update values at a rate of 1
-packet per clock cycle (at 1 GHz~\cite{rmt}), and support millions
-of keys (\ie connections). Unfortunately, neither SRAM nor DRAM memory is fast
-and dense enough to meet both requirements.
-%% Second, we design a programmable
-%% key-value store in hardware (\Sec{hardware}) to support flexible aggregations
-%% over packets. The keys represent flow identifiers and the values represent the
-%% state computed by the aggregation function, such as a counter. This key-value
-%% store should be fast enough for line-rate operation and large enough to hold
-%% millions of flows. To support both requirements, 
+\Para{Performance query language.} \TheSystem uses familiar functional
+constructs like {\ct map}, {\ct filter}, {\ct groupby} and {\ct zip} for
+performance monitoring.
+\TheSystem provides the abstraction of a stream that contains performance
+information for {\em every packet at every queue} in the network
+(\Sec{language}).
+%
+Programmers can focus their attention on traffic experiencing interesting
+performance using {\ct filter} (\eg packets with high queueing latencies),
+aggregate information across packets in flexible ways using {\ct groupby} (\eg
+compute a moving average over queueing latency per flow), compute new stateless
+quantities using {\ct map} (\eg binning a packet's timestamp into an epoch), and
+detect simultaneous performance conditions using {\ct zip} (\eg when the queue
+depth is large and the number of connections in the queue is high).
 
-We split the key-value store into a small but fast on-chip {\em cache} in SRAM,
-and a larger but slower off-chip {\em backing store} in DRAM. Traditional caches
-incur variable write latencies due to cache misses; however, line-rate packet
-forwarding requires deterministic latency bounds. Our design treats a cache miss
-as the arrival of a packet from a new flow, and {\em merges} the new cache value
-with the flow's old value in the backing store on eviction. The backing
-store can reside either on the router CPU or on a separate collection server.
-% TODO: backend or backing store? Need to be consistent.
+\Para{Hardware design for performance queries.} 
+A \naive implementation of \TheSystem might stream every packet's
+metadata from the network to a central location and run streaming queries
+against it. Modern scale-out data-processing systems support ~100K--1M
+operations per second per core~\cite{kafka_benchmark, redis_benchmark,
+memcached_benchmark, redis_vs_memcached_update,
+spark-streaming}, but processing every single packet (assuming a relatively
+large packet size of 1 KB) from a single 1 Tbit/s switch would need ~100M
+operations per second --- 2--3 orders of magnitude more than what existing systems
+support.
 
-We mathematically characterize a class of affine aggregation functions, which we call {\em
-  linear-in-state}, for which
-such merging is possible without losing accuracy. Many aggregation functions are
-linear-in-state, \eg counters, predicated counters (\eg count only TCP packets
-that saw timeouts), exponentially weighted moving averages, or functions
-computed over a finite window of packets.  We design a router instruction to
-support linear-in-state functions, finding that it easily meets
-timing at 1 GHz, while occupying modest silicon area.
+Instead, we leverage high-speed programmable switches~\cite{rmt, xpliant,
+tofino, flexpipe} as first-class citizens in network monitoring, because they
+can programmatically manipulate multi-Tbit/s packet streams.  Early filtering
+and flexible aggregation on switches drastically reduce the number of records per
+second streamed out to a standard data-processing system running on
+the collection server.
 
-\Para{Query compiler.} We implement a {\em compiler} that takes \TheSystem
-queries and compiles them into router configurations for two targets
-(\Sec{compiler}): (1) the P4 behavioral model~\cite{p4-bmv2}, an open source
-programmable software router, which can be used to run end-to-end experiments
-using \TheSystem within Mininet and (2) the Banzai machine model introduced in
-\S\ref{s:absmachine}, which can be used to experiment with
-different instruction sets.  The \TheSystem compiler detects linear-in-state
-aggregations in input queries and successfully targets the linear-in-state router
-instruction that we added to Banzai.
+While programmable switches support many of \TheSystem's stateless
+language constructs that modify packet fields alone (\eg {\ct map} and {\ct
+filter}), they do not support aggregation of state across packets for a large
+number of flows (\ie {\ct groupby}). To support flexible aggregations over
+packets, we design a
+programmable key-value store in hardware (\Sec{aggregation}), where the keys
+represent flow identifiers and the values represent the state computed by the
+aggregation function. This key-value store must
+update values at the line rate of 1 packet per clock cycle (at 1
+GHz~\cite{rmt, xpliant_sdk}) and support millions of keys (\ie flows).
+Unfortunately, neither SRAM nor DRAM is simultaneously fast and dense
+enough to meet both requirements.
 
-% TODO: Need to clean up paragraph above.
-% Rewrite paragraph once eval is in to stress four points: Domino, Mininet, Traces, REDIS
-We show that the \TheSystem language can express a wide variety of useful
-performance monitoring examples, like detecting and localizing TCP incast, and
-measuring the prevalence of out-of-order TCP packets. \TheSystem queries require
-between 5-10 pipeline stages for almost all queries, which is modest for a
-32-stage pipeline~\cite{rmt}. We evaluate our key-value store's performance
-using trace-driven simulations. For a 32-Mbit on-chip cache, which occupies
-about 2.5\% of the chip's area, the typical cache eviction rate from a single
-top-of-rack router can be handled by a single 8-core server running
-Redis.
+We split the key-value store into a small but fast on-chip cache in SRAM and a
+larger but slower off-chip backing store in DRAM. Traditional caches incur
+variable write latencies due to cache misses; however, line-rate packet
+forwarding requires deterministic latency guarantees. Our design accomplishes
+this by never reading back a value into the cache if it has already been
+evicted to the backing store. Instead, it treats a cache miss as the arrival of
+a packet from a new flow. When a flow is evicted, we {\em merge} the evicted flow's value in the cache with the flow's
+old value in the backing store. Because merges occur off the
+critical packet processing path, the backing store can be implemented in
+software on a separate collection server.% or on off-chip DRAM on the switch.
+
+While it is not always possible to merge an aggregation function without losing
+accuracy, we characterize a class of affine aggregation functions, which we
+call {\em linear-in-state}, for which accurate merging is possible.  Many
+useful aggregation functions are linear-in-state, \eg counters, predicated
+counters (\eg count only TCP packets that saw timeouts), exponentially weighted
+moving averages, and functions computed over a finite window of packets.  We
+design a switch instruction to support linear-in-state functions, finding that
+it easily meets timing at 1 GHz, while occupying modest silicon area.
+
+\Para{Query compiler.} We implement a compiler that takes \TheSystem queries
+and compiles them into switch configurations for two targets (\Sec{compiler}):
+(1) the P4 behavioral model~\cite{p4-bmv2}, an open source programmable
+software switch that can be used for end-to-end evaluations of \TheSystem on
+Mininet~\cite{mininet}, and (2) Banzai~\cite{domino_sigcomm}, a simulator for high-speed
+programmable switch hardware that can be used to experiment with different instruction sets.
+The \TheSystem compiler detects linear-in-state aggregations in input queries
+and successfully targets the linear-in-state switch instruction that we add to
+Banzai.
+
+\Para{Evaluation.} We show that \TheSystem can express a variety of useful
+performance monitoring examples, like detecting and localizing TCP incast and
+measuring the prevalence of out-of-order TCP packets. \TheSystem queries
+require between 4 and 11 pipeline stages, which is modest for a 32-stage switch
+pipeline~\cite{rmt}. We evaluate our key-value store's performance using
+trace-driven simulations. For a 64 Mbit on-chip cache, which occupies about
+10\% of the area of a \tengswitch switching chip, we estimate that the cache eviction rate
+from a single top-of-rack switch can be handled by a single 8-core server running
+Redis~\cite{redis}.
+We evaluate \TheSystem's usability through two Mininet case studies
+that use \TheSystem to troubleshoot high tail latencies~\cite{barefoot-demo} and
+measure the distribution of flowlet sizes~\cite{conga}. \TheSystem is open
+source and available at \url{http://web.mit.edu/marple}.

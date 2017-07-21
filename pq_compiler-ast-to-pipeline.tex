@@ -1,88 +1,38 @@
 \subsection{Query AST to pipeline configuration}
 \label{sec:pipeline-layout}
 
-This compiler pass first generates a {\em linear sequence of operators} from the
-router-local query AST of \Sec{network-to-router-local}. The operator sequence
-will then be used in the same order to generate a router pipeline
-configuration. There are two aspects which require care when constructing a
-pipeline structure: (i) the pipeline should respect read-write dependencies
-between different operators, and (ii) repeated subqueries should not create
-additional pipeline stages. We generate a chain through a post-order traversal
-of the query AST, which guarantees that the operands of a node are added into
-the pipeline before the operator in the node. Further, we deduplicate subquery
-results from the pipeline to avoid repeating stages in the final output. For the
-running example, the algorithm produces the chain of operators: {\ct tcps} ({\ct
-  filter}) $\rightarrow$ {\ct tslots} ({\ct map}) $\rightarrow$ {\ct joined}
-({\ct zip}) $\rightarrow$ {\ct oos} ({\ct groupby}).
+%TODO: We don't actually say how this switch-local query AST was generated.
+This compiler pass first generates a sequence of operators from the
+switch-local query AST of \Sec{network-to-switch-local}. This sequence of
+operators will then be used in the same order to generate a switch pipeline
+configuration. There are two aspects that require care when constructing a
+pipeline structure: (1) the pipeline should respect read-write dependencies
+between different operators, and (2) repeated subqueries should not create
+additional pipeline stages. We generate a sequence through a post-order
+traversal of the query AST, which guarantees that the operands of a node are
+added into the pipeline before the operator in the node. Further, we
+deduplicate subquery results from the pipeline to avoid repeating stages in the
+final output. For the running example, the algorithm produces the sequence of
+operators: {\ct tcps} ({\ct filter}) $\rightarrow$ {\ct tslots} ({\ct map})
+$\rightarrow$ {\ct joined} ({\ct zip}) $\rightarrow$ {\ct oos} ({\ct groupby}).
 
-Next, the compiler emits \pfs configuration for each of the pipeline stages. The
-{\ct filter} and {\ct zip} configuration just involves checking a predicate and
-setting a ``valid'' bit on the packet metadata. The {\ct map} configuration
-assigns a packet metadata field to the computed expression. The {\ct groupby}
-configuration uses a register which is indexed by the aggregation fields, and is
-updated through the action specified in the aggregation function. We transform
-\TheSystem aggregation functions into straight-line code consisting of ternary
-statements through a standard procedure known as
-if-conversion~\cite{if-conversion}. This allows us to fit the aggregation
-function into the body of a single \pfs action.
-%% to fit it into an acceptable \pfs action
-%%
-%%%All
-%% query-related temporary packet fields are collected into a packet metadata
-%% structure. We report on our experience running \TheSystem queries end-to-end
-%% with \pfs on the behavioral model in \S\ref{s:eval:mininet}.
+%TODO: How do you turn the sequence into a pipeline?
+Next, the compiler emits P4 code for a switch pipeline
+from the operator sequence.  The {\ct filter} and {\ct zip} configuration just
+involves checking a predicate and setting a ``valid'' bit on the packet
+metadata. The {\ct map} configuration assigns a packet metadata field to the
+computed expression. The {\ct groupby} configuration uses a register that is
+indexed by the aggregation fields, and is updated through the action specified
+in the aggregation function. We transform \TheSystem aggregation functions into
+straight-line code consisting of C-style conditional operators through a
+standard procedure known as if-conversion~\cite{if-conversion}. This allows us
+to fit the aggregation function into the body of a single P4 action.
 
-Further, the \TheSystem compiler emits Domino code by collecting C-like code
-fragments from all pipeline stages together into a stateful program. The Domino
-compiler targets the Banzai router pipeline simulator.
-%%% by compiling this
-%%% program. %% Banzai can be configured to run with specific stateless and stateful
-%% hardware instructions, and the Domino compiler determines whether the stateful
-%% input program can map to a pipeline with those instructions. The \TheSystem
-%% compiler can emit Domino code that leverages the new multiply-accumulate
-%% instruction; we elide the details.
-
-%% Next, we generate a pipeline layout from a query AST containing the functional
-%% operators (\ie {\ct map, groupby, } \etc). We generate match-action stages for
-%% {\ct filter, map} and {\ct zip} operators, and key-value store stages for {\ct
-%%   groupby}s.
-
-%% Generating a pipeline from a tree requires some care to respect read-write
-%% dependencies between operators. The function {\sc getPipe} in
-%% \Alg{pipeline-construction} shows how the compiler constructs the overall
-%% pipeline structure through a post-order traversal of the query AST (line
-%% \ref{line:postorder-traversal}). Since there may be repeated subqueries in the
-%% tree, the pipeline constructor is only invoked for nodes that haven't built a
-%% pipeline (line \ref{line:operand-unvisited}) through a previous call to {\sc
-%%   getPipe.} The final output of the algorithm is just a list of operators
-%% respecting read-write dependencies, and without redundancies from repeated
-%% subqueries.
-
-%% \begin{algorithm}
-%%   \caption{Query AST to pipeline.}
-%%   \label{alg:pipeline-construction}
-%%   \begin{algorithmic}[1]
-%%     \State visited $\gets$ [] \Comment{Empty set of visited queries.}
-%%     \Function{getPipe}{{\cta Q}}
-%%       \If{{\cta Q} $\notin$ visited}
-%%       \State pipeQ $\gets$ [] \Comment{Empty pipeline.}
-%%       \For{each operand {\cta R} of {\cta Q}}\label{line:postorder-traversal}
-%%         \If{{\cta R} $\notin$ visited}\label{line:operand-unvisited}
-%%           \State pipeQ += {\sc getPipe}({\cta R})
-%%         \EndIf
-%%       \EndFor
-%%       \State pipeQ += {\cta Q}\label{line:config-gen-Q}
-%%       \State add {\cta Q} to visited
-%%       \State \textbf{return} pipeQ
-%%       \EndIf
-%%     \EndFunction
-%%   \end{algorithmic}
-%% \end{algorithm}
-
-%% In \Sec{linear-in-state-compilation} and \Sec{emitting-p4-domino-code}, we delve
-%% deeper into the feasibility of hardware implementation for the pipeline stages
-%% emitted by this compiler pass. We focus mainly on generating code for
-%% aggregation functions in \Sec{linear-in-state-compilation};
-%% \Sec{emitting-p4-domino-code} discusses code generation for the rest of the
-%% operators.
+To target the Banzai switch pipeline simulator~\cite{domino_sigcomm}, the
+\TheSystem compiler emits Domino code by concatenating C-like code fragments
+from all pipeline stages into a single Domino program. The Domino compiler then
+takes this program and compiles it to a pipeline of Banzai {\em atoms.} Atoms
+are ALUs representing a programmable switch's instruction set. Atoms implement
+either stateless (\eg incrementing a packet field) or stateful (\eg atomically
+incrementing a switch counter) computations.
 
