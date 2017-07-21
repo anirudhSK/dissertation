@@ -52,20 +52,29 @@
 \newcommand{\nop}[1]{}
 
 %% Add colored commands for comments by specific people
-\newcommand{\ngs}[1] {{\textcolor{red}{NG: #1}}}
+\newcommand{\ngs}[1]{{\textcolor{red}{NG: #1}}}
+%% \newcommand{\ngs}[1] {}
+
+\newcommand{\naive}{na\"{i}ve\xspace}
+\newcommand{\tengswitch}{64$\times$10-Gbit/s\xspace}
+\newcommand{\tenglink}{10 Gbit/s\xspace}
+\newcommand{\hundredgswitch}{64$\times$100-Gbit/s\xspace}
+\newcommand{\hundredglink}{100 Gbit/s\xspace}
 
 \newenvironment{parafont}{\fontfamily{ptm}\selectfont}{}
-\newcommand{\Para}[1]{\vspace{4pt}\noindent\begin{parafont}\fontsize{12.0}{12.00}\textbf{\textit{#1}}\end{parafont}}
+\newcommand{\Para}[1]{\vspace{4pt}\noindent\begin{parafont}\fontsize{10.0}{12.00}\textbf{\textit{#1}}\end{parafont}}
 \newcommand{\ct}{\small \tt}
 \newcommand{\cta}{\small \tt}
+\newcommand{\ctfoot}{\footnotesize \tt}
 \newcommand{\figcodesize}{\fontsize{8.9}{10.68}\selectfont}
 
 \newcommand{\TheSystem}{Marple\xspace}
-%\newcommand{\THESYSTEM}{NETAMA\xspace}
+\newcommand{\THESYSTEM}{MARPLE\xspace}
 \newcommand{\pktlog}{pktstream\xspace}
 \newcommand{\txtftuple}{5-tuple\xspace}
 \newcommand{\codeftuple}{5tuple\xspace}
 \newcommand{\pfs}{P4$_{16}$\xspace}
+\newcommand{\scache}{s_{cache}}
 
 \newcommand{\predconj}{\&\&}
 \newcommand{\preddisj}{||}
