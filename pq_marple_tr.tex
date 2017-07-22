@@ -7,7 +7,51 @@
 \chapter{Understanding mergeability}
 \label{app:merge}
 
-\section{The problem}
+\section{Details of the merge procedure}
+
+For queries that are linear in state, the state update takes the form $\mathbf{S} = A(\mathbf{p})\cdot\mathbf{S} + B(\mathbf{p})$, where $S$ is a vector of state, and $A$ and $B$ are functions of the previous $k$ packets (denoted by $\mathbf{p})$. Here $k$ is an arbitrary integer.
+
+\subsection{Single packet history}
+
+Consider the case where $k = 1$. If the state is $\mathbf{S}$ at any point in time, then after $N$ packets,
+$\mathbf{S_N} = A^N\cdot \mathbf{S} + $ terms independent of $S$. Here, $A^N$ is shorthand for $A(p_N)\cdot A(p_{N-1}) \cdot \ldots \cdot A(p_1)$
+Therefore to merge an evicted value $\mathbf{S_N}$ with the existing value $\mathbf{S}_{backing}$ in the backing store,
+we need to replace $\mathbf{S}$ with $\mathbf{S}_backing$ in the expression for $\mathbf{S_N}$ by computing:
+\[ \mathbf{S_N} - A^N \cdot \mathbf{S} + A^N \cdot \mathbf{S}_{backing} = \mathbf{S_N} + A^N(\mathbf{S}_{backing} - \mathbf{S}) \]
+The merge procedure is straightforward: the switch keeps $A^N$ as auxiliary state and passes it with $\mathbf{S_N}$ to the backing store to complete the merge.
+The backing store already knows $S$, since it is the default starting value for the state, which does not change.
+
+\subsection{Bounded packet history}
+
+The required auxiliary state is more complex for larger values of $k$. If $k = 1$, $A(p)$ and $B(p)$ are known to the switch for every packet. However, for larger values of $k$, the switch needs access to older packet fields to compute $A(\mathbf{p})$ and $B(\mathbf{p})$. This means the values of $A$ and $B$ are themselves incorrect for the first $k-1$ packets after an eviction, an issue that must be addressed by the merge procedure.
+
+Consider Figure~\ref{fig:bph-merge} for $k = 3$. Once the switch performs an eviction at $T_1$,
+the switch cannot properly update the its state for the next two packets (first packets of the subsequent epoch).
+It thus starts updating its state from the third packet onwards and entrusts the backing store to
+fill the ``hole'' caused by missing the first two state updates.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.7\linewidth]{merge_tr_bph.pdf}
+\caption{Entry and exit log for an eviction, with $k = 3$.}
+\label{fig:bph-merge}
+\end{figure}
+
+To perform the merge successfully,
+the backing
+store needs two additions pieces of information, 
+in addition to the query-specific state $A^N$ discussed in the previous section:
+\begin{itemize}
+\item The last $k-1$ packets from the \emph{previous epoch}, called the \emph{exit log} $R$ of the previous epoch.
+\item The first $k-1$ packets from the \emph{current epoch}, called the \emph{entry log} $X$ of the current epoch. 
+\end{itemize}
+
+Upon merging, the backing store receives $S$, $R$, and $X$, and must merge them with $S_{backing}$. First, the backing store runs the actual aggregation function over $R$ starting from $S_{backing}$: $S' = g(S_{backing}, R)$. Doing this requires the backing store to use the exit log of the \emph{previous} epoch. The backing store then performs a standard merge
+ $S'' = m(S', S)$ and stores $X$ for use in the \emph{next} epoch's merge.
+
+\section{Proofs of theorems}
+
+\subsection{Notation}
 
 A programmer supplies an aggregation function $f$. $f$ takes as inputs an n-bit \emph{state}
 vector and a p-bit \emph{packet header} vector and returns an updated $n$-bit
@@ -45,49 +89,7 @@ h(g(g(g(s'_0, P_1), P_2), \dots, P_{i+j})) & =h( m(g(g(g(s'_0, P_1), P_2), \dots
 Here $f, g, m,$ and $h$ are assumed to be efficiently computable functions. We use the notation $f(s, \{p_1, \ldots p_k\})$ to denote the composition of $f$ over a sequence
 of packets, similar to a fold function. Additionally, we say that a merge function successfully merges an aggregation function if Equation~\ref{eqn:merge_condition} holds. 
 
-\section{The Merge Procedure}
-
-For queries that are linear in state, the state update takes the form $\mathbf{S} = A(\mathbf{p})\cdot\mathbf{S} + B(\mathbf{p})$, where $S$ is a vector of state, and $A$ and $B$ are functions of the previous $k$ packets (denoted by $\mathbf{p})$. Here $k$ is an arbitrary integer.
-
-\subsection{Single packet history}
-
-Consider the case where $k = 1$. If the state is $\mathbf{S}$ at any point in time, then after $N$ packets,
-$\mathbf{S_N} = A^N\cdot \mathbf{S} + $ terms independent of $S$. Here, $A^N$ is shorthand for $A(p_N)\cdot A(p_{N-1}) \cdot \ldots \cdot A(p_1)$
-Therefore to merge an evicted value $\mathbf{S_N}$ with the existing value $\mathbf{S}_{backing}$ in the backing store,
-we need to replace $\mathbf{S}$ with $\mathbf{S}_backing$ in the expression for $\mathbf{S_N}$ by computing:
-\[ \mathbf{S_N} - A^N \cdot \mathbf{S} + A^N \cdot \mathbf{S}_{backing} = \mathbf{S_N} + A^N(\mathbf{S}_{backing} - \mathbf{S}) \]
-The merge procedure is straightforward: the switch keeps $A^N$ as auxiliary state and passes it with $\mathbf{S_N}$ to the backing store to complete the merge.
-The backing store already knows $S$, since it is the default starting value for the state, which does not change.
-
-\subsection{Bounded packet history}
-
-The required auxiliary state is more complex for larger values of $k$. If $k = 1$, $A(p)$ and $B(p)$ are known to the switch for every packet. However, for larger values of $k$, the switch needs access to older packet fields to compute $A(\mathbf{p})$ and $B(\mathbf{p})$. This means the values of $A$ and $B$ are themselves incorrect for the first $k-1$ packets after an eviction, an issue that must be addressed by the merge procedure.
-
-Consider Figure~\ref{fig:bph-merge} for $k = 3$. Once the switch performs an eviction at $T_1$,
-the switch cannot properly update the its state for the next two packets (first packets of the subsequent epoch).
-It thus starts updating its state from the third packet onwards and entrusts the backing store to
-fill the ``hole'' caused by missing the first two state updates.
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=0.7\linewidth]{pq_merge_tr_bph.pdf}
-\caption{Entry and exit log for an eviction, with $k = 3$.}
-\label{fig:bph-merge}
-\end{figure}
-
-To perform the merge successfully,
-the backing
-store needs two additions pieces of information, 
-in addition to the query-specific state $A^N$ discussed in the previous section:
-\begin{itemize}
-\item The last $k-1$ packets from the \emph{previous epoch}, called the \emph{exit log} $R$ of the previous epoch.
-\item The first $k-1$ packets from the \emph{current epoch}, called the \emph{entry log} $X$ of the current epoch. 
-\end{itemize}
-
-Upon merging, the backing store receives $S$, $R$, and $X$, and must merge them with $S_{backing}$. First, the backing store runs the actual aggregation function over $R$ starting from $S_{backing}$: $S' = g(S_{backing}, R)$. Doing this requires the backing store to use the exit log of the \emph{previous} epoch. The backing store then performs a standard merge
- $S'' = m(S', S)$ and stores $X$ for use in the \emph{next} epoch's merge.
-
-\section{The Closure Graph}
+\subsection{The closure graph}
 
 Before proceeding with the proofs, we introduce the directed \emph{closure graph} of $f$, denoted $G(f)$. Suppose that at some point during the aggregation, 
 the programmer specified state is $s$. After running through some additional packets, that state is updated to $s'$. If $s$ is known, then computing
@@ -100,6 +102,8 @@ an identifier for the updated iterated function is sent to the backing store. Th
 How does one update the iterated function stored on the switch? The vertices of the closure graph of $f$ are iterated functions $f_i$, and we let $|G(f)|$ indicate the number of vertices. Since there are a finite number of functions $\{0, 1\}^n \rightarrow \{0, 1\}^n$, the size of the graph is bounded.
 Each vertex has an outgoing edge corresponding to every possible packet. For a given packet $p$, the iterated function $f_i$ has an edge to the function $f_j$ satisfying $f(f_i(s), p) = f_j(s)$ for all $s$.
 The closure graph thus has the following property: given a sequence of packets $\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th step, follow the edge corresponding to each packet $p_i$. The ending vertex of this process is the iterated function that captures the effect of this packet sequence on any starting state. We say that this ending vertex is the result of \emph{updating the iterated function} by the given sequence of packets. To update the iterated function stored on the switch given a new packet, simply follow the edge labeled with that packet.
+
+\subsection{Proofs of theorems}
 
 \begin{theorem}[Publication Theorem 3.1]
 A merge function exists to successfully merge an aggregation function $f$, providing it can use up to $n2^n$ auxiliary bits.
