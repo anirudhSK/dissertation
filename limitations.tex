@@ -1,31 +1,76 @@
 \chapter{Limitations}
 \label{chap:limitations}
-% TODO: Completeness theorem for programmability
-% TODO: Maybe add the absence of completeness theorems to the limitations
-% chapter here? It makes more sense to add it here.
-% We should probably title this section completeness or future-proofneed of the techniques developed here.
-% Say that this has been a hard problem for every system that claims expressiveness,
-% but is especially the case for non-Turing-complete systems.
+
+We now discuss limitations of the systems presented in this dissertation. We
+start with limitations that are common to all three systems, and then discuss
+limitations of each individual system.
+
+\section{Limitations common to all three systems}
+
+\Para{Lack of silicon implementations.} One major implementation limitation is
+that none of our three systems has a hardware implementation in silicon. This
+is a problem that crops us whenever a new system that needs hardware
+modifications needs to be evaluated. Designing a new chip can take a few years,
+and it requires both a significant financial investment and access to large
+teams of engineers.
+
+ Instead, we evaluated these systems using a combination of simulation and
+microbenchmarks. We briefly considered an FPGA implementation on the NetFPGA
+platform~\cite{netfpga}, but decided against it because the relative areas
+consumed by router subsystems on an FPGA may not accurately reflect the relative
+area consumptions on a router ASIC.\footnote{Even though an FPGA implementation
+will not give us the right area assessments, there may still be value to an
+FPGA implementation, as a vehicle for evaluating ideas end-to-end, much like we
+did with our Mininet evaluation (\S\ref{sec:eval:mininet}).}
+%TODO: There is a contradiction between the previous paragraph and the next one.
+
+That said, we paid careful attention to keeping the hardware designs simple,
+clearly specified the interfaces between the different hardware blocks, and
+evaluated the area consumed by our hardware designs by synthesizing them to a
+recent transistor library. The development of new FPGA technology that allows
+clock rates of up to 1 GHz on some FPGA designs~\cite{hyperflex} suggests a way
+to prototype hardware at near-ASIC speeds while benefiting from the cheaper
+non-recurrent-enginerring cost and flexibility of an FPGA.
+
+\Para{Lack of completeness theorems.} Another major limitation with our systems
+is that we do not have a definitive formal characterization of what can and
+cannot be done by each system. While we have examples of algorithms that cannot
+be expressed by each system, it would be ideal to have a ``completeness''
+theorem that states that all algorithms within a class (and within that class
+alone) can be expressed using a particular system. Such a theorem would also
+give a formal assurance of future proofness so long as a new algorithm fell
+within that class. An example of such a theorem is the equivalence of
+finite-state machines and regular expressions, which states that any regular
+expression---whether a regular expression we know of today or a regular
+expression that comes up in the future---can be expressed in terms of a
+finite-state machine.
+
+\Para{Lack of a user study.} In the absence of a completeness theorem that
+guarantees a level of future proofness, one way to empirically study the
+``future proofness'' of a programming abstraction is to freeze the abstraction
+and then let new programmers who have never seen the abstraction before program
+it. We have not been able to carry out a formal user study using network
+programmers because the concept of programming a network is itself relatively
+new and has not reached mainstream adoption yet!
+
+At the same time, we have had some encouraging results that suggest that some
+of our abstractions and primitives may be future proof. For instance, as
+mentioned earlier, the atoms developed in Domino (Chapter~\ref{chap:domino})
+turned out to be useful for the performance queries that were not
+linear-in-state (Chapter~\ref{chap:perf_query}). Similarly, we did not
+anticipate the rate-controlled service disciplines (RCSD) as a use case for
+PIFOs when first designing PIFOs, but later found that PIFOs could express the
+RCSD class. Finally, the fact that the atomic semantics of  packet
+transactionss could be adopted as such into P4 suggests that the packet
+transaction semantics might be quite general and natural. That said, conducting
+a user study to understand the practical limitations of expressiveness is an
+interesting area for future work.
+
 
 %Two major limitations of this work: is it future proof and nothing is implemented
 %in a sense, the two are related, maybe implementing things would have forced us
 %to be more future proof, because there is no longer the temptation of modifying things
 % once you have taped out an ASIC (you just can't!!)
-
-One major limitation shared by all three systems is that none of them has a
-silicon implementation. Instead, we evaluated these systems using a combination
-of simulation and microbenchmarks. We briefly considered an FPGA implementation
-on the NetFPGA platform~\cite{netfpga}, but decided against it because the
-relative areas consumed by router subsystems on an FPGA do not accurately
-reflect the relative area consumptions on a router ASIC.\footnote{ Even though
-an FPGA implementation will not give us the right area assessments, there may
-still be value to an FPGA implementation, as a vehicle for evaluating ideas
-end-to-end, much like we did with our Mininet evaluation
-(\S\ref{sec:eval:mininet}).} That said, we paid careful attention to keeping
-the hardware designs simple, clearly specified the interfaces between the
-different hardware blocks, and evaluated the area consumed by our hardware
-designs by synthesizing them to a recent transistor library. We now discuss
-specific limitations of each of the three projects.
 
 \section{Domino}
 \label{sec:domino_limitations}
