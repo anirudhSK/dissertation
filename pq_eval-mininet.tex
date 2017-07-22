@@ -7,17 +7,17 @@ diagnosing microbursts, \ie spikes in latency caused by bursty
 transmissions of packets into a queue.
 %with a topology shown in Figure~\ref{fig:mininet-topo}.
 Our setup in Mininet~\cite{mininet} consists of four hosts
-({\ct h1, h2, h3, h4}) and two switches ({\ct S1, S2}) in a dumbbell topology.
+({\ct h1, h2, h3, h4}) and two routers ({\ct S1, S2}) in a dumbbell topology.
 Router {\ct S1} is connected to {\ct h1} and {\ct h3},
 and {\ct S2} to {\ct h2} and {\ct h4}.
-The switches are connected via a single link and
+The routers are connected via a single link and
 programmed in P4~\cite{p4-bmv2} with queries compiled by \TheSystem.
 
 Host {\ct h2} repeatedly downloads a 1MB objects over TCP from {\ct h1}.
 Meanwhile, {\ct h3} sends {\ct h4} bursts of UDP traffic, which
 {\ct h4} acks.  Suppose a network operator notices the irregular latency
 spikes for the downloads (\Fig{mininet-latency}). She suspects a queue buildup
-in the switches and measures the queue depths seen by the traffic by writing:
+in the routers and measures the queue depths seen by the traffic by writing:
 {\ct result = filter(\pktlog, srcip == h1 and dstip == h2).}
 
 % Can remove this figure if we need space.
@@ -66,7 +66,7 @@ h2:58439 $\rightarrow$ h1:1777 & TCP & 1 & 72248749 & 33074 \\ \hline
 
 The results are streamed out on each packet to a collection server. After
 plotting the queue latencies, she notices spikes in queue size at egress port 3
-on the switch (\Fig{mininet-qin}) matching the periodicity of the latency
+on the router (\Fig{mininet-qin}) matching the periodicity of the latency
 spikes. To isolate the responsible flow(s), she divides the traffic into
 ``bursts,'' which she defines as a series of packets separated by a gap of at
 least 800ms, as determined from the gap between latency spikes. She issues the
@@ -101,12 +101,12 @@ approaches is challenging.
 %
 Packet sampling and
 line-rate packet captures would miss microbursts because of heavy undersampling,
-packet counters from switches would have disguised the bursty nature of the
+packet counters from routers would have disguised the bursty nature of the
 offending UDP traffic, and probing from endpoints would not be able to
 localize queues with bursty contending flows.
 
 \TheSystem builds on In-band Network Telemetry~\cite{int, barefoot-demo} (INT)
-that exposes queue lengths at switches. However, \TheSystem's on-switch
+that exposes queue lengths at routers. However, \TheSystem's on-router
 aggregation goes beyond INT to determine contending flows at the problematic
 queue through a customized query, without prior knowledge of those flows.
 %

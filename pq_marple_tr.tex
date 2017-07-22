@@ -16,15 +16,15 @@ $\mathbf{S_N} = A^N\cdot \mathbf{S} + $ terms independent of $S$. Here, $A^N$ is
 Therefore to merge an evicted value $\mathbf{S_N}$ with the existing value $\mathbf{S}_{backing}$ in the backing store,
 we need to replace $\mathbf{S}$ with $\mathbf{S}_{backing}$ in the expression for $\mathbf{S_N}$ by computing:
 \[ \mathbf{S_N} - A^N \cdot \mathbf{S} + A^N \cdot \mathbf{S}_{backing} = \mathbf{S_N} + A^N(\mathbf{S}_{backing} - \mathbf{S}) \]
-The merge procedure is straightforward: the switch keeps $A^N$ as auxiliary state and passes it with $\mathbf{S_N}$ to the backing store to complete the merge.
+The merge procedure is straightforward: the router keeps $A^N$ as auxiliary state and passes it with $\mathbf{S_N}$ to the backing store to complete the merge.
 The backing store already knows $S$, since it is the default starting value for the state, which does not change.
 
 \section{Bounded packet history}
 
-The required auxiliary state is more complex for larger values of $k$. If $k = 1$, $A(p)$ and $B(p)$ are known to the switch for every packet. However, for larger values of $k$, the switch needs access to older packet fields to compute $A(\mathbf{p})$ and $B(\mathbf{p})$. This means the values of $A$ and $B$ are themselves incorrect for the first $k-1$ packets after an eviction, an issue that must be addressed by the merge procedure.
+The required auxiliary state is more complex for larger values of $k$. If $k = 1$, $A(p)$ and $B(p)$ are known to the router for every packet. However, for larger values of $k$, the router needs access to older packet fields to compute $A(\mathbf{p})$ and $B(\mathbf{p})$. This means the values of $A$ and $B$ are themselves incorrect for the first $k-1$ packets after an eviction, an issue that must be addressed by the merge procedure.
 
-Consider Figure~\ref{fig:bph-merge} for $k = 3$. Once the switch performs an eviction at $T_1$,
-the switch cannot properly update the its state for the next two packets (first packets of the subsequent epoch).
+Consider Figure~\ref{fig:bph-merge} for $k = 3$. Once the router performs an eviction at $T_1$,
+the router cannot properly update the its state for the next two packets (first packets of the subsequent epoch).
 It thus starts updating its state from the third packet onwards and entrusts the backing store to
 fill the ``hole'' caused by missing the first two state updates.
 
