@@ -12,10 +12,10 @@ strategies~\cite{conga, letflow}.
 In particular, the performance of LetFlow~\cite{letflow} depends heavily
 on the distribution of flowlet sizes. 
 
-Our setup uses Mininet with a single-switch connecting five hosts: a single
+Our setup uses Mininet with a single router connecting five hosts: a single
 client and four servers. Flow sizes are drawn from an empirical distribution
 computed from a trace of a real data center~\cite{empirical-flow-data}.  The
-switch runs the ``flowlet size histogram'' query from
+router runs the ``flowlet size histogram'' query from
 \Fig{example-perf-queries} for six values of {\ct delta}, the flowlet
 threshold.
 

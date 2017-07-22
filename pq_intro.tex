@@ -10,7 +10,7 @@ challenging to localize queue buildup to a particular router or pinpoint
 traffic causing the queue buildup, forcing operators to infer the network-level
 root causes indirectly~\cite{pingmesh}.
 
-Switch-based monitoring could allow operators to diagnose problems with more
+Router-based monitoring could allow operators to diagnose problems with more
 direct visibility into performance statistics. However, traditional router
 mechanisms like sampling~\cite{netflow, sflow}, mirroring~\cite{cisco-span,
 netsight, everflow}, and counting~\cite{cormode, univmon} are quite restrictive.  Sampling
@@ -50,7 +50,7 @@ wide variety of current and future performance monitoring needs.
 \includegraphics[width=\columnwidth]{pq_overview.pdf}
 \caption{Operators issue \TheSystem queries, which are compiled into router
 programs for programmable routers augmented with our new programmable
-key-value store primitive. Switches stream results from this query to
+key-value store primitive. Routers stream results from this query to
 collection servers that also house the backing store for the key-value store.}
 \label{fig:overview}
 \end{figure}
