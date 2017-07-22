@@ -4,14 +4,12 @@
 %TODO: Ensure merge strategy for bounded packet history is available in the TR
 %TODO: Prove convergence of fixed point algorithm
 
-\chapter{Understanding mergeability}
+\chapter{Details of the merge procedure for linear-in-state functions}
 \label{app:merge}
-
-\section{Details of the merge procedure}
 
 For queries that are linear in state, the state update takes the form $\mathbf{S} = A(\mathbf{p})\cdot\mathbf{S} + B(\mathbf{p})$, where $S$ is a vector of state, and $A$ and $B$ are functions of the previous $k$ packets (denoted by $\mathbf{p})$. Here $k$ is an arbitrary integer.
 
-\subsection{Single packet history}
+\section{Single packet history}
 
 Consider the case where $k = 1$. If the state is $\mathbf{S}$ at any point in time, then after $N$ packets,
 $\mathbf{S_N} = A^N\cdot \mathbf{S} + $ terms independent of $S$. Here, $A^N$ is shorthand for $A(p_N)\cdot A(p_{N-1}) \cdot \ldots \cdot A(p_1)$
@@ -21,7 +19,7 @@ we need to replace $\mathbf{S}$ with $\mathbf{S}_{backing}$ in the expression fo
 The merge procedure is straightforward: the switch keeps $A^N$ as auxiliary state and passes it with $\mathbf{S_N}$ to the backing store to complete the merge.
 The backing store already knows $S$, since it is the default starting value for the state, which does not change.
 
-\subsection{Bounded packet history}
+\section{Bounded packet history}
 
 The required auxiliary state is more complex for larger values of $k$. If $k = 1$, $A(p)$ and $B(p)$ are known to the switch for every packet. However, for larger values of $k$, the switch needs access to older packet fields to compute $A(\mathbf{p})$ and $B(\mathbf{p})$. This means the values of $A$ and $B$ are themselves incorrect for the first $k-1$ packets after an eviction, an issue that must be addressed by the merge procedure.
 

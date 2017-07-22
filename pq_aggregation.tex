@@ -226,9 +226,9 @@ We now formalize
 our results in the form of several theorems.
 
 First, we introduce some formal notation (\S\ref{ss:notation} and \S\ref{ss:closure})
-before presenting the theorems (\S\ref{ss:theorems}).
+before presenting the theorems (\S\ref{ss:proofs}).
 
-\subsection{Notation}
+\subsubsection{Notation}
 \label{ss:notation}
 
 A programmer supplies an aggregation function $f$. $f$ takes as inputs an n-bit \emph{state}
@@ -269,7 +269,7 @@ of packets, similar to a fold function. Additionally, we say that a merge functi
 
 %TODO: DO we need to mention this new made-up notation for composition of $f$ over a sequence of packets?
 
-\subsection{The closure graph}
+\subsubsection{The closure graph}
 \label{ss:closure}
 
 Before proceeding with the proofs, we introduce the directed \emph{closure graph} of $f$, denoted $G(f)$. Suppose that at some point during the aggregation, 
@@ -284,7 +284,7 @@ How does one update the iterated function stored on the switch? The vertices of 
 Each vertex has an outgoing edge corresponding to every possible packet. For a given packet $p$, the iterated function $f_i$ has an edge to the function $f_j$ satisfying $f(f_i(s), p) = f_j(s)$ for all $s$.
 The closure graph thus has the following property: given a sequence of packets $\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th step, follow the edge corresponding to each packet $p_i$. The ending vertex of this process is the iterated function that captures the effect of this packet sequence on any starting state. We say that this ending vertex is the result of \emph{updating the iterated function} by the given sequence of packets. To update the iterated function stored on the switch given a new packet, simply follow the edge labeled with that packet.
 
-\subsection{Proofs of theorems}
+\subsubsection{Proofs of theorems}
 \label{ss:proofs}
 
 \begin{theorem}
