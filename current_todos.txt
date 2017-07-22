@@ -20,3 +20,13 @@ pieces fits within the context of a router ASIC or router chip.
 4. Trim parts of the chapter intros now that we have a longer dissertation introduction
 
 5. Generalizability discussion of Domino atoms + maybe writing more Domino algorithms
+
+6. Fact check Fastpass/Flexplane discussion
+
+7. Add higher-level programming models to future work.
+
+8. Fix missing citations.
+
+9. Fact check related work; proof read section 2.
+
+10. Make an e2e pass
