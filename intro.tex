@@ -117,18 +117,18 @@ a cost: because routers are built out of specialized hardware, they are
 fixed-function devices that can not be reconfigured in the field.
 
 Recent work in software-defined networking~\cite{openflow} (SDN) and
-programmable switching chips~\cite{rmt, xpliant, flexpipe} has endowed fast
+programmable router chips~\cite{rmt, xpliant, flexpipe} has endowed fast
 routers with limited flexibility. SDN allows operators to program the network
 control plane, which is the part of the network that computes a network's
 routing tables, by moving route computations out of the routers and on to a
-programmable server. Programmable switching chips allow operators to program
+programmable server. Programmable router chips allow operators to program
 parts of the data plane, which is the part of the network that forwards packets
 based on the routing tables, such as packet header manipulations that do not
 modify router state.  However, these solutions are still not sufficient to
 express the grayed-out algorithms shown in Figure~\ref{fig:router_algos}
 because (1) these algorithms programmatically manipulate router state and (2)
 they require flexibility in packet scheduling, which is untouched by both SDN
-and programmable switching chips.
+and programmable router chips.
 
 \begin{figure}
 \centering
@@ -652,7 +652,7 @@ presence of TCP incast.
 
 Our \TheSystem compiler compiles queries to two different targets: an atom
 pipeline to determine the hardware feasibility of \TheSystem queries and a
-P4-based software switch~\cite{p4-bmv2} for end-to-end case studies of
+P4-based software router~\cite{p4-bmv2} for end-to-end case studies of
 \TheSystem in Mininet~\cite{mininet}. We find that \TheSystem queries occupy a
 small fraction of the router's computational and memory resources.
 Computationally, they require a small number of atoms. Memory-wise, the
@@ -664,7 +664,7 @@ spikes that occur because of bursty background traffic.
  We determine the eviction rate from the SRAM cache using a trace-driven
 simulation on publicly available packet traces from CAIDA~\cite{caida2016,
 caida2014} and a university data center~\cite{theo_dc}. For a 64 Mbit on-chip
-cache, which occupies about 10\% of the area of a 64×10-Gbit/s switching chip,
+cache, which occupies about 10\% of the area of a 64×10-Gbit/s router chip,
 we estimate that the cache eviction rate from a single top-of-rack switch can
 be handled by a single 8-core server running Redis~\cite{redis}.
 

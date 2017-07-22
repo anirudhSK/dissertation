@@ -70,27 +70,27 @@ to be evicted.
 
 The reciprocal of the eviction ratio (as a fraction) is the reduction in server
 data collection load relative to a {\em per-packet collector} that processes
-per-packet information from switches. For example, for the Core14 trace with a
+per-packet information from routers. For example, for the Core14 trace with a
 $2^{19}$ key-value pair cache, the server load reduction is 25$\times$
 (corresponding to an eviction ratio of 4\%).
 
 \Para{Eviction rates.}
-Eviction ratios are agnostic to specifics of the switch, such as link speed,
+Eviction ratios are agnostic to specifics of the router, such as link speed,
 link utilization, and on-chip cache size in bits. To translate
 eviction ratios (evictions per packet) to eviction \emph{rates} (evictions per
 second), we first compute the average packet size (700 Bytes) and link utilization
 (30\%) from the Core16 trace.
 
-Next, we estimate the on-chip cache size for a \tengswitch switch and a
-\hundredgswitch switch.
-On a \tengswitch switch, SRAM
+Next, we estimate the on-chip cache size for a \tengrouter router and a
+\hundredgrouter router.
+On a \tengrouter router, SRAM
 densities are $\approx$ 3--4 $\nicefrac{Mbit}{mm^2}$~\cite{sram_45nm_wiki}, and
-the smallest switching chips occupy 200
+the smallest router chips occupy 200
 \si{\milli\metre\squared}~\cite{gibb_parsing}.  Therefore, a 64 Mbit cache in
 SRAM costs around 10\% additional area, which we believe is reasonable.
-For recent \hundredgswitch switches~\cite{tomahawk2},
+For recent \hundredgrouter routers~\cite{tomahawk2},
  SRAM densities are $\approx7
-\nicefrac{Mbit}{mm^2}$~\cite{sram_estimate}, and the switches occupy
+\nicefrac{Mbit}{mm^2}$~\cite{sram_estimate}, and the routers occupy
 $\approx$ 500 \si{\milli\metre\squared},\footnote{S. Chole. Cisco Systems. Private
 communication.  June 2017.} making a 256 Mbit cache (7.3\% area
 overhead) a reasonable target.
@@ -102,21 +102,21 @@ to get the eviction ratio for that query, which we translate to an eviction rate
 using the network utilization and packet size mentioned earlier.
 
 Eviction rates for some sample queries are shown in \Fig{evt-rate-queries}.
- For a \tengswitch switch with a 64 Mbit cache, we observe eviction rates of
-$\approx$ 1M packets per second.  For a \hundredgswitch switch with a 256 Mbit
+ For a \tengrouter router with a 64 Mbit cache, we observe eviction rates of
+$\approx$ 1M packets per second.  For a \hundredgrouter router with a 256 Mbit
 cache and the same average packet size and utilization, the eviction rates can
 reach
  7.17M packets per second. Relative to a per-packet collector,
 \TheSystem reduces the server load by 25--80$\times$.
 
-The eviction rates for both the \tenglink and \hundredglink switches are
+The eviction rates for both the \tenglink and \hundredglink routers are
 under 10M packets per second, well within the capabilities of multi-core
 scale-out key-value
 stores~\cite{redis_benchmark, memcached_benchmark, redis_vs_memcached_update},
 which typically handle 100K--1M operations per second per core.  For instance,
-for a single \tengswitch switch running an aggregation with a 64-bit
+for a single \tengrouter router running an aggregation with a 64-bit
 state size, a single 8-core server is sufficient to handle the eviction rate of
-1.08M packets per second. For a single \hundredgswitch switch running
+1.08M packets per second. For a single \hundredgrouter router running
 the same aggregation, the eviction rate goes up to 5.18M packets per
 second, requiring four such servers.
 
@@ -135,8 +135,8 @@ second, requiring four such servers.
 
   &
   {\textbf{(bits)}} &
-  {\textbf{\tengswitch}} &
-  {\textbf{\hundredgswitch}} \\
+  {\textbf{\tengrouter}} &
+  {\textbf{\hundredgrouter}} \\
 
   &
   &
@@ -159,7 +159,7 @@ histogram (Stage 1) & & & \\ \hline %3.66, 2.08
   load for queries from \Fig{example-perf-queries}.
 Each key-value pair occupies the listed state size plus 104 bits for a
 \txtftuple key.
-The 10-Gbit/s and 100-Gbit/s switches have a 64 Mbit and 256 Mbit cache, respectively.}
+The 10-Gbit/s and 100-Gbit/s routers have a 64 Mbit and 256 Mbit cache, respectively.}
 \label{fig:evt-rate-queries}
 \vspace{-0.15in}
 \end{figure}

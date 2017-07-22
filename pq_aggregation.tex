@@ -2,40 +2,40 @@
 \section{Scalable Aggregation at Line Rate}
 \label{sec:aggregation}
 
-How should switches implement \TheSystem's language constructs? We require
-instructions on switches that can aggregate packets into per-flow state ({\ct
+How should routers implement \TheSystem's language constructs? We require
+instructions on routers that can aggregate packets into per-flow state ({\ct
 groupby}), transform packet fields ({\ct map}), stream only packets matching a
 predicate ({\ct filter}), or merge packets that satisfy two previous queries
 ({\ct zip}).
 
 Of the four language constructs, {\ct map}, {\ct filter},
 and {\ct zip}, are {\em stateless}: they operate on packet fields alone and do not
-modify switch state. Such stateless manipulations are already supported on
-emerging programmable switches that support programmable packet header
+modify router state. Such stateless manipulations are already supported on
+emerging programmable routers that support programmable packet header
 processing~\cite{rmt, xpliant, flexpipe, tofino}. On the other hand, the {\ct
-groupby} construct needs to maintain and update state on switches.
+groupby} construct needs to maintain and update state on routers.
 
 %It is the
 %most powerful of our language constructs and captures the kind of complex
 %processing typically seen at end hosts.
 
-Stateful manipulation on a switch for a {\ct groupby} is challenging for two reasons. First, the
+Stateful manipulation on a router for a {\ct groupby} is challenging for two reasons. First, the
 time budget to update state before the next packet arrives can be as low as a
-nanosecond on high-end switches~\cite{domino_sigcomm}. Second, the switch needs
+nanosecond on high-end routers~\cite{domino_sigcomm}. Second, the router needs
 to maintain state proportional to the number of aggregated records (\eg per flow), which may grow unbounded
 with time. We address both challenges using a programmable key-value store in
 hardware, where the keys represent aggregation fields and values
 represent the state being updated by the aggregation function.
 Our key-value store has a `split' design: a small and fast
-on-chip key-value store on the switch processes packets at line rate, while a
+on-chip key-value store on the router processes packets at line rate, while a
 large and slow off-chip backing store allows us to scale to a large number of
 flows.
 
-High-speed switch ASICs typically feature an ingress and egress pipeline
+High-speed router ASICs typically feature an ingress and egress pipeline
 shared across multiple ports, running at a 1 GHz clock rate to support up to a
 billion 64-byte packets per second of aggregate capacity~\cite{rmt}.  To handle
 state updates from packets arriving at 1 GHz, the on-chip key-value store must
-be in SRAM on the switch ASIC. However, the SRAM available for monitoring on an
+be in SRAM on the router ASIC. However, the SRAM available for monitoring on an
 ASIC (\Sec{eval:traces}) is restricted to tens of Mbits (about 10K--100K flows).
 
 To scale to a larger number of flows, the on-chip key-value store serves as a
@@ -44,7 +44,7 @@ cache misses require accessing off-chip DRAM with non-deterministic
 latencies~\cite{unpredictable_cache} to read off the stored state. Because the
 aggregation operation requires us to read the value in order to update it, the
 entire state update operation incurs non-deterministic latencies in the
-process.  This results in stalls in the switch pipeline. Unfortunately,
+process.  This results in stalls in the router pipeline. Unfortunately,
 pipeline stalls affect the ability to provide guarantees on line-rate
 packet processing (10--100 Gbit/s) on all ports.
 
@@ -62,12 +62,12 @@ same flow are aggregated within the newly created flow entry in the key-value
 store, until the flow is evicted. When it is evicted, we merge the flow's value
 just before eviction with its value in the backing-store using a {\em merge
 function}, and write the merged result to the backing store. In our design, the
-switch only writes to the backing store but never reads from it, which helps
+router only writes to the backing store but never reads from it, which helps
 avoid non-deterministic latencies.  The backing store may be
 stale relative to the on-chip cache if there have been no recent evictions. We
 remedy this by forcing periodic evictions.
 
-To merge a flow's new aggregated value in the switch cache with its old value in the backing store
+To merge a flow's new aggregated value in the router cache with its old value in the backing store
 correctly, the cache needs to maintain and send {\em auxiliary state} to the
 backing store.  A \naive usage of auxiliary state is to store relevant fields
 from every packet of a flow, so that the backing store can simply run the
@@ -160,7 +160,7 @@ $\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ are functions of b
 with $k = 2$.
 %  This is in contrast to {\ct maxseq}, which depends on all packets seen so far.
 
-Merging queries that are linear-in-state requires the switch to store
+Merging queries that are linear-in-state requires the router to store
 the first $k$ and most recent $k$ packets
 for the key since it (re)appeared in the key-value store; details are
 available in the appendix (Appendix~\ref{app:merge}).
@@ -183,7 +183,7 @@ number of TCP timeouts per connection.
 {\ct groupby} uses an {\ct emit()} to pass tuples to another query, it cannot be
 implemented scalably even if its aggregation function is linear-in-state or associative. An {\ct emit()} outputs the current state of the
 aggregation function, which assumes the current state is always available in
-the switch's on-chip cache. This is only possible if flows are never evicted,
+the router's on-chip cache. This is only possible if flows are never evicted,
 effectively shrinking the key-value store to its on-chip cache alone.
 
 \subsection{Handling non-scalable aggregations}
@@ -281,9 +281,9 @@ we can compute an \emph{iterated} function $f_i \in \{0,1\}^n \rightarrow \{0,1\
 Our goal is to store some compact representation of the iterated function in the on-chip cache as part of the auxiliary state. Conceptually,  this iterated function is updated with each new packet that is seen, so that when a key is evicted from the on-chip cache,
 an identifier for the updated iterated function is sent to the backing store. The backing store then applies this iterated function to the state $s_{backing}$ stored from a previous eviction to get the new value.
 
-How does one update the iterated function stored on the switch? The vertices of the closure graph of $f$ are iterated functions $f_i$, and we let $|G(f)|$ indicate the number of vertices. Since there are a finite number of functions $\{0, 1\}^n \rightarrow \{0, 1\}^n$, the size of the graph is bounded.
+How does one update the iterated function stored on the router? The vertices of the closure graph of $f$ are iterated functions $f_i$, and we let $|G(f)|$ indicate the number of vertices. Since there are a finite number of functions $\{0, 1\}^n \rightarrow \{0, 1\}^n$, the size of the graph is bounded.
 Each vertex has an outgoing edge corresponding to every possible packet. For a given packet $p$, the iterated function $f_i$ has an edge to the function $f_j$ satisfying $f(f_i(s), p) = f_j(s)$ for all $s$.
-The closure graph thus has the following property: given a sequence of packets $\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th step, follow the edge corresponding to each packet $p_i$. The ending vertex of this process is the iterated function that captures the effect of this packet sequence on any starting state. We say that this ending vertex is the result of \emph{updating the iterated function} by the given sequence of packets. To update the iterated function stored on the switch given a new packet, simply follow the edge labeled with that packet.
+The closure graph thus has the following property: given a sequence of packets $\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th step, follow the edge corresponding to each packet $p_i$. The ending vertex of this process is the iterated function that captures the effect of this packet sequence on any starting state. We say that this ending vertex is the result of \emph{updating the iterated function} by the given sequence of packets. To update the iterated function stored on the router given a new packet, simply follow the edge labeled with that packet.
 
 \subsubsection{Proofs of theorems}
 \label{ss:proofs}
@@ -293,12 +293,12 @@ A merge function exists to successfully merge an aggregation function $f$,
 provided it can use up to $n2^n$ auxiliary bits.
 \end{theorem}
 \begin{proof}
-We can represent each iterated function $f_i$ in $n2^n$ bits, using a list of $2^n$ $n-$bit numbers. This list enumerates the output of the iterated function on every possible input, \ie the $k$th item in the list is $f_i(k)$. The switch stores this representation. For each new packet $p$, the switch computes the update to each number in the list: $f_i(k) \rightarrow f(f_i(k), p)$. Upon a merge, the switch sends this representation to the backing store, which can then evaluate $f_i(s_{backing})$, where $s_{backing}$ is the value stored in the backing store.
+We can represent each iterated function $f_i$ in $n2^n$ bits, using a list of $2^n$ $n-$bit numbers. This list enumerates the output of the iterated function on every possible input, \ie the $k$th item in the list is $f_i(k)$. The router stores this representation. For each new packet $p$, the router computes the update to each number in the list: $f_i(k) \rightarrow f(f_i(k), p)$. Upon a merge, the router sends this representation to the backing store, which can then evaluate $f_i(s_{backing})$, where $s_{backing}$ is the value stored in the backing store.
 \end{proof}
 
-Note that the switch needs to tell the backing store what update to perform on the value it currently has. Each iterated function in the closure graph is a possible update, so the switch needs to convey at least $\log |G(f)|$ auxiliary bits for the merge to be possible.
+Note that the router needs to tell the backing store what update to perform on the value it currently has. Each iterated function in the closure graph is a possible update, so the router needs to convey at least $\log |G(f)|$ auxiliary bits for the merge to be possible.
 
-As an example, consider a simple counter, where $f(s, p) = s + 1$ and $s_0 = 0$. If the counter has $n$ bits, the closure graph is a ring of size $2^n$, where the $i$th vertex represents the iterated function $f_i(s) = s + i$. Note that all edges from the $i$th vertex point to the $i+1$st vertex. For every observed packet, the switch walks one step further around the ring. This is implemented efficiently via adding 1 to an $n$-bit counter. After $K$ packets, the iterated function on the switch is $f_{k}$, where $k = K \mod 2^n$. Upon merging, this is sent to the backing store, which then knows to add $k$ to the existing backing store value.
+As an example, consider a simple counter, where $f(s, p) = s + 1$ and $s_0 = 0$. If the counter has $n$ bits, the closure graph is a ring of size $2^n$, where the $i$th vertex represents the iterated function $f_i(s) = s + i$. Note that all edges from the $i$th vertex point to the $i+1$st vertex. For every observed packet, the router walks one step further around the ring. This is implemented efficiently via adding 1 to an $n$-bit counter. After $K$ packets, the iterated function on the router is $f_{k}$, where $k = K \mod 2^n$. Upon merging, this is sent to the backing store, which then knows to add $k$ to the existing backing store value.
 
 In general, requiring $n2^n$ bits is typically infeasible for even moderate values of $n$. This is where the linear-in-state and associative conditions come in. We show that either of these conditions is enough to require only $O(n)$ auxiliary bits of space.
 
@@ -310,7 +310,7 @@ merge function that uses only $O(n)$ auxiliary bits.
 The associative condition is trivial: by definition, no auxiliary bits are required because the merge function simply applies the original aggregation function on the values in the cache and the backing store. Hence, we focus on the linear-in-state condition.
 Suppose $f$ is an aggregation function that is linear-in-state, \ie $f(\mathbf{S}, p) = \mathbf{A}(p) \cdot \mathbf{S} + \mathbf{B}(p)$, where $\mathbf{S}$ is a state vector, and $\mathbf{A,B}$ are matrices depending only on the incoming packet. Then:
 \[ f(\mathbf{S}_0, \{p_1, \ldots, p_k\}) = \mathbf{A}(p_k)\ldots \mathbf{A}(p_1) \cdot \mathbf{S}_0 + \mathbf{C}(p_1, p_2, \ldots, p_k) \equiv \mathbf{A'} \cdot \mathbf{S}_0 + \mathbf{C}(p_1, \ldots, p_k)\]
-where $\mathbf{C}$ is some function of only the packets and $\mathbf{A'}$ is a composition of the $\mathbf{A}$ matrices for the observed packets. The switch keeps track of $\mathbf{A'}$ and $\mathbf{C}$, which requires $O(nd^2)$ space where $d$ is the number of pieces of state, each of which we assume has size $n$. These matrices are sent to the backing store upon eviction, at which point the merge operation computes the new backing store value:
+where $\mathbf{C}$ is some function of only the packets and $\mathbf{A'}$ is a composition of the $\mathbf{A}$ matrices for the observed packets. The router keeps track of $\mathbf{A'}$ and $\mathbf{C}$, which requires $O(nd^2)$ space where $d$ is the number of pieces of state, each of which we assume has size $n$. These matrices are sent to the backing store upon eviction, at which point the merge operation computes the new backing store value:
 \[ \mathbf{S}_d \leftarrow \mathbf{C}(p_1, \ldots, p_k) + \mathbf{A'} \cdot \mathbf{S}_d \]
 It's easy to verify that this is the proper merge procedure.
 \end{proof}
@@ -474,7 +474,7 @@ hope to do.
 We optimize our stateful hardware design for linear-in-state queries and break
 it down into five components.  Each component is well-known; our main
 contribution is putting them together to implement stateful queries.
-%One important design choice for a switch designer is how much memory to
+%One important design choice for a router designer is how much memory to
 %provision for the on-chip cache, which we evaluate in \Sec{eval}.
 We now discuss each component in detail.
 
@@ -491,20 +491,20 @@ processors~\cite{intel_opt_manual}. This cache eviction policy is close to an
 ideal but impractical policy that evicts the least recently used (LRU) flow
 across the whole table (\Sec{eval}).
 
-Within a switch pipeline stage, the on-chip cache has a logical interface
+Within a router pipeline stage, the on-chip cache has a logical interface
 similar to an on-chip hash table used for counters:
 each packet matches entries in the table using a key
 extracted from the packet header, and the corresponding action (\ie increment)
-is executed by the switch.
+is executed by the router.
 %
-An on-chip hash table may be used as a path to incrementally deploying a switch
+An on-chip hash table may be used as a path to incrementally deploying a router
 cache for specific aggregations (\eg increments), on the way to supporting
 more general actions and cache eviction logic in the future.
 
 \textbf{The off-chip backing store} is a scale-out key-value store such as
 Redis~\cite{redis} running on dedicated collection servers within the network. As \Sec{eval}
 shows, the number of measurement servers required to support typical eviction
-rates from the switch's on-chip cache is small, even for a \hundredgswitch switch.
+rates from the router's on-chip cache is small, even for a \hundredgrouter router.
 
 \textbf{Maintaining packet history.} Before a packet reaches the pipeline stage
 with the on-chip cache, we use the preceding stages to precompute
@@ -520,7 +520,7 @@ register, which is read by a packet arriving at that stage, carried
 by the packet as a header, and written into the next stage's register. Once values from the last
 $k$ packets have been read into packet fields, $\boldsymbol{A}(\mathbf{p})$ and
 $\boldsymbol{B}(\mathbf{p})$ can be computed with stateless instructions provided by
-programmable switch architectures~\cite{rmt, domino_sigcomm}.
+programmable router architectures~\cite{rmt, domino_sigcomm}.
 
 \textbf{Carrying out the linear-in-state operation.} Once $\boldsymbol{A}(\mathbf{p})$ and
 $\boldsymbol{B}(\mathbf{p})$ are known, we use a multiply-accumulate (MAC)
@@ -528,7 +528,7 @@ instruction~\cite{mac} to compute $\boldsymbol{A}(\mathbf{p}) \cdot \boldsymbol{
 \boldsymbol{B}(\mathbf{p})$. This instruction is very cheap to implement: our circuit
 synthesis experiments show that a MAC instruction meets timing at 1 GHz and
 occupies about 2000 \si{\micro\metre\squared} in a recent 32 nm transistor
-library. A switching chip with an area of a few hundred
+library. A router chip with an area of a few hundred
 \si{\milli\meter\squared} can easily support a few hundred MAC instructions.
 
 \textbf{Queries that are not linear-in-state.} We use the set of stateful

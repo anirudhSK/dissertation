@@ -5,16 +5,16 @@
 \Fig{example-perf-queries} shows several \TheSystem queries. Alongside each
 query, we show (1) whether all its aggregations are linear-in-state, (2)
 whether it can be scaled by merging correctly with a backing store, and (3) the
-switch resources required, measured through the pipeline depth (number of
+router resources required, measured through the pipeline depth (number of
 stages), width (maximum number of parallel computations per stage), and
 number of Banzai atoms (total number of computations) required.
 %
-%% Atoms are processing units or ALUs representing a programmable switch's
+%% Atoms are processing units or ALUs representing a programmable router's
 %% instruction set.
 %
 %% An atom models an atomic unit of computation provided natively by a
-%% programmable switch and can implement either a stateless (\eg incrementing a
-%% packet field) or stateful (\eg incrementing a switch counter) computation.
+%% programmable router and can implement either a stateless (\eg incrementing a
+%% packet field) or stateful (\eg incrementing a router counter) computation.
 
 \Fig{example-perf-queries} shows that many useful queries contain only
 linear-in-state aggregations, and most of them scale to a large number of keys
@@ -25,7 +25,7 @@ showed how to rewrite some of these queries (\eg lossy connections) to scale, at
 the cost of losing some accuracy.
 
 We compute the pipeline's depth and width by compiling each query to the Banzai
-switch pipeline simulator. Banzai is supplied
+router pipeline simulator. Banzai is supplied
 with stateless atoms, which perform binary operations (arithmetic, logic, and
 relational) on pairs of packet fields, and one stateful atom. For the
 linear-in-state operations, we use the multiply-accumulate atom as the stateful
@@ -40,11 +40,11 @@ This is feasible, \eg the
 RMT architecture offers 32 stages~\cite{rmt}. Further, functionality other than
 measurement can run in parallel
 because the number of atoms required per stage is at most 6, while
-programmable switches provide \textasciitilde{}100 parallel instructions per stage
+programmable routers provide \textasciitilde{}100 parallel instructions per stage
 (\eg RMT provides 224~\cite{rmt}).
 
 %\Anirudh{the sentence below is redundant because once you know that you're well within
 %the stage depth and stage width limits, you know it's feasible.}
 %The atom count across all queries is at most 31.  Atom
 %circuits occupy small areas relative to the chip overall, so hundreds of atoms
-%can easily fit on a switch~\cite{domino_sigcomm}.
+%can easily fit on a router~\cite{domino_sigcomm}.

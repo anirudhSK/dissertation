@@ -72,11 +72,11 @@ at that time~\cite{catalyst}.
 While the capsule approach---arguably the most ambitious of all active
 networking visions---has not panned out in its most general form due to
 security concerns, recent systems~\cite{int} have exposed a far more restricted
-subset of a switch's features to end hosts (\eg read only access to switch
+subset of a router's features to end hosts (\eg read only access to router
 state from end hosts, but not write access), reminiscent of the capsule
 approach. On the other hand, the programmable router approach has seen further
 work in various forms: software routers, software-defined networking, and
-programmable switching chips all provide networking operators with varying
+programmable router chips all provide networking operators with varying
 levels of router programmability.
 
 %TODO: E2e argument and active networks
@@ -137,7 +137,7 @@ This approach also required a mechanism for the control plane to actually
 populate the contents of the routing tables that would be consulted by the data
 plane when forwarding packets. The most well-known of these mechanisms is the
 OpenFlow API~\cite{openflow}, which exposed a minimal interface to the
-forwarding tables in switch hardware. The goal of OpenFlow was to serve as a
+forwarding tables in router hardware. The goal of OpenFlow was to serve as a
 minimum common denominator across interfaces to different forwarding chips so
 that existing chips could immediately support the OpenFlow API.
 
@@ -166,7 +166,7 @@ requirements are not excessively high.
 \subsection{Edge-based software-defined networking (2013 to now)}
 While OpenFlow provided a foot in the door, it soon became clear that the
 OpenFlow API was not expressive enough to capture all the needs of network
-operators. Extensions to the API included the ability to manipulate switch
+operators. Extensions to the API included the ability to manipulate router
 state~\cite{fast}, the ability to perform network
 measurements~\cite{opensketch}, and the ability to be independent of the actual
 protocol~\cite{pof}.
@@ -183,11 +183,11 @@ more programmable than the restricted OpenFlow API would have allowed. Open
 Virtual Switch~\cite{ovs} is probably the most well-known example of an edge
 router implemented on top of a CPU in the server's hypervisor. More recently,
 increasing performance requirements on the edge have led to moving the virtual
-switch's functionality on to an FPGA~\cite{daniel_firestone_nsdi}. 
+router's functionality on to an FPGA~\cite{daniel_firestone_nsdi}. 
 
 %https://www.sdxcentral.com/articles/news/scott-shenker-preaches-revised-sdn-sdnv2/2014/10/
 
-\subsection{Programmable switching chips (2013 to now)}
+\subsection{Programmable router chips (2013 to now)}
 Another response to the difficulty of extending OpenFlow to support an
 ever-changing list of protocol formats was to develop a minimal instruction set
 for a router that would permit a network operator to express forwarding rules

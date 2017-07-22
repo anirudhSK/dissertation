@@ -1,10 +1,10 @@
 \subsection{Query AST to pipeline configuration}
 \label{sec:pipeline-layout}
 
-%TODO: We don't actually say how this switch-local query AST was generated.
+%TODO: We don't actually say how this router-local query AST was generated.
 This compiler pass first generates a sequence of operators from the
-switch-local query AST of \Sec{network-to-switch-local}. This sequence of
-operators will then be used in the same order to generate a switch pipeline
+router-local query AST of \Sec{network-to-router-local}. This sequence of
+operators will then be used in the same order to generate a router pipeline
 configuration. There are two aspects that require care when constructing a
 pipeline structure: (1) the pipeline should respect read-write dependencies
 between different operators, and (2) repeated subqueries should not create
@@ -17,7 +17,7 @@ operators: {\ct tcps} ({\ct filter}) $\rightarrow$ {\ct tslots} ({\ct map})
 $\rightarrow$ {\ct joined} ({\ct zip}) $\rightarrow$ {\ct oos} ({\ct groupby}).
 
 %TODO: How do you turn the sequence into a pipeline?
-Next, the compiler emits P4 code for a switch pipeline
+Next, the compiler emits P4 code for a router pipeline
 from the operator sequence.  The {\ct filter} and {\ct zip} configuration just
 involves checking a predicate and setting a ``valid'' bit on the packet
 metadata. The {\ct map} configuration assigns a packet metadata field to the
@@ -28,11 +28,11 @@ straight-line code consisting of C-style conditional operators through a
 standard procedure known as if-conversion~\cite{if-conversion}. This allows us
 to fit the aggregation function into the body of a single P4 action.
 
-To target the Banzai switch pipeline simulator~\cite{domino_sigcomm}, the
+To target the Banzai router pipeline simulator~\cite{domino_sigcomm}, the
 \TheSystem compiler emits Domino code by concatenating C-like code fragments
 from all pipeline stages into a single Domino program. The Domino compiler then
 takes this program and compiles it to a pipeline of Banzai {\em atoms.} Atoms
-are ALUs representing a programmable switch's instruction set. Atoms implement
+are ALUs representing a programmable router's instruction set. Atoms implement
 either stateless (\eg incrementing a packet field) or stateful (\eg atomically
-incrementing a switch counter) computations.
+incrementing a router counter) computations.
 

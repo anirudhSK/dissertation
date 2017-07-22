@@ -1,7 +1,7 @@
 \section{The \TheSystem Query language}
 \label{sec:language}
 This section describes the \TheSystem query language.
-\S\ref{sec:aggregation} then covers the switch implementation of the
+\S\ref{sec:aggregation} then covers the router implementation of the
 language constructs, while \S\ref{sec:compiler} describes the compiler.
 \TheSystem provides the abstraction of a network-wide stream of performance
 information. The tuples in the stream contain performance metadata, such as
@@ -9,7 +9,7 @@ queue lengths and timestamps when a packet entered and departed queues, for
 each packet at each queue in the network. Network operators write queries
 on this stream as if the entire stream is processed by a single hypothetical
 server running the query. In reality, the compiler partitions the query across the
-network and executes each part on individual switches.
+network and executes each part on individual routers.
 
 \TheSystem programs process the performance stream using familiar functional
 constructs ({\ct filter}, {\ct map}, {\ct groupby}, and {\ct zip}), all of
@@ -25,11 +25,11 @@ use cases, but still simple enough to implement in high-speed hardware.
 call {\ct \pktlog}, \TheSystem provides one tuple for each packet at each queue
 with the following fields.
 \begin{lstlisting}
-(switch, qid, hdrs, uid, tin, tout, qsize)
+(router, qid, hdrs, uid, tin, tout, qsize)
 \end{lstlisting}
-{\ct switch} and {\ct qid} denote the switch and queue at which the
+{\ct router} and {\ct qid} denote the router and queue at which the
 packet was observed. A packet may traverse multiple queues even within a single
-switch, so we provide distinct fields. The regular packet headers (Ethernet,
+router, so we provide distinct fields. The regular packet headers (Ethernet,
 IP, TCP, \etc) are available in the {\ct hdrs} set of fields, with a {\ct uid}
 that uniquely determines a packet.\footnote{It is usually possible to
 use a combination of the \txtftuple and IP ID field as the {\ctfoot uid}.}
@@ -48,10 +48,10 @@ order of packet dequeue time
 ({\ct tout}), since this is the earliest time at which all tuple fields in {\ct
 \pktlog} are known.\footnote{We assume clock synchronization
 to let us compare {\ctfoot tin} and {\ctfoot tout} values from different
-switches. Without
+routers. Without
 synchronization, the programmer can still write queries
 that do not compare time-valued fields {\ctfoot tin} and {\ctfoot tout} across
-switches.}
+routers.}
 %
 \Anirudh{NG: I think the sentence above is important. Mohammad's confusion with
   time at which something happens is partly because of this.}
@@ -62,10 +62,10 @@ arbitrary order.
 
 \Para{Restricting packet performance metadata of interest.} Consider the
 example of tracking packets that experience high queueing latencies at a
-specific queue ({\ct Q}) and switch ({\ct S}). This is expressed by
+specific queue ({\ct Q}) and router ({\ct S}). This is expressed by
 the query:
 \begin{lstlisting}
-result = filter((*\pktlog,*) qid == Q and switch == S
+result = filter((*\pktlog,*) qid == Q and router == S
                 and tout - tin > 1ms)
 \end{lstlisting}
 The {\ct filter} operator restricts the user's attention to those packets with
@@ -101,7 +101,7 @@ flexible order-dependent aggregation functions over the tuples of each substream
 a user can track latency spikes for each connection by maintaining an
 exponentially weighted moving average (EWMA) of queueing latencies:
 \begin{lstlisting}
-result = groupby((*\pktlog{}*), [(*\codeftuple{}*), switch], ewma);
+result = groupby((*\pktlog{}*), [(*\codeftuple{}*), router], ewma);
 def ewma([avg], [tin, tout]):
   avg = ((1-alpha)*avg) + (alpha*(tout-tin));
 \end{lstlisting}
@@ -217,29 +217,29 @@ network latencies, and TCP fan-in.
 
 %Further, the \TheSystem compiler
 %(\Sec{compiler}) rejects queries that require processing multiple packets in
-%order across multiple switches.
+%order across multiple routers.
 
 \Para{Restrictions on \TheSystem queries.}
 Some aggregations are challenging to implement over a network-wide stream. For
 example, consider an EWMA over some packet field across all packets seen
 anywhere in the entire network, while processing packets in the order of their
 {\ct tout} values. Even with clock synchronization, this aggregation is hard to
-implement because it requires us to either coordinate between switches or
+implement because it requires us to either coordinate between routers or
 stream all packets to a central location.
 
 \TheSystem's compiler rejects queries with aggregations that need to process
-{\em multiple packets} at {\em multiple switches} in {\em order of their {\ct tout}
+{\em multiple packets} at {\em multiple routers} in {\em order of their {\ct tout}
 values}. Concretely, we only allow aggregations that relax one of these three
 conditions, and thus either
 \begin{enumerate}
-\item operate independently on each switch, in which case we naturally
-  partition queries by switch (\eg a per-flow EWMA of queueing latencies on a
-  particular switch), or
+\item operate independently on each router, in which case we naturally
+  partition queries by router (\eg a per-flow EWMA of queueing latencies on a
+  particular router), or
 \item operate independently on each packet, in which case we have the packet
-  perform the coordination by carrying the aggregated state to the next switch on
+  perform the coordination by carrying the aggregated state to the next router on
   its path (\eg a rolling average link utilization seen by the packet
   along its path), or
-\item are associative and commutative, in which case independent switch-local results can be
+\item are associative and commutative, in which case independent router-local results can be
   combined in any order to produce a correct overall result for the network~\cite{theory-tr},
   \eg a count of how many times packets from a flow
   appeared throughout the network. In this case, we rely on the
