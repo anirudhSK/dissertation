@@ -51,3 +51,24 @@ only deal with the former here.
 * Be consistent with the project names and abstraction names TODO
 
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
+
+High-level feedback from defense:
+============
+
+6. Clarifying what we lose by determining packet rank at enqueue alone, as opposed to changing it later at dequeue.
+7. More examples showing the generalizability of Domino's atoms. Could add code listing of the Domino algorithms to the appendix.
+8. Distinguish computational capabilities of a pipeline from information not being available. For instance, RED needs queue depth that is not available, but the EWMA operation itself is rather straightforward.
+17. Clarify linear-in-state algorithm further.
+
+More feedback:
+==============
+1. Killer app for programmability: Measurement maybe?
+2. Bridging gap between applications and the network (could be one item in future work).
+3. Distinguish between availability of state and the computation that actually happens on the state.
+For instance, RED is limited by the availability of queue size information in the ingress pipeline,
+while the RED computation is definitely possible using a simple multiply-and-accumulate atom.
+4. Crisply state the boundaries of the systems, especially atoms. Why can't you do trTCM? CoDel is a little
+bit of a glib example: no floating point isn't sufficiently satisfying as an explanation.
+5. The middle plane of networking: add this to future work.
+6. What are the abstraction disadvantages to determining the packet's priority at the enqueue? Correspondingly,
+what are the implementation advantages to determining the packet's priority at the enqueue?
