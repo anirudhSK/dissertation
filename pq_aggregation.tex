@@ -469,16 +469,65 @@ specific classes of functions (\eg linear-in-state and associative) and
 checking if an aggregation function belongs to these classes is the best we can
 hope to do.
 
+\subsection{Related work on distributed aggregations} Our linear-in-state
+characterization is related to {\em distributed aggregation} in large-scale
+data analytics~\cite{symple, distagg}. The goal of distributed aggregation is
+to compute an aggregate (\eg count) of a list of items in a distributed
+fashion, instead of processing the entire list serially. In distributed
+aggregation, different portions of the list are aggregated independently and
+the partial results are combined together, potentially improving performance
+relative to serial aggregation.
+
+The connection to distributed aggregation is as follows: the merge procedure
+can be seen as combining the results of two independent aggregations on two
+halves of a list.  Further, this merge procedure can be performed recursively
+by computing the aggregation on each half of the list in a distributed fashion,
+ \ie using a merge function that combines results from partial aggregations on
+quarters of the list.
+
+The simplest class of aggregations that permit distributed aggregation are
+those that are both commutative and associative~\cite{distagg}. The associative
+condition is consistent with the associative class of merge functions above. In
+addition, the commutative condition is required for distributed aggregation
+because there is no guarantee on the order in which the two halves of the list
+will be processed.
+
+The SYMPLE system~\cite{symple} extends distributed aggregation to include
+functions that are neither commutative nor associative.  SYMPLE works by
+dividing the list to be aggregated into multiple segments. The aggregation is
+computed starting from the initial state on the first segment.  For the second
+and subsequent segments, the initial state at the start of the segment is the
+aggregated state after aggregating the list up to the previous segment. Hence,
+the segment's initial state is unknown until the previous segment is
+aggregated.
+
+To break this dependency on the previous segment, SYMPLE computes the
+aggregations on the second and subsequent lists {\em symbolically}.  The result
+of this is a concrete aggregated state value for the first segment, and a set
+of symbolic expressions/functions for the remaining segments.  These symbolic
+expressions/functions are conceptually identical to the iterated functions used
+in our proof constructs.  They map an unknown initial state at the beginning of
+the segment to the final state at the end of the segment, given the concrete
+list values seen in that segment.
+
+To facilitate symbolic computation, SYMPLE restricts the set of operations that
+can be carried out in distributed aggregation. For instance, SYMPLE allows a
+state variable to be multiplied by a constant, but not another state variable.
+SYMPLE also does not allow division operations on state variables. We observe
+that these restrictions are consistent with the restrictions on a
+linear-in-state aggregation function. However, we leave a precise
+characterization of the similarities and differences between the expressiveness
+of SYMPLE and linear-in-state aggregations to future work.
+
 \subsection{Hardware feasibility}
 \label{sec:hardware-feasibility}
 We optimize our stateful hardware design for linear-in-state queries and break
 it down into five components.  Each component is well-known; our main
 contribution is putting them together to implement stateful queries.
-%One important design choice for a router designer is how much memory to
-%provision for the on-chip cache, which we evaluate in \Sec{eval}.
+One important design choice for a router designer is how much memory to
+provision for the on-chip cache, which we evaluate in \Sec{eval}.
 We now discuss each component in detail.
 
-%Removed 128-bit key and 32-bit value because we evaluate different key and value sizes in eval
 \textbf{The on-chip cache} is a hash table where each row in the hash table
 stores keys and values for a certain number of flows. If a packet from a new
 flow hashes into a row that is full, the least recently used flow within that
