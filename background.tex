@@ -329,7 +329,10 @@ LSTF is limited. For example, LSTF cannot express:
   arbitrary virtual start times, and be deprived of its fair share indefinitely.
   UPS provides a fix to this that requires estimating fair shares periodically,
   which is hard to do in practice.
-  %TODO: Check that the above point is accurate.
+  %TODO: Need to fix this short-term bandwidth fairness point above. Look at LSTF's
+  % implementation from the NSDI paper and ensure what I say here is consistent.
+  % Right now the point above talks about a hypothetical virtual time based impl.
+  % of fair queueing using LSTF. But LSTF doesn't use virtual time.
 \end{CompactEnumerate}
 The restrictions in UPS/LSTF are a result of a limited programming model. UPS
 assumes that routers are fixed and cannot be programmed to modify packet fields
