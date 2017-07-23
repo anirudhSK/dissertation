@@ -12,26 +12,32 @@ limitations of each individual system.
 that none of our three systems has a hardware implementation in silicon. This
 is a problem that crops us whenever a new system that needs hardware
 modifications needs to be evaluated. Designing a new chip can take a few years,
-and it requires both a significant financial investment and access to large
-teams of engineers.
+and it requires both a significant financial investment and access to a large
+team of engineers.
 
- Instead, we evaluated these systems using a combination of simulation and
-microbenchmarks. We briefly considered an FPGA implementation on the NetFPGA
+ As a result, we evaluated these systems using a combination of simulation to
+check correctness and synthesis experiments to evaluate area overheads of new
+hardware deisgns. We briefly considered an FPGA implementation on the NetFPGA
 platform~\cite{netfpga}, but decided against it because the relative areas
-consumed by router subsystems on an FPGA may not accurately reflect the relative
-area consumptions on a router ASIC.\footnote{Even though an FPGA implementation
-will not give us the right area assessments, there may still be value to an
-FPGA implementation, as a vehicle for evaluating ideas end-to-end, much like we
-did with our Mininet evaluation (\S\ref{sec:eval:mininet}).}
-%TODO: There is a contradiction between the previous paragraph and the next one.
+consumed by router subsystems on an FPGA may not accurately reflect the
+relative area consumptions on a router ASIC. Instead, we paid careful attention
+to keeping our hardware designs simple, and reused standard hardware designs
+(\eg LRU caches and first-in first-out queues) wherever possible. To allow a
+router ASIC designer to leverage our results, we clearly specified the
+interfaces between the different hardware blocks in our design.
 
-That said, we paid careful attention to keeping the hardware designs simple,
-clearly specified the interfaces between the different hardware blocks, and
-evaluated the area consumed by our hardware designs by synthesizing them to a
-recent transistor library. The development of new FPGA technology that allows
-clock rates of up to 1 GHz on some FPGA designs~\cite{hyperflex} suggests a way
-to prototype hardware at near-ASIC speeds while benefiting from the cheaper
-non-recurrent-enginerring cost and flexibility of an FPGA.
+There is still value to an FPGA implementation, which we hope to explore in
+future work. First, an FPGA implementation allows us to check the correctness
+of the same Verilog code that we run synthesis experiments on, especially when
+interfacing a router with the external world. Second, an FPGA implementation
+can serve as a vehicle for evaluating ideas end-to-end, much like our Mininet
+evaluation (\S\ref{sec:eval:mininet}).}. Third, the development of new FPGA
+technology that allows clock rates of up to 1 GHz~\cite{hyperflex} suggests a
+way to prototype hardware at near-ASIC speeds while benefiting from the
+flexibility of an FPGA. An ASIC design of the hardware would still be required
+for large-scale commercial production of the hardware design.  This is because,
+relative to an ASIC, an FPGA would have an increased power consumption, greater
+area footprint, and higher unit price at large volumes.
 
 \Para{Lack of completeness theorems.} Another major limitation with our systems
 is that we do not have a definitive formal characterization of what can and
