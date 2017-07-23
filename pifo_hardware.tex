@@ -7,30 +7,6 @@ scheduler. We discuss performance requirements
 (\S\ref{ss:interconnect}).  Finally, we estimate the additional chip area
 incurred by our design (\S\ref{ss:feasibility}).
 
-%Relate our hardware implementation to hardware impl. of heaps
-%Maybe as an alternate design after introducing the context of shared-memory routers
-%%\Para{Hardware designs for priority queues.}
-%%\an{P-heap is a pipelined binary heap scaling to 4-billion entries~\cite{bhagwan,
-%%pheap}.  However, each P-heap supports traffic belonging to a {\em single} 10
-%%Gbit/s input port in an input-queued router; there is a separate P-heap
-%%instance for each port~\cite{bhagwan}.  Having a separate P-heap per port incurs prohibitive
-%%area overhead on a shared-memory router, and prevents sharing of the data
-%%buffer and binary heap across output ports. Conversely, it is not easy to
-%%overlay multiple logical PIFOs over a single P-heap, which would allow the
-%%P-heap to be shared across ports.}
-
-%%
-%%\an{
-%%In contrast to a hardware implementation of a generic priority queue as a heap,
-%%our design for the PIFO exploits two domain-specific insights. First, there is
-%%considerable structure in the ranks: ranks within a flow strictly increase with
-%%time.  Second, the packet buffers on shared-memory routers used in datacenters
-%%today are much smaller than those on deep-buffered core routers in the past.
-%%This permits a simpler, albeit less scalable, design relative to heaps.
-%%}
-
-
-
 \subsection{Performance requirements}
 \label{ss:performance}
 
@@ -63,25 +39,46 @@ most practical hierarchical schedulers we know of.
 \subsection{A single PIFO block}
 \label{ss:single_block}
 
-A PIFO block supports two operations: an enqueue that inserts an
-element into a logical PIFO and a dequeue to remove the head of a
-logical PIFO.  We first describe an implementation of a PIFO block with a
-single logical PIFO and then extend it to multiple logical PIFOs in the same
-block.
+A PIFO block supports two operations: an enqueue that inserts an element into a
+logical PIFO and a dequeue to remove the head of a logical PIFO.  We first
+consider two strawman designs for a PIFO: a flat sorted array and a
+heap. We show how neither meets our requirements. We then describe an
+implementation of a PIFO block with a single logical PIFO and then show how
+it easily extends to multiple logical PIFOs in the same block.
 
-A naive implementation of a single PIFO is a single sorted array. In this
+One hardware implementation of a single PIFO is a flat sorted array. In this
 implementation, an incoming element would be compared against all array elements
 in parallel to determine a location for the new element, and then inserted
 there by shifting the array.  However, each comparison needs one comparator
 circuit, and supporting 64K parallel comparators is infeasible.
 
-At the same time, nearly all practical scheduling algorithms group packets into
-flows or classes,\footnote{\an{Last-In First-Out (LIFO) is a counterexample.
-We can handle LIFO by creating a new flow for every packet, so long as there are
-fewer than 1024 packets (flows) in the buffer at any time.}} \eg based on
-traffic type, ports, or addresses. They then schedule a flow's packets in FIFO
-order because packet ranks increase across a flow's consecutive packets.  This
-motivates a design with two parts (Figure~\ref{fig:pifo_impl}):
+Another hardware implementation for a PIFO, which is essentially a priority
+queue, is a heap in hardware. For instance, P-heap is a pipelined binary
+heap scaling to 4-billion entries~\cite{bhagwan, pheap}. A capacity of 4 billion
+ is more than sufficient for our needs.  However, each P-heap supports
+traffic belonging to a {\em single} 10 Gbit/s input port in an input-queued
+router; there is a separate P-heap instance for each port~\cite{bhagwan}.
+Having a separate P-heap per port incurs prohibitive area overhead on a
+shared-memory router, where the packet buffer and scheduling logic are shared
+across all ports to reduce area overhead.  Conversely, we also found that it
+was hard to overlay multiple logical PIFOs over a single P-heap, which would
+allow the same physical P-heap to be shared across ports.
+
+In contrast to the two strawman designs, our design for the PIFO exploits two
+domain-specific characteristics. First, the packet buffers on shared-memory routers
+used in datacenters today are much smaller (tens of megabytes) than those on
+deep-buffered core routers (hundreds of megabytes) in the past.  This permits a
+simpler, albeit less scalable, design relative to heaps. Second, there is
+considerable structure in the ranks: nearly all practical scheduling algorithms
+group packets into flows or classes, \eg based on traffic type, ports, or
+addresses. They then schedule a flow's packets in FIFO order because packet
+ranks increase across a flow's consecutive packets to prevent packet reordering within a flow. Thus, a PIFO needs to only
+sort across the head packets of all flows, as opposed to all packets in the
+buffer.\footnote{Last-In First-Out (LIFO) is a counterexample.  We can handle
+LIFO by creating a new flow for every packet, so long as there are fewer than
+1024 packets (flows) in the buffer at any time.}
+
+This motivates a design with two parts (Figure~\ref{fig:pifo_impl}):
 \begin{CompactEnumerate}
 \item A {\em flow scheduler} that picks the next element to dequeue based on
 the ranks of the {\em head} (earliest) elements of all flows. \an{The flow
