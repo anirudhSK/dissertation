@@ -44,7 +44,7 @@ startup Cisco Systems.
 
 By the mid 90s, software could no longer keep up with the increase in link
 speeds that were caused by the rapid adoption of the Internet and the World
-Wide Web. Juniper Network's M40 router~\cite{juniperm40} was an early example
+Wide Web. Juniper Network's M40 router~\cite{m40} was an early example
 of a hardware router in 1998.  As we described in Chapter~\ref{chap:intro},
 since the mid 90s, the fastest routers have predominantly been built out of
 dedicated hardware because hardware specialization is the only way to sustain
@@ -56,7 +56,7 @@ approach that advocated that the network be programmable or ``active'' to allow
 the deployment of new services in the network infrastructure. There were at
 least two approaches to active networks. First, the programmable router
 approach~\cite{switchware}, which allowed a network operator to program a
-router in a restricted manner. Second, the capsule approach~\cite{ants}, where
+router in a restricted manner. Second, the capsule approach~\cite{ants, wetherall_thesis, anet_retrospective}, where
 end hosts would embed programs into packets as capsules, which would then be
 executed by the router.
 
@@ -65,12 +65,11 @@ approach~\cite{sdn_history}, which raised security concerns. Because programs
 were embedded into packets by end users, it was possible that a malicious or
 erroneous program could corrupt the entire router. These concerns were resolved
 by executing the program within an application-level virtual machine like the
-Java virtual machine~\cite{ants}, but at the cost of degraded forwarding
-performance. As an example, the SNAP~\cite{snap} system that prototyped the
-capsule approach had a forwarding rate of 100 Mbit/s, which was two orders of
-magnitude slower than the Catalyst 32 Gbit/s hardware router at that
-time~\cite{catalyst}.
-%TODO Check this number on the cisco catalyst
+Java virtual machine~\cite{ants, wetherall_thesis, anet_retrospective}, but at the cost of degraded forwarding
+performance. As an example, the SNAP~\cite{snap_active_packets} system that
+prototyped the capsule approach reported a forwarding rate of 100 Mbit/s in 2001,
+about two orders of magnitude slower than the Juniper M40 40 Gbit/s
+hardware router developed in 1998~\cite{m40}.
 
 While the capsule approach---arguably the most ambitious of all active
 networking visions---has not panned out in its most general form due to
@@ -90,18 +89,17 @@ general-purpose substrate has varied over the years. For instance,
 Click~\cite{click} used a single-core CPU in 2000.  In the early 2000s, Intel
 introduced a line of processors tailored towards networking called network
 processors. The most well known network processors from Intel were the
-IXP1200~\cite{ixp2400} in 2000 and the IXP2400 in 2002.  The RouteBricks
+IXP1200~\cite{ixp1200} in 2000 and the IXP2800~\cite{ixp2800} in 2002.  The RouteBricks
 project used a multi-core processor~\cite{routebricks} in 2009, the
 PacketShader project used a graphics processor (GPU)~\cite{packetshader} in
-2010, and the NetFPGA-SUME project used an FPGA in 2014~\cite{netfgpa}.
+2010, and the NetFPGA-SUME project used an FPGA in 2014~\cite{netfpga}.
 
 Software routers have found adoption as a means of programming routers at the
 expense of performance. They have been especially beneficial in scenarios where
 the link speeds are lower, but the computational requirements are higher.  For
-instance, this approach has been used to implement fairly involved MAC layer
+instance, this approach has been used to implement MAC layer
 algorithms in WiFi~\cite{samplerate, roofnet, xor} and signal processing
-algorithms in the wireless physical layer~\cite{sdr, airblue, spinal_codes,
-mota_bell_labs}.
+algorithms in the wireless physical layer~\cite{sora, cloudiq}.
 %TODO: Production use cases?
 
 Many domain-specific languages (DSLs) for packet processing were developed in
@@ -119,12 +117,12 @@ compiled programs run at line rate, \pktlanguage forbids loops.
 %%processing a particular packet, while still guaranteeing line-rate performance.
 
 %TODO: Check dates on all subsections
-\subsection{Software-defined networking (2003 to now)}
+\subsection{Software-defined networking (2004 to now)}
 Starting in the early 2000s, researchers argued for separating the router's
 control plane (\ie the part of the router that runs a distributed routing
 protocol to computes its routing tables) from the router's data plane (\ie the
 part of the router that actually forwards packets by looking them up in the
-routing table)~\cite{rcp, forces, fourd, ethane, sane}. As an example, the
+routing table)~\cite{route_control, case_for, forces, fourd, ethane}. As an example, the
 implementation of a link-state routing protocol would be part of the control
 plane, while the implementation of a longest-prefix match table lookup would be
 part of the data plane.
@@ -166,9 +164,9 @@ research work in programming and verifying rich control plane policies because
 the control plane could now be an arbitrary program, it saw much lesser work in
 enabling programmability in the data plane or the router chip itself.
 
-\subsection{Network function virtualization (2012 to now)}
+\subsection{Network functions virtualization (2012 to now)}
 %TODO: Make sure everything in this chapter is past tense by default
-Network function virtualization (NFV)~\cite{nfv_etsi_2012} sought to move
+Network functions virtualization (NFV)~\cite{nfv_etsi_2012} sought to move
 richer non-forwarding packet processing functionality onto commodity processors
 and the cloud infrastructure~\cite{aplomb}. This packet processing
 functionality included deep-packet inspection, load balancing, intrusion
@@ -193,7 +191,7 @@ measurements~\cite{opensketch}, and the ability to be independent of the actual
 protocol of the packet~\cite{pof}.
 
 These difficulties with repeatedly extending OpenFlow led to the edge-based
-approach to software-defined networking~\cite{fabric, nsx, openvswitch}. In
+approach to software-defined networking~\cite{fabric_sdn, nvp, openvswitch}. In
 this approach, the network's routers were divided into two classes: the edge
 routers that performed programmable packet manipulation and the core routers
 that simply forwarded packets with little to no programmability. The edge
@@ -201,7 +199,7 @@ routers had far less demanding performance requirements relative to the core
 allowing them to be implemented on general-purpose CPUs. Using a
 general-purpose CPU for programming the edge routers allowed them to be far
 more programmable than the restricted OpenFlow API for routers would have
-allowed. Open Virtual Switch~\cite{ovs} was probably the most well-known
+allowed. Open Virtual Switch~\cite{openvswitch} was probably the most well-known
 example of an edge router implemented on top of a CPU in the server's
 hypervisor. More recently, increasing performance requirements on the edge have
 led to moving the virtual router's functionality on to an
@@ -445,7 +443,7 @@ modifying router hardware to support atoms,  Domino allows such AQM schemes to
 be programmed directly without emulation on high-speed router hardware.
 
 \Para{Hardware support for counters.} Many hardware designs optimize the fixed
-software requirement of per-flow counters~\cite{sundar_counters, lrt}.
+software requirement of per-flow counters~\cite{counter_shah}.
 \TheSystem devlops a programming language for measurements in software along
 with hardware support for this language. This allows \TheSystem to support a
 wider range of queries beyond just counters.
@@ -458,7 +456,7 @@ developing a programming model in software as part of Domino in addition to the
 atoms allows to reuse the same programmable atoms for many different algorithms
 including CONGA.
 
-\Para{SONATA.} SONATA~\cite{sonata} is a measurement system that sources its
+\Para{SONATA.} SONATA~\cite{streaming-monitoring} is a measurement system that sources its
 measurements from statistics exported by OpenFlow. By designing new router
 hardware for programmable measurement, \TheSystem can express a wider range of
 measurements than what is supported by OpenFlow.
