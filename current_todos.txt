@@ -1,5 +1,3 @@
-8. Fix missing citations after fact checking them
-
 3. Consider having a separate section titled Primer or experimental setup or arch. of a router?
 This could cover:
 --> a shared pipeline shared across multiple ports,
