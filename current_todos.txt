@@ -1,6 +1,4 @@
-8. Fix missing citations.
-9. Fact check related work; proof read section 2.
-6. Fact check Fastpass/Flexplane discussion
+8. Fix missing citations after fact checking them
 
 3. Consider having a separate section titled Primer or experimental setup or arch. of a router?
 This could cover:
@@ -20,5 +18,3 @@ pieces fits within the context of a router ASIC or router chip.
 7. Add higher-level programming models to future work.
 
 10. Make an e2e pass
-
-12. Are data plane and control plane defined clearly?
