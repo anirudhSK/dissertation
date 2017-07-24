@@ -1,3 +1,7 @@
+8. Fix missing citations.
+9. Fact check related work; proof read section 2.
+6. Fact check Fastpass/Flexplane discussion
+
 3. Consider having a separate section titled Primer or experimental setup or arch. of a router?
 This could cover:
 --> a shared pipeline shared across multiple ports,
@@ -7,22 +11,14 @@ This could cover:
 --> differences between single vs. multi-pipeline routers,
 --> why we used simulation, synthesis, emulation
 --> where the router's control plane sits relative to this pipeline
-
 Basically, I think the experimental method has a substantial amount of new content as well.
-
 Also, we should probably talk about where each of our three
 pieces fits within the context of a router ASIC or router chip.
 
-4. Trim parts of the chapter intros now that we have a longer dissertation introduction
-
 5. Generalizability discussion of Domino atoms + maybe writing more Domino algorithms
-
-6. Fact check Fastpass/Flexplane discussion
 
 7. Add higher-level programming models to future work.
 
-8. Fix missing citations.
-
-9. Fact check related work; proof read section 2.
-
 10. Make an e2e pass
+
+12. Are data plane and control plane defined clearly?

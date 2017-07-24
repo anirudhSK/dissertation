@@ -1,37 +1,30 @@
-%\pagebreak
-%\section{Introduction}
-%\label{s:intro}
 Packet scheduling, the task of picking the next packet to transmit on a
 router's output port, is an important determinant of network performance. As a
 result, the research literature is replete with scheduling
 algorithms~\cite{wfq, srr, lstf, drr, pFabric} that target different network
-performance objectives.  This chapter develops hardware designs and programming
-abstractions to providing programmable packet scheduling in high-speed
-routers.
-%TODO: Add more examples of scheduling algorithms in the citation list
+performance objectives (\eg fairness, low flow completion times, low tail
+latencies, etc.).  Today's fastest routers provide a small menu of scheduling
+algorithms: typically, a combination of Deficit Round Robin~\cite{drr}, strict
+priority scheduling, and traffic shaping. A network operator can change
+parameters (\eg weights in Deficit Round Robin, or rate limits in traffic
+shaping) in these algorithms, but cannot change the core logic in an existing
+algorithm, or program a new one, without building new router hardware.
 
- Today's fastest routers provide a small menu of
-scheduling algorithms: typically, a combination of Deficit Round
-Robin~\cite{drr}, strict priority scheduling, and traffic shaping. A network
-operator can change parameters (\eg weights in Deficit Round Robin, or rate
-limits in traffic shaping) in these algorithms, but cannot change the core
-logic in an existing algorithm, or program a new one, without building new
-router hardware.
+ This chapter develops hardware designs and programming abstractions to provide
+{\em programmable packet scheduling} in high-speed routers. With a {\em
+programmable} packet scheduler, network operators could customize scheduling
+algorithms to application requirements, \eg minimizing flow completion
+times~\cite{pFabric} using Shortest Remaining Processing Time~\cite{srpt},
+allocating bandwidth flexibly across flows or tenants~\cite{eyeq, faircloud}
+using Weighted Fair Queueing~\cite{wfq} or minimizing tail packet delays using
+Least Slack Time First~\cite{lstf}.  Moreover, with a programmable packet
+scheduler, router vendors could implement scheduling algorithms as programs
+running on a programmable router chip, making it easier to verify and modify
+these algorithms compared to baking in the same algorithms into a chip as rigid
+hardware.
 
-By contrast, with a {\em programmable} packet scheduler, network operators
-could customize scheduling algorithms to application requirements, \eg
-minimizing flow completion times~\cite{pFabric} using Shortest Remaining
-Processing Time~\cite{srpt}, allocating bandwidth flexibly across flows or
-tenants~\cite{eyeq, faircloud} using Weighted Fair Queueing~\cite{wfq} or
-minimizing tail packet delays using Least Slack Time First~\cite{lstf}.
-Moreover, with a programmable packet scheduler, router vendors could implement
-scheduling algorithms as programs running on a programmable router chip, making
-it easier to verify and modify these algorithms compared to baking in the same
-algorithms into a chip as rigid hardware.
-
-In this chapter, we present a design for programmable packet scheduling in
-high-speed routers. We first deconstruct packet scheduling
-(\S\ref{s:deconstruct}) and observe that all scheduling algorithms make two
+We begin this chapter by first deconstructing packet scheduling
+(\S\ref{s:deconstruct}) and observing that all scheduling algorithms make two
 basic decisions: in {\em what order} packets should be scheduled and {\em when}
 they should be scheduled, corresponding to work-conserving and
 non-work-conserving algorithms respectively.  Furthermore, we observe that for
