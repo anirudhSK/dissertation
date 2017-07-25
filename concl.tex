@@ -58,12 +58,23 @@ there are a number of avenues for future work, described below.
 \Para{Instruction set design for routers.} The first generation of programmable
 router instruction sets, whether those in commercial chips~\cite{xpliant,
 flexpipe, tofino, rmt} or those proposed by \pktlanguage, were designed
-manually through a process of trial and error. Once programmers start writing
-P4 programs more broadly, we have the opportunity to design these instruction sets
-in a more empirical manner, optimizing instruction sets for actual use cases, as opposed to
-what a router engineer thinks the use cases will be. The continued evolution
-of the x86 instruction set over the last four decades suggests that there is
-considerable opportunity for workload-driven instruction set design.
+manually through a process of trial and error.
+
+In particular, when designing atoms for \pktlanguage, we use trial and error to
+first guess atoms that we think might be useful and then use our compiler to
+check if those atoms can support useful algorithms.  Formalizing this design
+process and automating it into an atom-design tool would be useful when
+designing router instruction sets. For instance, given a corpus of data-plane
+algorithms, this tool would automatically mine the corpus for recurring motifs
+of state and packet header modification. A router hardware engineer could then
+design hardware for atoms that capture these motifs.
+
+ Once programmers start writing P4 programs more broadly, we have the
+opportunity to design these instruction sets in a more empirical manner,
+optimizing instruction sets for actual use cases, as opposed to what a router
+engineer thinks the use cases will be. The continued evolution of the x86
+instruction set over the last four decades suggests that there is considerable
+opportunity for workload-driven instruction set design.
 
 \Para{Understanding the x86 tax\footnote{We thank Adam Belay for coming up with
 this expression.} of networking.} This dissertation has focused entirely on

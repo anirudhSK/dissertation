@@ -1,6 +1,5 @@
 \chapter{Limitations}
 \label{chap:limitations}
-%TODO: Proof read this once carefully
 
 We now discuss limitations of the systems presented in this dissertation. We
 start with limitations that are common to all three systems, and then discuss
@@ -20,10 +19,10 @@ check correctness and synthesis experiments to evaluate area overheads of new
 hardware deisgns. We briefly considered an FPGA implementation on the NetFPGA
 platform~\cite{netfpga}, but decided against it because the relative areas
 consumed by router subsystems on an FPGA may not accurately reflect the
-relative area consumptions on a router ASIC. Instead, we paid careful attention
+relative area consumptions on a router chip. Instead, we paid careful attention
 to keeping our hardware designs simple, and reused standard hardware designs
 (\eg LRU caches and first-in first-out queues) wherever possible. To allow a
-router ASIC designer to leverage our results, we clearly specified the
+router chip designer to leverage our results, we clearly specified the
 interfaces between the different hardware blocks in our design.
 
 There is still value to an FPGA implementation, which we hope to explore in
@@ -34,26 +33,25 @@ can serve as a vehicle for evaluating ideas end-to-end, much like our Mininet
 evaluation (\S\ref{sec:eval:mininet}). Third, the development of new FPGA
 technology that allows clock rates of up to 1 GHz~\cite{hyperflex} suggests a
 way to prototype hardware at near-ASIC speeds while benefiting from the
-flexibility of an FPGA. An ASIC design of the hardware would still be required
-for large-scale commercial production of the hardware design.  This is because,
-relative to an ASIC, an FPGA would have an increased power consumption, greater
-area footprint, and higher unit price at large volumes.
+reconfigurability of an FPGA. An ASIC design of the hardware would still be
+required for large-scale commercial production of the hardware design.  This is
+because, relative to an ASIC, an FPGA would have an increased power
+consumption, greater area footprint, and higher unit price at large volumes.
 
 \subsection{Lack of completeness theorems}
 \label{ss:limit_completeness}
 
-Another major limitation with our systems
-is that we do not have a definitive formal characterization of what can and
-cannot be done by each system. While we have examples of algorithms that cannot
-be expressed by each system, it would be ideal to have a ``completeness''
-theorem that states that all algorithms within a class (and within that class
-alone) can be expressed using a particular system. Such a theorem would also
-give a formal assurance of future proofness so long as a new algorithm fell
-within that class. An example of such a theorem is the equivalence of
-finite-state machines and regular expressions, which states that any regular
-expression---whether a regular expression we know of today or a regular
-expression that comes up in the future---can be expressed in terms of a
-finite-state machine.
+Another major limitation of our systems is that we do not have a formal
+characterization of what can and cannot be done by each system. While we have
+examples of algorithms that cannot be expressed by each system, it would be
+ideal to have a ``completeness'' theorem that states that all algorithms within
+a class (and within that class alone) can be expressed using a particular
+system. Such a theorem would also give a formal assurance of future proofness
+so long as a new algorithm fell within that class. An example of such a theorem
+is the equivalence of finite-state machines and regular expressions, which
+states that any regular expression---whether a regular expression we know of
+today or a regular expression that comes up in the future---can be expressed
+using a finite-state machine.
 
 \subsection{Lack of a user study} In the absence of a completeness theorem that
 guarantees a level of future proofness, one way to empirically study the
@@ -61,7 +59,7 @@ guarantees a level of future proofness, one way to empirically study the
 and then let new programmers who have never seen the abstraction before program
 it. We have not been able to carry out a formal user study using network
 programmers because the concept of programming a network is itself relatively
-new and has not reached mainstream adoption yet!
+new and has not reached mainstream adoption yet.
 
 At the same time, we have had some encouraging results that suggest that some
 of our abstractions and primitives may be future proof. For instance, as
@@ -70,11 +68,9 @@ turned out to be useful for the performance queries that were not
 linear-in-state (Chapter~\ref{chap:perf_query}). Similarly, we did not
 anticipate the rate-controlled service disciplines (RCSD) as a use case for
 PIFOs when first designing PIFOs, but later found that PIFOs could express the
-RCSD class. Finally, the fact that the atomic semantics of  packet
-transactions could be ported into P4 language (\S\ref{s:impact}) suggests that the packet
-transaction semantics might be quite general and natural. That said, conducting
-a user study to understand the practical limitations of expressiveness is an
-interesting area for future work.
+RCSD class. Finally, the fact that the atomic semantics of  packet transactions
+could be ported into the P4 language (\S\ref{s:impact}) suggests that the
+packet transaction abstraction might be quite general and natural.
 
 \subsection{Supporting routers with multiple pipelines}
 \label{ss:multiple}
@@ -95,30 +91,32 @@ arriving at the router. This allows the pipeline stage to maintain and update
 the state consistently, \eg a counter that counts the number of bytes received
 across all ports. In a multi-pipeline router, no single pipeline sees all
 packets, so the state in a pipeline stage can only be updated by packets
-belonging ports assigned to that pipeline. For simple stateful operations like
-counter, the associativity of addition allows us to update the state separately
-in each pipeline and combine it through addition later. However, we know of no
-general mechanism to combine pipeline-local state into a single state value in
-a manner that emulates a single-pipeline router. Using a single state value
-that is accessed by multiple pipelines is a potential solution, but sharing
-state requires multi-ported memory and locking. Multi-ported memory is
+belonging to ports assigned to that pipeline. For simple stateful operations
+like counters, the associativity of addition allows us to update the state
+separately in each pipeline and combine it through addition later. However, we
+know of no general mechanism to combine pipeline-local state into a single
+state value in a manner that emulates a single-pipeline router. Using a single
+state value that is accessed by multiple pipelines is a potential solution, but
+sharing state requires multi-ported memory and locking. Multi-ported memory is
 expensive, while locking degrades performance.
 
-\Para{Performance queries.} Performance queries share the same limitations as
-Domino when it comes to multi-pipeline routers. The reason is the same:
-multi-pipeline routers have a separate instance of state for every pipeline
-that needs to be efficiently combined into a single pipeline.
+\Para{Performance queries.} Because the {\ct groupby} operator in \TheSystem
+maintains and update state in the data plane, performance queries share the
+same limitations as Domino when it comes to multi-pipeline routers. The reason
+is the same: multi-pipeline routers have a separate instance of state for every
+pipeline that needs to be efficiently combined into a single pipeline without
+losing accuracy.
 
 \Para{PIFOs.} A multi-pipeline router has multiple ingress and egress pipelines
-that share access to the scheduler subsystem alone. The scheduler subsystem,
-which consists of the data buffer to store packet payloads and the scheduling
-logic for different scheduling algorithms, is common to all pipelines. To
+that share access to the scheduler subsystem alone. The scheduler subsystem is
+common to all pipelines and consists of the data buffer to store packet
+payloads and the scheduling logic for different scheduling algorithms. To
 support enqueues and dequeues from multiple pipelines into the data buffer
 every clock cycle, the data buffer memory in a multi-pipeline router is
 multi-ported to support multiple writes/reads from multiple ingress/egress
 pipelines every clock cycle.\footnote{This multi-porting exploits the fact that
-the data buffer is a first-in first-out queue, allowing it to be cheaper than
-generic multi-ported memory.}
+the data buffer is a bank of first-in first-out queues, allowing it to be
+cheaper than generic multi-ported memory.}
 
 In multi-pipeline routers, each PIFO block needs to support multiple enqueue
 and dequeue operations per clock cycle (as many as the number of ingress and
@@ -128,12 +126,12 @@ pipelines. Similarly, each egress pipeline requires a new packet every clock
 cycle, resulting in multiple dequeues every clock cycle.
 
 We leave a full-fledged design for multi-pipeline routers to future work, but
-our current design facilitates a multi-pipeline implementation. A rank store
-supporting multiple pipelines is similar to the data buffer of multi-pipeline
-routers today, which already support multiple enqueues and dequeues. Building a
-flow scheduler to support multiple enqueues/dequeues per clock is relatively
-easy because it is maintained in flip flops, where it is simple to add multiple
-ports (unlike SRAM).
+observe that our current PIFO design facilitates a multi-pipeline
+implementation.  A rank store supporting multiple pipelines is similar to the
+data buffer of multi-pipeline routers today, which already support multiple
+enqueues and dequeues. Building a flow scheduler to support multiple
+enqueues/dequeues per clock is relatively easy because it is maintained in flip
+flops, where it is simple to add multiple ports (unlike SRAM).
 
 \section{Domino limitations}
 \label{sec:domino_limitations}
@@ -147,21 +145,12 @@ transactions is an area for future work.
 
 Supporting multiple packet transactions in \pktlanguage also requires further
 work, especially because any real program running on a router is likely to
-execute multiple transaction, each on a subset of the packets seen by the
+execute multiple transactions, each on a subset of the packets seen by the
 router. When a router executes multiple transactions, there may be
 opportunities for inter-procedural analysis~\cite{dragonbook}, which goes
 beyond compiling individual transactions and looks at multiple transactions
 together.  For instance, the compiler could detect computations common to
 multiple transactions and execute them only once.
-
-Finally, we have a manual and ad hoc design process for atoms. Currently, we
-use a process of trial and error to first guess atoms and then use our compiler
-to check if those atoms can support useful algorithms.  Formalizing this design
-process and automating it into an atom-design tool would be useful when
-designing router instruction sets. For instance, given a corpus of data-plane
-algorithms, this tool would automatically mine the corpus for recurring motifs
-of state and packet header modification. A router hardware engineer could then
-design hardware for atoms that capture these motifs.
 
 \section{PIFO limitations}
 \label{sec:pifo_limitations}
@@ -174,12 +163,6 @@ program new scheduling algorithms using scheduling trees.  In other words,
 scheduling trees are still a low-level abstraction. We need to raise the level
 of abstraction if we hope to make programmable scheduling more broadly
 accessible to network operators.
-
-Beyond a few counter examples, we lack a formal characterization of the
-scheduling algorithms that cannot be implemented using PIFOs. For instance, is
-there a simple, checkable property separating algorithms that can and cannot be
-implemented using PIFOs? Given an algorithm specification, can we automatically
-check if the algorithm can be programmed using PIFOs?
 
 Our current PIFO design scales to 2048 flows. If these 2048 flows are allocated
 evenly across 64 ports in a 64-port 10G router, we could program scheduling
@@ -198,13 +181,14 @@ idealized PIFO.
 The major limitation of performance queries is that the latest value of the
 aggregated state is not available in the data plane, and is only accessible to
 software reading the backing store. This manifests itself most when using the
-{\ct emit()} statement in our programs, which requires access to the latest value of the
-aggregated state in the data plane. Currently, we handle such queries by not
-evicting those entries from a key-value store if the state stored in those
-entries is emitted to another query downstream. But not evicting keys severely
-limits the scalability of the key-value store because all keys must fit within
-the small on-chip cache. Unfortunately, this is unavoidable if we want access to the latest
-value of state during {\ct emit()}s.
+{\ct emit()} statement in our programs, which requires access to the latest
+value of the aggregated state in the data plane. Currently, we handle such
+queries by not evicting those entries from a key-value store if the state
+stored in those entries is emitted to another query downstream. But not
+evicting keys severely limits the scalability of the key-value store because
+all keys must fit within the small on-chip cache. Unfortunately, this is
+unavoidable if we want access to the latest value of state during {\ct
+emit()}s.
 
 A similar scalability limitation affects queries that are not linear-in-state
 because there is no way to evict key-value pairs while still guaranteeing
