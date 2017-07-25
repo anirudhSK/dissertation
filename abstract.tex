@@ -14,20 +14,20 @@ Historically, the evolution of network routers was driven primarily by
 performance. Recently, owing to the need for better control over network
 operations and the constant demand for new features, programmability of routers
 has become as important as performance.  However, today's fastest routers,
-which run at line rate, use fixed-function hardware, which cannot be modified
-after deployment. This disseration will describe three router hardware
-primitives and their corresponding programming models in software that allow
-network operators to program specific classes of router functionality at line
-rate.
-%TODO: Say my thesis is that ...
+which support aggregate capacities between several hundred Gbit/s and a few
+Tbit/s (10--100 ports each running at a line rate of 10--100 Gbit/s), use
+fixed-function hardware, which cannot be modified after deployment. This
+disseration will describe three router hardware primitives and their
+corresponding programming models in software that allow network operators to
+program specific classes of router functionality on such fast routers.
 
 First, we develop a system for programming stateful packet-processing
 algorithms such as algorithms for in-network congestion control, buffer
 management, and data-plane traffic engineering. The challenge here is the fact
 that these algorithms maintain and update state on the router.  We develop a
-small but expressive instruction set for stateful manipulation at the
-router's line rate, and then expose this to the programmer through a high-level
-programming model and compiler.
+small but expressive instruction set for stateful manipulation on fast routers,
+and then expose this to the programmer through a high-level programming model
+and compiler.
 
 Second, we develop a system to program packet scheduling: the task of picking
 which packet to transmit next on a link. Our main contribution here is the
@@ -44,6 +44,6 @@ such as a moving average filter over packet latencies on a per-flow basis,
 counters, and counters that are conditionally incremented.
 
 Together, these systems demonstrate that it is possible to program several
-packet-processing functions at line rate for the first time, such as in-network
-congestion control, active queue management, data-plane load balancing, network
-measurement, and packet scheduling.
+packet-processing functions on fast routers for the first time, such as
+in-network congestion control, active queue management, data-plane load
+balancing, network measurement, and packet scheduling.
