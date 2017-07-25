@@ -1,5 +1,5 @@
-3. Consider having a separate section titled Primer or experimental setup or arch. of a router?
-This could cover:
+1. Consider having a separate section titled primer or experimental setup or
+arch. of a router?  This could cover:
 --> a shared pipeline shared across multiple ports,
 --> maybe multiple such pipelines and
 --> the scheduler that resides in between the two pipelines.
@@ -7,29 +7,33 @@ This could cover:
 --> differences between single vs. multi-pipeline routers,
 --> why we used simulation, synthesis, emulation
 --> where the router's control plane sits relative to this pipeline
+--> i.e., spend a decent amount of time explaining the machine model: packets come in,
+they are looked up, we carry out some action, and so on so forth.
+
 Basically, I think the experimental method has a substantial amount of new content as well.
 Also, we should probably talk about where each of our three
 pieces fits within the context of a router ASIC or router chip.
 
-5. generalizability.txt
+2. generalizability.txt
 
-7. Add higher-level programming models to future work.
+3. Proof and explanation of fixed-point algorithm in Marple. Explain compiler
+in Marple more clearly.
 
-10. Make an e2e pass, nits.txt
+4. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
 
-10a. Add a multiply-accumulate atom to the Domino set. The only reason we
+5. Add a multiply-accumulate atom to the Domino set. The only reason we
 didn't add it to the original Domino paper was because queue size information
 for RED was not available at enqueue. We knew of it all the way back to the
 2013 HotNets paper.
 
-12. Spend a decent amount of time explaining the machine model: packets come in, they are looked up, we carry out some action, and so on so forth.
+6. Distinguish computational capabilities of a pipeline from information not
+being available. For instance, RED needs queue depth that is not available, but
+the EWMA operation itself is rather straightforward.
 
-15. Proof and explanation of fixed-point algorithm in Marple. Explain compiler in Marple more clearly.
+7. Add higher-level programming models to future work.
 
-8. Distinguish computational capabilities of a pipeline from information not being available. For instance, RED needs queue depth that is not available, but the EWMA operation itself is rather straightforward.
+8. Killer app for programmability: Measurement maybe?
 
-1. Killer app for programmability: Measurement maybe?
-2. Bridging gap between applications and the network (could be one item in future work).
-5. The middle plane of networking: add this to future work.
-6. What are the abstraction disadvantages to determining the packet's priority at the enqueue? Correspondingly,
-what are the implementation advantages to determining the packet's priority at the enqueue?
+9. What are the abstraction disadvantages to determining the packet's priority
+at the enqueue? Correspondingly, what are the implementation advantages to
+determining the packet's priority at the enqueue?
