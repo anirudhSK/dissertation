@@ -1,0 +1,12 @@
+* Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
+* Don't keep saying today in the text
+* domino_banzai.tex could use some more work
+* Don't need to overdo the C-like re: Domino. Instead, call it an imperative DSL.
+* router's line rate, or line rate of routers, sounds better than line rate routers
+* Consider substituting line rate with high speed or something similar
+* fix up this single pipeline router vs multi-pipeline router business
+* Make sure P4-16 and P4_{16} are consistent. Use one or the other, not both.
+* Use semicolons as separators with care
+* Be judicious with contractions
+* Be consistent with the project names and abstraction names TODO
+* Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
