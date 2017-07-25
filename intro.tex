@@ -1,8 +1,3 @@
-%TODO: Justify why the evaluation metrics make sense.
-%Why are we measuring area, expressiveness, etc?
-%Clarify that the goal here is not to improve performance, but a future-proof
-%programmable substrate
-
 \chapter{Introduction}
 \label{chap:intro}
 
@@ -158,7 +153,49 @@ describe high-speed programmable hardware primitives and their corresponding
 programming models in software for three classes of router functionality:
 stateful data-plane algorithms, packet scheduling, and scalable network
 measurement.  Table~\ref{tab:contributions} summarizes our contributions.
-%TODO: Try moving Table summarizes sentence ahead ...
+
+\subsection{Evaluation metrics}
+\label{ss:eval_metrics}
+
+The goal of this dissertation is to design high performance and programmable
+routers. We measure each of our three systems on these two attributes,
+performance and programmability, as follows.
+
+The traditional approach to evaluating performance is to measure a system's
+throughput on some workloads. This approach does not apply to hardware, which is
+built for a specific clock rate or throughput, and processes inputs at that
+clock rate even under worst-case conditions. To provide such worst-case
+guarantees, hardware designs exploit spatial parallelism, both within a
+pipeline stage and across pipeline stages.  Put differently, hardware designs
+spend area in return for deterministic  high performance. The question then is
+whether these designs consume a large amount of area to provide such
+performance guarantees.
+ 
+Hence, to evaluate performance, we estimate if the hardware components of our
+systems can run at a high clock rate while not taking up too much gate and wire
+area. To do so, we code up any new hardware components as programs in the
+Verilog hardware description language.  We then pass this Verilog program to a
+logic synthesis tool~\cite{synopsys_dc, cadence_rc} that produces a gate-level
+implementation from the program.  The synthesis tool also reports whether the
+resulting implementation meets timing at a given clock frequency and the area
+taken up by the gates in the implementation.\footnote{A full hardware
+implementation also requires a place-and-route~\cite{par} step after logic
+synthesis to physically place these gates and route wires between them. This
+increases the area of designs, especially if the design is dominated by wires,
+as is the case with crossbars. Because our designs are dominated by gates, not
+wires, we do not perform this place-and-route step when estimating area.} When
+we say a hardware design is feasible, we mean that it meets timing at a high
+clock frequency (1 GHz in this dissertation) and its gate area is modest
+relative to the chip area of a router chip.
+%TODO: Maybe add something for standard designs.
+
+To evaluate if our systems are programmable, we evaluate the expressiveness of
+the programming models in each of our system. If we are able to express a
+diversity of algorithms using the programming models, we say that the
+programming model is expressive. Our approach to expressivness is empirical:
+beyond specific examples, we do not yet have theoretical characterizations of
+the set of programs that can or cannot be programmed using our programming
+models (\S\ref{ss:limit_completeness}).
 
 \section{Stateful data-plane algorithms}
 In Chapter~\ref{chap:domino}), we consider the problem of programming {\em
