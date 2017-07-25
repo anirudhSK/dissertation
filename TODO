@@ -38,3 +38,5 @@ the EWMA operation itself is rather straightforward.
 8. What are the abstraction disadvantages to determining the packet's priority
 at the enqueue? Correspondingly, what are the implementation advantages to
 determining the packet's priority at the enqueue?
+
+9. consider replacing line rate with high speed or something more meaningful

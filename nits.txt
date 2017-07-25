@@ -12,4 +12,3 @@
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
 * chip vs. ASIC vs. chipsets. Use chips everywhere.
 * overuse of "as opposed to"
-* consider replacing line rate with high speed or something more meaningful
