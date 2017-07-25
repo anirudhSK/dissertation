@@ -29,7 +29,6 @@ persistent state at that stage, \eg packet counters. After the ingress
 pipeline, the packet is queued. Once the scheduler dequeues the packet, it is
 processed by a similar egress pipeline before it is transmitted.
 
-%TODO: Don't say there's only a single pipeline
 To reduce chip area, each ingress and egress pipeline is shared across a number
 of router ports and handles aggregate traffic belonging to all these ports,
 regardless of packet sizes. The number of ingress and egress pipelines depends
@@ -42,8 +41,7 @@ pipelines are required.\footnote{It is technically challenging to achieve a
 clock rate higher than 1 GHz in router ASICs.} Throughout this chapter, we
 assume a single pipeline router, with the pipeline running at 1 GHz.
 Equivalently, every pipeline stage handles a new packet every clock cycle (1
-ns).
-%TODO: Add a section on multiple pipelines later.
+ns). We discuss multi-pipeline routers later (\S\ref{ss:multiple}). 
 
 Having to process a packet every clock cycle in each stage constrains the
 operations that can be performed on each packet. In particular, any packet

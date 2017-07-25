@@ -360,26 +360,3 @@ into our hardware design by masking out certain flows in the flow scheduler
 during the dequeue operation if they have been paused because of a PFC pause
 message, and unmasking them when a PFC {\em resume} message is received.
 %TODO: Amy's comment. Maybe explain the masking/unmasking process.
-
-\Para{Multi-pipeline routers.}
-The highest end routers today, such as the Broadcom Tomahawk~\cite{tomahawk},
-support aggregate capacities exceeding 3 Tbit/sec. At a minimum packet size of
-64 bytes, this corresponds to an aggregate packet rate of \textasciitilde6
-billion packets/s. Because a single router pipeline
-(Figure~\ref{pifo_fig:router}) typically runs at 1 GHz and processes a
-billion packets/s, such routers require multiple ingress and egress pipelines
-that share access to the scheduler subsystem alone.
-
-In multi-pipeline routers, each PIFO block needs to support multiple enqueue
-and dequeue operations per clock cycle (as many as the number of ingress and
-egress pipelines) because packets can be enqueued from any of the input ports
-every clock cycle, and each input port could reside in any of the ingress
-pipelines. Similarly, each egress pipeline requires a new packet every clock
-cycle, resulting in multiple dequeues every clock cycle.
-
-We leave a full-fledged design for multi-pipeline routers to future work, but our
-current design facilitates a multi-pipeline implementation. A rank store
-supporting multiple pipelines is similar to the data buffer of multi-pipeline
-routers today. Building a flow scheduler to support multiple enqueues/dequeues
-per clock is relatively easy because it is maintained in flip flops, where it
-is simple to add multiple ports (unlike SRAM).

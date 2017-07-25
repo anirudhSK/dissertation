@@ -8,7 +8,7 @@ limitations of each individual system.
 
 \section{Limitations common to all three systems}
 
-\Para{Lack of silicon implementations.} One major implementation limitation is
+\subsection{Lack of silicon implementations} One major implementation limitation is
 that none of our three systems has a hardware implementation in silicon. This
 is a problem that crops us whenever a new system that needs hardware
 modifications needs to be evaluated. Designing a new chip can take a few years,
@@ -39,7 +39,7 @@ for large-scale commercial production of the hardware design.  This is because,
 relative to an ASIC, an FPGA would have an increased power consumption, greater
 area footprint, and higher unit price at large volumes.
 
-\Para{Lack of completeness theorems.} Another major limitation with our systems
+\subsection{Lack of completeness theorems} Another major limitation with our systems
 is that we do not have a definitive formal characterization of what can and
 cannot be done by each system. While we have examples of algorithms that cannot
 be expressed by each system, it would be ideal to have a ``completeness''
@@ -52,7 +52,7 @@ expression---whether a regular expression we know of today or a regular
 expression that comes up in the future---can be expressed in terms of a
 finite-state machine.
 
-\Para{Lack of a user study.} In the absence of a completeness theorem that
+\subsection{Lack of a user study} In the absence of a completeness theorem that
 guarantees a level of future proofness, one way to empirically study the
 ``future proofness'' of a programming abstraction is to freeze the abstraction
 and then let new programmers who have never seen the abstraction before program
@@ -68,18 +68,71 @@ linear-in-state (Chapter~\ref{chap:perf_query}). Similarly, we did not
 anticipate the rate-controlled service disciplines (RCSD) as a use case for
 PIFOs when first designing PIFOs, but later found that PIFOs could express the
 RCSD class. Finally, the fact that the atomic semantics of  packet
-transactionss could be adopted as such into P4 suggests that the packet
+transactions could be ported into P4 language (\S\ref{s:impact}) suggests that the packet
 transaction semantics might be quite general and natural. That said, conducting
 a user study to understand the practical limitations of expressiveness is an
 interesting area for future work.
 
+\subsection{Supporting routers with multiple pipelines}
+\label{ss:multiple}
 
-%Two major limitations of this work: is it future proof and nothing is implemented
-%in a sense, the two are related, maybe implementing things would have forced us
-%to be more future proof, because there is no longer the temptation of modifying things
-% once you have taped out an ASIC (you just can't!!)
+As discussed earlier (\S\ref{s:absmachine}), throughout this dissertation, we
+assume a router architecture with a single ingress pipeline and a single egress
+pipeline shared across all ports. These pipelines can be made to run at a clock
+rate of up to 1 GHz, which at the minimum packet size of 64 bytes, translates
+into an aggregate capacity of \textasciitilde500 Gbit/s.
 
-\section{Domino}
+To scale beyond this aggregate capacity, a router needs multiple parallel
+pipelines, each devoted to a subsets of the rotuer's ports. This has
+implications for all our designs, which we discuss below.
+
+\Para{Domino.} In Domino, state is local to an atom---and hence a pipeline
+stage.  In a single pipeline router, a pipeline stage can see all the packets
+arriving at the router. This allows the pipeline stage to maintain and update
+the state consistently, \eg a counter that counts the number of bytes received
+across all ports. In a multi-pipeline router, no single pipeline sees all
+packets, so the state in a pipeline stage can only be updated by packets
+belonging ports assigned to that pipeline. For simple stateful operations like
+counter, the associativity of addition allows us to update the state separately
+in each pipeline and combine it through addition later. However, we know of no
+general mechanism to combine pipeline-local state into a single state value in
+a manner that emulates a single-pipeline router. Using a single state value
+that is accessed by multiple pipelines is a potential solution, but sharing
+state requires multi-ported memory and locking. Multi-ported memory is
+expensive, while locking degrades performance.
+
+\Para{Performance queries.} Performance queries share the same limitations as
+Domino when it comes to multi-pipeline routers. The reason is the same:
+multi-pipeline routers have a separate instance of state for every pipeline
+that needs to be efficiently combined into a single pipeline.
+
+\Para{PIFOs.} A multi-pipeline router has multiple ingress and egress pipelines
+that share access to the scheduler subsystem alone. The scheduler subsystem,
+which consists of the data buffer to store packet payloads and the scheduling
+logic for different scheduling algorithms, is common to all pipelines. To
+support enqueues and dequeues from multiple pipelines into the data buffer
+every clock cycle, the data buffer memory in a multi-pipeline router is
+multi-ported to support multiple writes/reads from multiple ingress/egress
+pipelines every clock cycle.\footnote{This multi-porting exploits the fact that
+the data buffer is a first-in first-out queue, allowing it to be cheaper than
+generic multi-ported memory.}
+
+In multi-pipeline routers, each PIFO block needs to support multiple enqueue
+and dequeue operations per clock cycle (as many as the number of ingress and
+egress pipelines) because packets can be enqueued from any of the input ports
+every clock cycle, and each input port could reside in any of the ingress
+pipelines. Similarly, each egress pipeline requires a new packet every clock
+cycle, resulting in multiple dequeues every clock cycle.
+
+We leave a full-fledged design for multi-pipeline routers to future work, but
+our current design facilitates a multi-pipeline implementation. A rank store
+supporting multiple pipelines is similar to the data buffer of multi-pipeline
+routers today, which already support multiple enqueues and dequeues. Building a
+flow scheduler to support multiple enqueues/dequeues per clock is relatively
+easy because it is maintained in flip flops, where it is simple to add multiple
+ports (unlike SRAM).
+
+\section{Domino limitations}
 \label{sec:domino_limitations}
 The \pktlanguage compiler doesn't aggressively optimize, instead focusing on
 generating sub-optimal, but correct pipeline configurations. For instance, it is
@@ -107,7 +160,7 @@ algorithms, this tool would automatically mine the corpus for recurring motifs
 of state and packet header modification. A router hardware engineer could then
 design hardware for atoms that capture these motifs.
 
-\section{PIFOs}
+\section{PIFO limitations}
 \label{sec:pifo_limitations}
 
 Our programming model for scheduling based on PIFOs is a scheduling tree with
@@ -136,9 +189,7 @@ while we can support up to 60K packets.  More design work is required to close
 this gap between the number of flows and the number of packets and realize an
 idealized PIFO.
 
-%TODO: Do something about the stuff at the top of pifo_discussion.tex. It's not used anywhere right now.
-
-\section{Performance queries}
+\section{Performance queries limitations}
 \label{sec:pq_limitations}
 
 The major limitation of performance queries is that the latest value of the
