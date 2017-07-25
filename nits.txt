@@ -10,4 +10,5 @@
 * Be judicious with contractions
 * Be consistent with the project names and abstraction names TODO
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
-* chip vs. ASIC
+* chip vs. ASIC vs. chipsets. Use chips everywhere.
+* overuse of "as opposed to"

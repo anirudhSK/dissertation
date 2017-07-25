@@ -33,10 +33,8 @@ for RED was not available at enqueue. We knew of it all the way back to the
 being available. For instance, RED needs queue depth that is not available, but
 the EWMA operation itself is rather straightforward.
 
-7. Add higher-level programming models to future work.
+7. Killer app for programmability: Measurement maybe?
 
-8. Killer app for programmability: Measurement maybe?
-
-9. What are the abstraction disadvantages to determining the packet's priority
+8. What are the abstraction disadvantages to determining the packet's priority
 at the enqueue? Correspondingly, what are the implementation advantages to
 determining the packet's priority at the enqueue?
