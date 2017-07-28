@@ -91,14 +91,18 @@ arriving at the router. This allows the pipeline stage to maintain and update
 the state consistently, \eg a counter that counts the number of bytes received
 across all ports. In a multi-pipeline router, no single pipeline sees all
 packets, so the state in a pipeline stage can only be updated by packets
-belonging to ports assigned to that pipeline. For simple stateful operations
-like counters, the associativity of addition allows us to update the state
-separately in each pipeline and combine it through addition later. However, we
-know of no general mechanism to combine pipeline-local state into a single
-state value in a manner that emulates a single-pipeline router. Using a single
-state value that is accessed by multiple pipelines is a potential solution, but
-sharing state requires multi-ported memory and locking. Multi-ported memory is
-expensive, while locking degrades performance.
+belonging to ports assigned to that pipeline. This may suffice for some
+applications, \eg per-port state that is maintained in each pipeline, which
+does not need to be accessed from  other pipelines. 
+
+For simple stateful operations like counters, the associativity of addition
+allows us to update the state separately in each pipeline and combine it
+through addition later. However, we know of no general mechanism to combine
+pipeline-local state into a single state value in a manner that emulates a
+single-pipeline router. Using a single state value that is accessed by multiple
+pipelines is a potential solution, but sharing state requires multi-ported
+memory and locking. Multi-ported memory is expensive, while locking degrades
+performance.
 
 \Para{Performance queries.} Because the {\ct groupby} operator in \TheSystem
 maintains and update state in the data plane, performance queries share the
