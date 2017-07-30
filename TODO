@@ -3,6 +3,7 @@
 Consider having a separate section titled primer or experimental setup or
 arch. of a router?  This could cover:
 --> Why pipeline instead of shared memory? There's an interesting point here.
+(Use animations from the older ppts)
 --> a shared pipeline shared across multiple ports,
 --> maybe multiple such pipelines and
 --> the scheduler that resides in between the two pipelines.
@@ -36,3 +37,7 @@ the EWMA operation itself is rather straightforward.
 7. What are the abstraction disadvantages to determining the packet's priority
 at the enqueue? Correspondingly, what are the implementation advantages to
 determining the packet's priority at the enqueue?
+
+8. See if we can mention the compilation ideas as an example of something
+general: going from a transactional representation to a pipeline, regardless of
+what can be done within a pipeline stage.
