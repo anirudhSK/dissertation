@@ -1,23 +1,5 @@
 1. router_arch.tex
 
-Consider having a separate section titled primer or experimental setup or
-arch. of a router?  This could cover:
---> Why pipeline instead of shared memory? There's an interesting point here.
-(Use animations from the older ppts)
---> a shared pipeline shared across multiple ports,
---> maybe multiple such pipelines and
---> the scheduler that resides in between the two pipelines.
---> the Banzai machine model
---> differences between single vs. multi-pipeline routers,
---> where the router's control plane sits relative to this pipeline
---> i.e., spend a decent amount of time explaining the machine model: packets come in,
-they are looked up, we carry out some action, and so on so forth.
---> why we used simulation, synthesis, emulation
-
-Basically, I think the experimental method has a substantial amount of new content as well.
-Also, we should probably talk about where each of our three
-pieces fits within the context of a router ASIC or router chip.
-
 2. generalizability.txt
 
 3. Proof and explanation of fixed-point algorithm in Marple. Explain compiler
