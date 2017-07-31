@@ -1,26 +1,135 @@
 \section{The Hardware Architecture of a High-Speed Router}
 \label{s:router_arch}
 
-% Say that a router has two primary functions: the control plane and the data plane.
-% --> The data plane is in hardware, the control plane runs on an embedded CPU.
-% --> Something like PCI between the control and data plane (cite Open Compute Project.)
+We now provide a brief overview of the hardware architecture of a high-speed
+router to provide a mental model of a router chip for the rest of this
+dissertation. We first describe the overall structure of router today. We then
+describe the performance requirements for a high-speed router today. Motivated
+by these performance requirements, we describe two strawman hardware
+architectures, and show why they fall short. We then describe the predominant
+pipeline-based architecture of high-speed routers today.
 
-% Now how is the data plane architected?
-% --> Why pipeline instead of shared memory? There's an interesting point here.
-% --> (Use animations from the older ppts)
+\subsection{Overview of a router}
 
-% So the arch is a shared pipeline
-% --> a shared pipeline shared across multiple ports,
-% --> the scheduler that resides in between the two pipelines.
+A router's functionality can be divided into two major planes: the {\em control
+plane} and the {\em data plane}. The control plane is responsible for running
+distributed routing protocols such as BGP, IS-IS, and OSPF. The goal of a
+routing protocol is to populate a router's {\em routing table}: a table that
+tells a router which router port to transmit a packet on in order to reach a
+particular destination address. The data plane is responsible for looking up an
+incoming packet's destination address in this routing table to determine the
+packet's output port.
 
-% What happens when you want to scale further.
-% --> maybe multiple such pipelines and
-% --> differences between single vs. multi-pipeline routers (multi-ported memory, split-brain)
+The control plane typically runs when the network's topology changes because of
+a new router or a router failure, while the data plane needs to run on every
+packet to determine every incoming packet's output port. Because the frequency
+of topology changes is much less than the rate at which packets are received at
+a router, the control plane typically runs on a general-purpose CPU, while the
+data plane is implemented in a dedicated hardware as part of a router chip or
+ASIC.
+%TODO: Control-data plane separation figure (maybe open compute project??)
+% Figure ... shows an example of a router box with the general-purpose CPU and
+% the router chip.
 
+\subsection{Performance requirements for a high-speed router}
+Because this dissertation focuses on high-speed programmability of those
+features that were historically implemented in fixed-function hardware within
+the router chip, we focus on the architecture of the data plane here. To
+motivate a hardware design for the router chip, it is useful to have a sense of
+the performance requirements of a high-speed router. For illustration, let's
+consider a high-speed 1 Tbit/s router, representative of many high-speed
+routers today~\cite{trident2, tomahawk, tomahawk2}. Let's assume that the
+router needs to forward 1000 bit packets. Finally, let's assume that on each
+packet, the router needs to carry out \textasciitilde5 operations, such as
+determining the output port based on the destination address, access control,
+tuneling, measurement, and decrementing the IP TTL field. These requirements
+translate into the need to support about 5 operations on a billion packets per
+second, or equivalently, 5 billion operations per second.
+
+\subsection{Strawman 1: a single 5 GHz packet processor}
+One approach to architecting a router chip is to build a single in-order scalar
+processor that can run at 5 GHz and support 5 billion packet operations per
+second. But these clock rates are out of reach today; even with custom and
+painstaking manual design, the fastest processor chips today do not exceed 3.5
+Ghz, and most other chips (\eg graphics processors and digital signal
+processors) have lower clock speeds in the 1 GHz range.
+
+\subsection{Strawman 2: an array of packet processors with shared memory}
+
+An obvious solution to this problem is to have many processors operate in
+parallel on different packets. When a packet comes in, a distributor could send
+a packet to a free in-order processor, which would then carry out all the
+operations on that packet, before accepting a new packet. This architecture is
+similar to some network processors~\cite{ixp1200, ixp2400, quantumflow}.  These
+network processors featured an array of simple processors, and each of these
+processors would handle all the operations corresponding to a single packet.
+With such an approach, to handle 5 billion operations per second, we would need
+5 processors, each running at 1 billion operations per second, which is much
+more feasible.
+
+The problem with this approach is that the routing tables need to be shared
+across all processors, to allow any processor to lookup any destination address
+in the routing table on every clock cycle. In effect, the memory housing the
+routing table needs to support 5 billion lookups per second. Memory designs
+typically run at the same clock frequency as the processor (1 GHz) are support
+a single read or write operation per cycle (also known as single-ported
+memory). Supporting 5 billion lookups per second requires a {\em multi-ported}
+memory capable of handling multiple lookup operations every clock cycle (where
+a clock cycle is 1 ns). Such multi-ported memory modules consume considerably
+more area than standard single-ported memory.
+
+\subsection{A pipeline architecture for high-speed routers}
+To avoid the technical challenges associated with multi-ported memories,
+high-speed routers are typically architected as a {\em pipeline}, where each
+pipeline stage is dedicated to a fixed functionality, such as destination
+address lookup, tuneling, measurement, or access control. Each pipeline stage
+has its own dedicated local memory to store its own routing tables,
+corresponding to destination address lookup, tuneling, measurement, or access
+control, as the case may be. This architecture provides parallelism: at any
+point, each pipeline stage is working on a different packet. It also does so
+without sharing memory between processors: 
+
+%TODO: We should say what we mean by shared memory later? It's confusing to
+%dismiss shared-memory here and then talk about shared memory routers later.
+%Really the shared-memory in shared memory routers refers to the scheduler and
+%(to a lesser extent) the sharing of the pipeline across the ports of the
+%routers.
+
+This pipeline architecture is the architecture followed by most high-speed
+routers today. Packets arriving at a router~(top half of
+Figure~\ref{domino_fig:router}) are parsed by a programmable parser that turns
+packets into header fields. These header fields are first processed by an
+ingress pipeline consisting of match-action tables arranged in stages.
+Processing a packet at a stage may modify its header fields, through
+match-action rules, as well as some persistent state at that stage, \eg packet
+counters. After the ingress pipeline, the packet is queued. Once the scheduler
+dequeues the packet, it is processed by a similar egress pipeline before it is
+transmitted.
+%TODO: Define match-action table before. Don't use the term routing tables??
 % What happens in each pipeline?
 % --> What is match-action processing?
 % --> spend a decent amount of time explaining the machine model: packets come in,
 % they are looked up, we carry out some action, and so on so forth.
+
+\subsection{Using multiple pipelines to scale to higher speeds}
+The ingress and egress pipeline is shared across a number of router ports and
+handles aggregate traffic belonging to all these ports, regardless of packet
+sizes. The number of ingress and egress pipelines depends on the aggregate
+capacity of the router. For instance, a 64-port router with a line rate of 10
+Gbit/s per port and a minimum packet size of 64 bytes needs to process around a
+billion packets per second, after accounting for minimum inter-packet
+gaps~\cite{rmt}.  This requirement can be supported by a single pipeline that
+runs at 1 GHz.  For higher aggregate capacities, multiple 1-GHz pipelines are
+required because it is technically challenging to achieve a clock rate higher
+than 1 GHz in router ASICs.
+
+ Throughout this chapter, we
+assume a single pipeline router, with the pipeline running at 1 GHz.
+Equivalently, every pipeline stage handles a new packet every clock cycle (1
+ns). We discuss multi-pipeline routers later (\S\ref{ss:multiple}). 
+
+% --> differences between single vs. multi-pipeline routers (multi-ported memory, split-brain)
+
 
 % How do we evaluate hardware:
 % --> simulation, synthesis, emulation 
@@ -28,30 +137,3 @@
 % conclusion
 % --> where each of our three pieces fits within the
 % --> context of a router ASIC or router chip.
-
-% Useful text to use when writing this section
-
-%%%%%\subsection{Background: programmable routers}
-%%%%%Packets arriving at a router~(top half of Figure~\ref{domino_fig:router}) are
-%%%%%parsed by a programmable parser that turns packets into header fields. These
-%%%%%header fields are first processed by an ingress pipeline consisting of
-%%%%%match-action tables arranged in stages. Processing a packet at a stage may
-%%%%%modify its header fields, through match-action rules, as well as some
-%%%%%persistent state at that stage, \eg packet counters. After the ingress
-%%%%%pipeline, the packet is queued. Once the scheduler dequeues the packet, it is
-%%%%%processed by a similar egress pipeline before it is transmitted.
-%%%%%
-%%%%%To reduce chip area, each ingress and egress pipeline is shared across a number
-%%%%%of router ports and handles aggregate traffic belonging to all these ports,
-%%%%%regardless of packet sizes. The number of ingress and egress pipelines depends
-%%%%%on the aggregate capacity of the router. For instance, a 64-port router with a
-%%%%%line rate of 10 Gbit/s per port and a minimum packet size of 64 bytes needs to
-%%%%%process around a billion packets per second, after accounting for minimum
-%%%%%inter-packet gaps~\cite{rmt}.  This requirement can be supported by a single
-%%%%%pipeline that runs at 1 GHz.  For higher aggregate capacities, multiple 1-GHz
-%%%%%pipelines are required.\footnote{It is technically challenging to achieve a
-%%%%%clock rate higher than 1 GHz in router ASICs.} Throughout this chapter, we
-%%%%%assume a single pipeline router, with the pipeline running at 1 GHz.
-%%%%%Equivalently, every pipeline stage handles a new packet every clock cycle (1
-%%%%%ns). We discuss multi-pipeline routers later (\S\ref{ss:multiple}). 
-%%%%%
