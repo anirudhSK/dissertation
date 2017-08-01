@@ -21,30 +21,10 @@ algorithms.  These processing units, called {\em atoms}, model atomic
 operations that are supported by a programmable line-rate router and serve as
 the instruction set of the router.
 
-\subsection{Background: programmable routers}
-Packets arriving at a router~(top half of Figure~\ref{domino_fig:router}) are
-parsed by a programmable parser that turns packets into header fields. These
-header fields are first processed by an ingress pipeline consisting of
-match-action tables arranged in stages. Processing a packet at a stage may
-modify its header fields, through match-action rules, as well as some
-persistent state at that stage, \eg packet counters. After the ingress
-pipeline, the packet is queued. Once the scheduler dequeues the packet, it is
-processed by a similar egress pipeline before it is transmitted.
-
-To reduce chip area, each ingress and egress pipeline is shared across a number
-of router ports and handles aggregate traffic belonging to all these ports,
-regardless of packet sizes. The number of ingress and egress pipelines depends
-on the aggregate capacity of the router. For instance, a 64-port router with a
-line rate of 10 Gbit/s per port and a minimum packet size of 64 bytes needs to
-process around a billion packets per second, after accounting for minimum
-inter-packet gaps~\cite{rmt}.  This requirement can be supported by a single
-pipeline that runs at 1 GHz.  For higher aggregate capacities, multiple 1-GHz
-pipelines are required.\footnote{It is technically challenging to achieve a
-clock rate higher than 1 GHz in router ASICs.} Throughout this chapter, we
-assume a single pipeline router, with the pipeline running at 1 GHz.
-Equivalently, every pipeline stage handles a new packet every clock cycle (1
-ns). We discuss multi-pipeline routers later (\S\ref{ss:multiple}). 
-
+%TODO: The paragraph below could be cleaned up.
+% We keep mixing up line-rate and high-speed.
+Recall from Chapter~\ref{chap:arch} that high-speed routers feature a pipeline
+where each pipeline stage processes a new packet every clock cycle of 1 ns.
 Having to process a packet every clock cycle in each stage constrains the
 operations that can be performed on each packet. In particular, any packet
 operation that modifies state visible to the next packet {\em must} finish
@@ -53,11 +33,6 @@ restriction, any programmable router chip will have to provide a small set of
 processing units or primitives for manipulating packets and state in a stage,
 unlike a software router. These primitives determine which algorithms can run
 on the router at line rate.
-
-The challenge for us is to develop primitives that allow a broad range of
-data-plane algorithms to be implemented, and to build a compiler to map a
-user-friendly description of an algorithm to the primitives provided by a
-router.
 
 \subsection{The \absmachine machine model}
 
