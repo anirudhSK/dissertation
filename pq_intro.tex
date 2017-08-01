@@ -45,10 +45,11 @@ expressive language, we believe the resulting hardware design can support a
 wide variety of current and future performance monitoring needs.
 
 \begin{figure}[!t]
-\includegraphics[width=\columnwidth]{pq_overview.pdf}
-\caption{Operators issue \TheSystem queries, which are compiled into router
+\centering
+\includegraphics[width=0.6\textwidth]{pq_overview.pdf}
+\caption{Operators issue \TheSystem queries. These are compiled into router
 programs for programmable routers augmented with our new programmable
-key-value store primitive. Routers stream results from this query to
+key-value store. Routers stream results from this query to
 collection servers that also house the backing store for the key-value store.}
 \label{fig:overview}
 \end{figure}
