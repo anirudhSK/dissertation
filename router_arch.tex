@@ -130,10 +130,9 @@ pipeline stage is working on a different packet. It also does so without
 sharing memory between processors: each match-action table is local and can be
 accessed only by the pipeline stage to which it belongs.
 
-%TODO: Consider replacing "top half of ..." with a fresh figure in pptx
 This pipeline architecture is the architecture followed by most high-speed
-routers today. Packets arriving at a router~(top half of
-Figure~\ref{domino_fig:router}) are parsed by a parser that turns
+routers today. Packets arriving at a
+router~(Figure~\ref{fig:detailed_pipeline}) are parsed by a parser that turns
 packets into header fields. These header fields are first processed by an
 ingress pipeline consisting of match-action tables arranged in stages.
 Processing a packet at a stage may modify its header fields, through
@@ -146,8 +145,14 @@ of the underlying hardware~\cite{rmt}.}
 
 \begin{figure}[!t]
 \includegraphics[width=\textwidth]{pipeline.pdf}
-\caption{Pipeline architecture adopted by most high-speed routers}
+\caption{Pipeline architecture adopted by most high-speed routers.}
 \label{fig:pipeline}
+\end{figure}
+
+\begin{figure}[!t]
+\includegraphics[width=\textwidth]{detailed_pipeline.pdf}
+\caption{Architecture of a high-speed router showing the parser, pipelines, and scheduler.}
+\label{fig:detailed_pipeline}
 \end{figure}
 
 \subsection{The internals of a single pipeline stage} Each pipeline stage implements
