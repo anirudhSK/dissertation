@@ -197,6 +197,12 @@ beyond specific examples, we do not yet have theoretical characterizations of
 the set of programs that can or cannot be programmed using our programming
 models (\S\ref{ss:limit_completeness}).
 
+In addition, to assess the basic correctness of our designs, we built a C++
+simulator of a programmable router that abstracts the essential computational
+elements of a programmable router and models their behavior at the level of
+individual clock cycles. This simulator and the abstract machine model that it
+assumes are detailed in \S\ref{s:absmachine}.
+
 \section{Stateful data-plane algorithms}
 In Chapter~\ref{chap:domino}), we consider the problem of programming {\em
 stateful data-plane algorithms} at high packet processing rates. These are
@@ -214,7 +220,9 @@ these challenges, we develop a system for data-plane programming, Domino, which
 contains three main components: an instruction set (atoms), a programming model
 (packet transactions), and a compiler.
 
-\subsection{Atoms} \textit{Atoms} capture a router's instruction set. They
+\subsection{Atoms}
+\label{ss:intro_atoms}
+\textit{Atoms} capture a router's instruction set. They
 specify atomic units of packet processing provided by the router hardware, \eg
 an atomic counter or an atomic test-and-set. Figure~\ref{fig:simple_atom} shows
 an example atom. Atoms are atomic in the sense that if some state is updated by
@@ -481,7 +489,10 @@ Shaping~\cite{tbf}, Hierarchical Packet Fair Queueing~\cite{hpfq}, Least-Slack
 Time-First~\cite{lstf}, the Rate-Controlled Service Disciplines~\cite{rcsd},
 and fine-grained priority scheduling (\eg Shortest Job First).
 
-\subsection{Hardware for PIFOs} We designed high-speed hardware to support a
+\subsection{Hardware for PIFOs}
+\label{ss:intro_pifo_hardware}
+
+We designed high-speed hardware to support a
 PIFO-based programming model. When designing hardware for PIFOs, we set out to
 meet performance targets that are typical for a single-chip shared-memory
 router today. These are routers that are built out of a single
@@ -611,6 +622,7 @@ dictionary mapping each 5-tuple to its count as persistent router state; this
 dictionary is updated by incrementing some 5-tuple's counter on each packet.
 
 \subsection{Router hardware for performance queries}
+\label{ss:intro_pq_hardware}
 
 A naive implementation of performance queries would stream every packet to a
 centralized collection server, which would execute the performance query
