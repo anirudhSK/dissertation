@@ -5,10 +5,10 @@ in Marple more clearly.
 
 4. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
 
-5. Add a multiply-accumulate atom to the Domino set. The only reason we
-didn't add it to the original Domino paper was because queue size information
-for RED was not available at enqueue. We knew of it all the way back to the
-2013 HotNets paper.
+5. Add a multiply-accumulate atom to the Domino set. The only reason we didn't
+add it to the original Domino paper was because queue size information for RED
+was not available at enqueue. We knew of it all the way back to the 2013
+HotNets paper.
 
 6. Distinguish computational capabilities of a pipeline from information not
 being available. For instance, RED needs queue depth that is not available, but
@@ -24,3 +24,5 @@ what can be done within a pipeline stage.
 
 9. There are a whole bunch of ugly white spaces around the figures. Fixing these
 will save us quite some space.
+
+10. Consider adding Domino programs to the appendix.
