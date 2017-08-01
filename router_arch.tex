@@ -41,7 +41,7 @@ plane.
 
 \begin{figure}
 \centering
-\includegraphics{wedge100.png}
+\includegraphics[width=\textwidth]{wedge100.png}
 \caption{Facebook's Wedge 100 router from the Open Compute Project~\cite{ocp}.
 The COM-Express CPU module serves as the control plane, while the Tomahawk ASIC
 is a router chip that serves as the data plane. Image courtesy of
@@ -64,7 +64,7 @@ decrementing the IP TTL field. These requirements translate into the need to
 support about 10 operations on a billion packets per second, or equivalently, 10
 billion operations per second.
 
-\section{Strawman 1: a single 10 GHz packet processor}
+\section{Strawman 1: a single 10 GHz processor}
 One approach to architecting a router chip is to build a single in-order scalar
 processor that can run at 10 GHz and support 10 billion packet operations per
 second (Figure~\ref{fig:single_processor}). But these clock rates are out of
@@ -73,7 +73,7 @@ processor chips today do not exceed 10 Ghz, and most other chips (\eg graphics
 processors and digital signal processors) have lower clock speeds in the 1 GHz
 range.
 
-\section{Strawman 2: an array of packet processors with shared memory}
+\section{Strawman 2: an array of processors with shared memory}
 
 An obvious solution to this problem is to have many scalar in-order processors
 operate in parallel on different packets. When a packet comes in, a distributor
@@ -102,19 +102,20 @@ ns). Such multi-ported memory modules consume considerably more area than
 standard single-ported memory.
 
 \begin{figure}[!t]
-\begin{minipage}{0.2\textwidth}
+\begin{minipage}{0.3\textwidth}
 \centering
 \includegraphics[width=\textwidth]{single_processor.pdf}
-\caption{Strawman 1: A single processor processing packets at 10 GHz.}
+\caption{10 GHz processor}
 \label{fig:single_processor}
 \end{minipage}
 \hfill
-\begin{minipage}{0.8\textwidth}
+\begin{minipage}{0.7\textwidth}
 \centering
 \includegraphics[width=\textwidth]{processor_array.pdf}
-\caption{Strawman 2: An array of 10 1-GHz processors. }
+\caption{An array of 10 1-GHz processors. }
 \label{fig:processor_array}
 \end{minipage}
+\caption{Two strawman designs for a high-speed router}
 \end{figure}
 
 \section{A pipeline architecture for high-speed routers}
@@ -144,6 +145,7 @@ of the underlying hardware~\cite{rmt}.}
 
 \begin{figure}[!t]
 \includegraphics[width=\textwidth]{pipeline.pdf}
+\caption{Pipeline architecture adopted by most high-speed routers}
 \label{fig:pipeline}
 \end{figure}
 
