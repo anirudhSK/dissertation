@@ -23,25 +23,30 @@ the instruction set of the router.
 
 %TODO: The paragraph below could be cleaned up.
 % We keep mixing up line-rate and high-speed.
-Recall from Chapter~\ref{chap:arch} that high-speed routers feature a pipeline
-where each pipeline stage processes a new packet every clock cycle of 1 ns.
-Having to process a packet every clock cycle in each stage constrains the
-operations that can be performed on each packet. In particular, any packet
-operation that modifies state visible to the next packet {\em must} finish
-execution in a single clock cycle (\S\ref{ss:atoms} shows why). Because of this
-restriction, any programmable router chip will have to provide a small set of
-processing units or primitives for manipulating packets and state in a stage,
-unlike a software router. These primitives determine which algorithms can run
-on the router at line rate.
+Recall from Chapter~\ref{chap:arch} that high-speed routers (both programmable
+and fixed-function) are architected in hardware as a pipeline where each
+pipeline stage processes a new packet every clock cycle of 1 ns.  Having to
+process a packet every clock cycle in each stage constrains the operations that
+can be performed on each packet. In particular, any packet operation that
+modifies state visible to the next packet {\em must} finish execution in a
+single clock cycle (\S\ref{ss:atoms} shows why). Because of this restriction,
+any programmable router chip will have to provide a small set of processing
+units or primitives for manipulating packets and state in a stage, unlike a
+software router. These primitives determine which algorithms can run on the
+router at line rate. We now describe this concept of time-constrained
+computation in greater detail.
 
 \subsection{The \absmachine machine model}
 
-\absmachine (the bottom half of Figure~\ref{domino_fig:router}) models the
-ingress or egress router pipeline.  It models the computation within a
-match-action table in a stage (\ie the action half of the match-action table),
-but not how packets are matched (\eg direct or ternary). \absmachine does not
-model packet parsing and assumes that packets arriving to \absmachine are
-already parsed.
+A programmable router that provides programmability in parsing and match-action
+processing~\cite{rmt, xpliant, flexpipe, tofino} has the architecture shown in the top half of
+Figure~\ref{domino_fig:router}: a programmable parser, followed by an ingress
+pipeline, followed by a scheduler, followed by an egress pipeline.  \absmachine
+(the bottom half of Figure~\ref{domino_fig:router}) models the ingress or
+egress router pipeline.  It models the computation within a match-action table
+in a stage (\ie the action half of the match-action table), but not how packets
+are matched (\eg direct or ternary). \absmachine does not model packet parsing
+and assumes that packets arriving to \absmachine are already parsed.
 %We discuss how to embed \absmachine in a standard match-action
 %pipeline in \S\ref{ss:guards}.  
 
