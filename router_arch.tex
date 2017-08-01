@@ -1,5 +1,5 @@
 \chapter{The Hardware Architecture of a High-Speed Router}
-\label{s:router_arch}
+\label{chap:arch}
 %TODO: We should say what we mean by shared memory later? It's confusing to
 %dismiss shared-memory here and then talk about shared memory routers later.
 %Really the shared-memory in shared memory routers refers to the scheduler and
@@ -133,7 +133,7 @@ accessed only by the pipeline stage to which it belongs.
 %TODO: Consider replacing "top half of ..." with a fresh figure in pptx
 This pipeline architecture is the architecture followed by most high-speed
 routers today. Packets arriving at a router~(top half of
-Figure~\ref{domino_fig:router}) are parsed by a programmable parser that turns
+Figure~\ref{domino_fig:router}) are parsed by a parser that turns
 packets into header fields. These header fields are first processed by an
 ingress pipeline consisting of match-action tables arranged in stages.
 Processing a packet at a stage may modify its header fields, through
