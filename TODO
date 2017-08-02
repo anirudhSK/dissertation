@@ -14,6 +14,13 @@ HotNets paper.
 being available. For instance, RED needs queue depth that is not available, but
 the EWMA operation itself is rather straightforward.
 
+9. There are a whole bunch of ugly white spaces around the figures. Fixing these
+will save us quite some space.
+
+10. Consider adding Domino programs to the appendix.
+
+11. Consider changing all figures to pptx/pdf, instead of using inkscape in places.
+
 7. What are the abstraction disadvantages to determining the packet's priority
 at the enqueue? Correspondingly, what are the implementation advantages to
 determining the packet's priority at the enqueue?
@@ -21,10 +28,3 @@ determining the packet's priority at the enqueue?
 8. See if we can mention the compilation ideas as an example of something
 general: going from a transactional representation to a pipeline, regardless of
 what can be done within a pipeline stage.
-
-9. There are a whole bunch of ugly white spaces around the figures. Fixing these
-will save us quite some space.
-
-10. Consider adding Domino programs to the appendix.
-
-11. Consider changing all figures to pptx/pdf, instead of using inkscape in places.
