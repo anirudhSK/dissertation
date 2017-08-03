@@ -139,6 +139,9 @@ flops, where it is simple to add multiple ports (unlike SRAM).
 
 \section{Domino limitations}
 \label{sec:domino_limitations}
+%TODO: Practical implication of compiler not optimizing aggressively, or
+% not being smart in general (there are programs that do compile, but need manual
+% assistance to actually compile).
 The \pktlanguage compiler doesn't aggressively optimize, instead focusing on
 generating sub-optimal, but correct pipeline configurations. For instance, it is
 possible to fuse two stateful codelets incrementing two independent counters
