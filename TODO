@@ -26,3 +26,5 @@ determining the packet's priority at the enqueue?
 9. See if we can mention the compilation ideas as an example of something
 general: going from a transactional representation to a pipeline, regardless of
 what can be done within a pipeline stage.
+
+10. Future proofness of these designs (or) will the ideas hold in ten years?
