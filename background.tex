@@ -250,9 +250,9 @@ the data plane instead of the control plane.
 
 In Fastpass, when an application on an end host calls send() on a socket, the
 end host sends a message to the arbiter specifying its network demands. Upon
-receiving this message, the arbiter specifies the time slots in which the end
-host must transmit and the network path that the end host's data must follow
-during those time slots. 
+receiving this message, the arbiter specifies the times at which the end
+host must transmit and the network path that the end host's packets must follow
+during those times. 
 
 In subsequent work, Flexplane~\cite{flexplane} uses the arbiter as an emulator
 to emulate existing resource management algorithms (\eg active queue management
@@ -263,17 +263,16 @@ flowlets, instead of packets.  This allows the centralized arbiter in Flowtune
 to handle larger networks than Fastpass.
 
 Fastpass, Flexplane, and Flowtune are all applicable to networks of a modest
-size, until the centralized arbiter does not become a bottleneck.
-Microbenchmarks that stress the arbiter alone show that an arbiter running on a
+size, until the centralized arbiter becomes a bottleneck.
+Microbenchmarks that stress the Flowtune arbiter alone show that an arbiter running on a
 64-core server can manage a network with an aggregate capacity of 184
-Tbit/s~\cite{flowtune}. However, the largest scale network that a
+Tbit/s~\cite{flowtune}. However, the largest network that a
 Fastpass-style approach has been benchmarked on is a network of 40 10-Gbit/s
 servers connected to a single top-of-rack router~\cite{flexplane}.
 
-At the same time, by leveraging a centralized data plane implemented on a
-commodity CPU, Fastpass provides far more flexibility than a restricted
-interface exposed by a programmable router chip.  Ultimately, the right choice
-of a data plane will be dictated by the link speed and the size of the network.
+In summary, by leveraging a centralized data plane implemented on a commodity
+CPU, Fastpass provides far more flexibility than a restricted interface exposed
+by a programmable router chip---but at a significant cost to scalability.
 
 \subsection{End-host-based programmability}
 Several approaches to network programmability provide programmability from the
