@@ -1,3 +1,5 @@
+==== % Why does trTCM not work here? Give a crisp reason ====
+
 ====Maybe describe the atom design process up front here=====
 Move it up from lessons learned to the beginnings of the evaluation section
 
