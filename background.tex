@@ -241,43 +241,39 @@ of programmable router chips.
 \label{s:concurrent}
 
 \subsection{Centralized data planes}
-Fastpass~\cite{fastpass} is an approach to managing a datacenter network at
-fine time scales using a logically centralized arbiter that regulates packet
-transmissions from all end hosts within the network. A logically centralized
-arbiter for the entire network provides the arbiter with the global visibility
-needed to perform resource management for the entire network. In a sense,
-Fastpass applies the idea of centralized control from SDN to the data plane
-instead of the control plane.
+Fastpass~\cite{fastpass} manages a datacenter network at fine time scales using
+a logically centralized arbiter that regulates packet transmissions from all
+end hosts within the network. A logically centralized arbiter provides the
+global visibility needed to perform resource management for the entire network.
+Put differently, Fastpass applies the idea of centralized control from SDN to
+the data plane instead of the control plane.
 
 In Fastpass, when an application on an end host calls send() on a socket, the
-end host sends a message to the arbiter specifying its network demands. Once
-the arbiter receives this message from an end host, it specifies the time slots
-at which the end host must transmit and the network path that the end host's
-data must follow during those time slots. 
+end host sends a message to the arbiter specifying its network demands. Upon
+receiving this message, the arbiter specifies the time slots in which the end
+host must transmit and the network path that the end host's data must follow
+during those time slots. 
 
 In subsequent work, Flexplane~\cite{flexplane} uses the arbiter as an emulator
-to program existing resource management algorithms (\eg active queue management
-algorithms like RED to manage the buffer of a router and scheduling algorithms
+to emulate existing resource management algorithms (\eg active queue management
+algorithms like RED to manage the router's buffer and scheduling algorithms
 like WFQ to schedule the router's links).  Flowtune~\cite{flowtune} applies
-Fastpass-style ideas to the centralized management of flowlets (small groups of
-packets separated by a large time interval between them) instead of packets,
-which allows it to scale to larger networks than Fastpass.
+Fastpass-style ideas to the centralized management of groups of packets called
+flowlets, instead of packets.  This allows the centralized arbiter in Flowtune
+to handle larger networks than Fastpass.
 
 Fastpass, Flexplane, and Flowtune are all applicable to networks of a modest
-size, until the centralized arbiter does not become a bottleneck. Flowtune
-substantially alleviates many of the scaling problems by managing flowlets
-instead of packets. For instance, in microbenchmarks, the Flowtune arbiter was
-found to scale to an aggregate capacity of 184 Tbit/s on a 64-core Nehalem
-server~\cite{flowtune}.
+size, until the centralized arbiter does not become a bottleneck.
+Microbenchmarks that stress the arbiter alone show that an arbiter running on a
+64-core server can manage a network with an aggregate capacity of 184
+Tbit/s~\cite{flowtune}. However, the largest scale network that a
+Fastpass-style approach has been benchmarked on is a network of 40 10-Gbit/s
+servers connected to a single top-of-rack router~\cite{flexplane}.
 
-However, the largest scale network that a Fastpass-style approach has been
-benchmarked on is a network of 40 servers with 10 Gbit/s in a single rack
-connected to a single top-of-rack router~\cite{flexplane}. At the same time, by
-leveraging a centralized data plane implemented on a commodity CPU, Fastpass
-provides far more flexibility than a restricted interface exposed by a
-programmable router chip.  Ultimately, the right choice of a data plane will be
-dictated by the link speed of individual links in the networks and the scale of
-the network.
+At the same time, by leveraging a centralized data plane implemented on a
+commodity CPU, Fastpass provides far more flexibility than a restricted
+interface exposed by a programmable router chip.  Ultimately, the right choice
+of a data plane will be dictated by the link speed and the size of the network.
 
 \subsection{End-host-based programmability}
 Several approaches to network programmability provide programmability from the
