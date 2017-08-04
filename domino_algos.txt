@@ -1,8 +1,6 @@
 1. HashPipe
-2. HULA
 3. trTCM
 4. PIE
-5. RED
 6. AFD?
 7. Other SNAP examples.
 8. George Varghese / Cristi Estan's bitmap algorithms?
@@ -11,7 +9,6 @@
 11. PERC.
 12. CSFQ?
 13. The most detailed version of RED?
-14. BLUE
 15. FAST
 16. Bohatei
 17. Other scheduling transactions in the PIFO work.

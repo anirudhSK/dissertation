@@ -8,6 +8,7 @@ being available. For instance, RED needs queue depth that is not available, but
 the EWMA operation itself is rather straightforward.
 
 Concrete things to add to generalizability.txt/Domino eval:
+2.0. Worth pointing out that many of these algorithms were never intended for a hardware router and would probably be written differently now that programmable high-speed routers are actually possible.
 2a. Add a guard column to the Domino algorithm examples, esp. now that we are moving many of
 the conditional checks into the guards (eg. DNS TTL, CONGA, HULA, BLUE, pretty much everything is per-port).
 2b. Add a paragraph on the memory requirements of these algorithms when maintaining per-flow state.
