@@ -8,6 +8,7 @@ being available. For instance, RED needs queue depth that is not available, but
 the EWMA operation itself is rather straightforward.
 
 Concrete things to add to generalizability.txt/Domino eval:
+2.-1. I guess transactions triggered by different guards can still share state: basically, two different match-action-table rule entries will end up updating the same piece of state as part of the action.
 2.0. Worth pointing out that many of these algorithms (HashPipe and sketches are exceptions) were never intended for a hardware router and would probably be written differently now that programmable high-speed routers are actually possible.
 2a. Add a guard column to the Domino algorithm examples, esp. now that we are moving many of
 the conditional checks into the guards (eg. DNS TTL, CONGA, HULA, BLUE, pretty much everything is per-port).
