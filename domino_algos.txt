@@ -1,16 +1,13 @@
 1. HashPipe
-3. trTCM
+3. trTCM as an example of something that doesn't compile
 4. PIE (might be too complicated)
 6. AFD?
-7. Other SNAP examples.
 8. George Varghese / Cristi Estan's bitmap algorithms?
 9. Minlan's SKETCHes.
 10. UnivMon.
 11. PERC.
 12. CSFQ? (might be too complicated)
 13. The most detailed version of RED?
-15. FAST
-16. Bohatei
 17. Other scheduling transactions in the PIFO work.
 18. Software load balancer.
 19. Anantha
