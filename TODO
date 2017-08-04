@@ -7,6 +7,15 @@ HotNets paper.
 being available. For instance, RED needs queue depth that is not available, but
 the EWMA operation itself is rather straightforward.
 
+Concrete things to add to generalizability.txt/Domino eval:
+2a. Add a guard column to the Domino algorithm examples, esp. now that we are moving many of
+the conditional checks into the guards (eg. DNS TTL, CONGA, HULA, BLUE, pretty much everything is per-port).
+2b. Add a paragraph on the memory requirements of these algorithms when maintaining per-flow state.
+2c. Add this trick of pre-computing stateless parts to keep the stateful computations small and short.
+2d. Add this general template for stateful computation that all this is pointing towards.  
+i.e., if (g1) s1 = u1(...)
+      if (g2) s2 = u2(...) and so on
+
 3. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
 
 4. Proof and explanation of fixed-point algorithm in Marple. Explain compiler
