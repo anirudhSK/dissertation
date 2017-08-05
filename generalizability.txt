@@ -1,3 +1,17 @@
+The section:
+* Evaluating the generality / future proofness of Domino's atoms
+--> Took 11 algorithms "after the fact" and tried compiling them.
+--> Many compiled, but required us to rewrite the algorithms because the compiler wasn't exactly smart.
+--> It required us to: move guards outside, precompute stateless expressions, reduce packet variable counts, etc.
+--> But it still compiled.
+--> The ones that didn't were "near misses". Here's an example: trTCM.
+--> But the near miss suggests a path to designing a universal instruction set.
+--> if (g1) f1 ... if(g2) f2 ... and so on
+--> What is the optimal stateful instruction set? 
+--> Add two columns: trigger/guards + state memory requirements (per-flow, per-address, etc.) One guard is implicit: per-flow/per-address etc., the second one depends on the applocation.
+-----------
+
+
 ==== % Why does trTCM not work here? Give a crisp reason ====
 
 ====Maybe describe the atom design process up front here=====
