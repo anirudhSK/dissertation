@@ -1,57 +1,24 @@
 \section{Evaluation}
 \label{s:eval}
-\begin{table}[!t]
-\begin{small}
-  \begin{tabular}{|p{0.15\columnwidth}|p{0.34\columnwidth}|p{0.10\columnwidth}|p{0.06\columnwidth}|p{0.08\columnwidth}|p{0.04\columnwidth}|p{0.04\columnwidth}|}
-\hline
-Algorithm & Stateful operations & Most expressive atom required & \# of stages, max. atoms/stage & Ingress or Egress Pipeline? & LOC & P4 LOC\\
-\hline
-Bloom filter (3 hash functions) & Test/Set membership bit on every packet. & Read/Write & 4, 3 & Either & 29 & 104 \\
-\hline
-Heavy Hitters~\cite{opensketch} (3 hash functions) & Increment count-min sketch~\cite{cormode} on every packet. & RAW & 10, 9 & Either & 35 & 192 \\
-\hline
-Flowlets~\cite{flowlets} & Update saved next hop if flowlet threshold is exceeded. & PRAW & 6, 2 & Ingress & 37 & 107 \\
-\hline
-RCP~\cite{rcp} & Accumulate RTT sum if RTT is under maximum allowable RTT. & PRAW & 3, 3 & Egress & 23 & 75 \\
-\hline
-Sampled NetFlow~\cite{sampled_nflow} & Sample a packet if packet count reaches N. Reset count to 0 when it reaches N. & IfElseRAW & 4, 2 & Either  & 18 & 70 \\
-\hline
-HULL~\cite{hull} & Update counter for virtual queue. & Sub & 7, 1 & Egress & 26 & 95 \\
-\hline
-Adaptive Virtual Queue~\cite{avq} & Update virtual queue size and virtual capacity. & Nested & 7, 3 & Ingress & 36 & 147 \\
-\hline
-Priority computation for weighted fair queueing (Chapter~\ref{chap:pifo}) & Compute packet's virtual start time using finish time of last packet in that flow. & Nested & 4, 2 & Ingress & 29 & 87 \\
-\hline
-DNS TTL change tracking~\cite{dns_change} & Track number of changes in announced TTL for each domain. & Nested & 6,3 & Ingress & 27 & 119 \\
-\hline
-CONGA~\cite{conga} & Update best path's utilization/id if we see a better path. Update best path utilization alone if it changes.  & Pairs & 4, 2 & Ingress & 32 & 89\\
-\hline
-%trTCM~\cite{trTCM} & Update token counts for each token bucket & Doesn't map & 7, 3 & Either \\
-%\hline
-CoDel~\cite{codel} & Update whether we are marking or not, time for next mark, number of marks so far, and time at which minimum queueing delay will exceed target. & Doesn't map & 15, 3 & Egress & 57 & 271\\
-\hline
-\end{tabular}
-\end{small}
-\caption{Data-plane algorithms}
-\label{tab:algos}
-\end{table}
+
+\input{domino_algo_table}
 
 We evaluate \pktlanguage's expressiveness by using it to program several
-data-plane algorithms (Table~\ref{tab:algos}), and comparing it to writing them
-in P4~(\S\ref{ss:expressiveness}).  To validate that these algorithms can run
-at line rate, we design a concrete set of \absmachine machines
-(Table~\ref{tab:templates}) as compiler targets for
+data-plane algorithms (Table~\ref{tab:algorithms}), and comparing it to writing
+them in P4~(\S\ref{ss:expressiveness}). To validate that these
+algorithms can run at line rate, we design a concrete set of \absmachine
+machines (Table~\ref{tab:templates}) as compiler targets for
 \pktlanguage~(\S\ref{ss:targets}).  We estimate that these machines are
 feasible in hardware because their atoms incur modest chip area overhead.  We
 use the \pktlanguage compiler to compile the algorithms in
-Table~\ref{tab:algos} to the targets in
+Table~\ref{tab:algorithms} to the targets in
 Table~\ref{tab:templates}~(\S\ref{domino_ss:compiler}).  We conclude with some
 lessons for programmable router design~(\S\ref{ss:lessons}).
 
 \subsection{Expressiveness}
 \label{ss:expressiveness}
 
-We program several data-plane algorithms (Table~\ref{tab:algos}) using
+We program several data-plane algorithms (Table~\ref{tab:algorithms}) using
 \pktlanguage. These algorithms encompass data-plane traffic engineering,
 in-network congestion control, active queue management, network security, and
 measurement. We also used \pktlanguage to express the priority computation for
@@ -62,11 +29,12 @@ In all these cases, the algorithms are already available as blocks of
 imperative code from online sources; translating them to \pktlanguage syntax
 was straightforward. In contrast, expressing any of them in P4\footnote{We are
 referring to P4 at the time the Domino paper was published. As we describe in
-\S\ref{s:impact}, many of Domino's ideas are part of the latest version of P4.}
+\S\ref{s:impact}, many of Domino's ideas (including packet transactions) are
+part of the latest version of P4.}
 requires manually teasing out portions of the algorithm that can reside in
 independent match-action tables and then chaining these tables together.
 
-Of the algorithms in Table~\ref{tab:algos}, only flowlet switching has a
+Of the algorithms in Table~\ref{tab:algorithms}, only flowlet switching has a
 publicly available P4 implementation~\cite{p4_flowlet} that we can compare
 against. This implementation requires 231 lines of uncommented P4, compared to
 only 37 lines of \pktlanguage code in Figure~\ref{fig:flowlet_code}. Not only
@@ -75,7 +43,7 @@ actions within tables, and how tables are chained---all to implement a single
 data-plane algorithm. The \pktlanguage compiler automates this process; to
 demonstrate this, we developed a backend for \pktlanguage that generates the
 equivalent P4 code. We list the number of lines of code for these
-auto-generated P4 programs in Table~\ref{tab:algos}.
+auto-generated P4 programs in Table~\ref{tab:algorithms}.
 %%
 %%Data-plane algorithms on software platforms today (NPUs, Click, the Linux qdisc
 %%subsystem~\cite{qdisc})  are programmed in languages resembling
@@ -142,7 +110,7 @@ Table~\ref{tab:templates} (Read/Write through Pairs).
 These 300 stateless and stateful atoms are laid out physically as 10 stateless
 and stateful atoms per pipeline stage and 30 pipeline stages. While the number
 300 and the pipeline layout are arbitrary, they are sufficient for all examples
-in Table~\ref{tab:algos}, and incur modest area overhead as we show next. In
+in Table~\ref{tab:algorithms}, and incur modest area overhead as we show next. In
 the future, we anticipate these numbers being decided empirically based on what
 algorithms are most frequently run on such platforms.
 
@@ -190,7 +158,7 @@ and 300 instances of the single stateless atom.}
 \subsection{Compiling \pktlanguage programs to \absmachine machines}
 \label{domino_ss:compiler}
 We now consider every target from Table~\ref{tab:templates} and every
-data-plane algorithm from Table~\ref{tab:algos} to determine if the algorithm
+data-plane algorithm from Table~\ref{tab:algorithms} to determine if the algorithm
 can run at the line rate of a particular \absmachine machine. Because every
 target is uniquely identified by its stateful atom type, we use the name of the
 stateful atom to refer to the target itself.
@@ -200,9 +168,10 @@ codelet within the data-plane algorithm can be mapped (\S\ref{ss:code_gen}) to
 either the stateful or stateless atoms provided by the \absmachine machine.
 Because our stateful atoms are arranged in a containment hierarchy, we list the
 \textit{most expressive} stateful atom/target required for each data-plane
-algorithm in Table~\ref{tab:algos}.
+algorithm in Table~\ref{tab:algo_atoms}.
+\input{domino_algo_atoms}
 
-As Table~\ref{tab:algos} shows, the choice of stateful atom determines what
+As Table~\ref{tab:algo_atoms} shows, the choice of stateful atom determines what
 algorithms can run on a router. For instance, with only the ability to read or
 write state, only the Bloom Filter algorithm can run at line rate, because it
 only requires the ability to test and set membership bits.  Adding the ability
@@ -214,7 +183,7 @@ because it employs a count-min sketch that is incremented on each packet.
 
 \Para{Atoms that allow modifications to a single state variable support many
 algorithms.} The algorithms from Bloom Filter through DNS TTL Change Tracking
-in Table~\ref{tab:algos} can run at line rate using the Nested Ifs atom that
+in Table~\ref{tab:algo_atoms} can run at line rate using the Nested Ifs atom that
 modifies a single state variable.
 
 \Para{But, some algorithms modify a pair of state variables atomically.}

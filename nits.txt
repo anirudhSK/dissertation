@@ -14,3 +14,5 @@
 * overuse of "as opposed to"
 * onto vs. on to
 * into vs. in to
+* data plane vs. router vs. high-speed router. Be consistent.
+* Harmonize all figures into powerpoint?

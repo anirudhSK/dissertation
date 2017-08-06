@@ -62,7 +62,7 @@ synthesis~\cite{sketch_asplos} to map codelets to atoms, rejecting the
 transaction if the atom cannot execute the codelet.
 
 We evaluate \pktlanguage's expressiveness by programming a variety of
-data-plane algorithms (Table~\ref{tab:algos}) in \pktlanguage and compare with
+data-plane algorithms (Table~\ref{tab:algorithms}) in \pktlanguage and compare with
 P4. We find that \pktlanguage provides a more concise and natural programming
 model for stateful data-plane algorithms.  Next, we design a set of small set
 of atoms that can express these algorithms (\S\ref{ss:targets}).  We show that
@@ -70,11 +70,11 @@ compiler targets with these atoms are feasible in a 32-nm standard-cell library
 with $< 2\%$ cost in area relative to a 200 \si{\milli\metre\squared} baseline
 router chip~\cite{gibb_parsing}.  Finally, we compile data-plane algorithms
 written in \pktlanguage to these targets (\S\ref{domino_ss:compiler}) to show
-how a target's atoms determine the algorithms it can support. We also distill
+how a target's atoms determine the algorithms it can support (Table~\ref{tab:algo_atoms}). We also distill
 with several lessons for programmable router design (\S\ref{ss:lessons}) based
 on our experience with \pktlanguage.
 %TODO: Tone down comparison with P4 here. That's not the point here.
 
 Code for the \pktlanguage compiler, the \absmachine machine model, and the code
-examples listed in Table~\ref{tab:algos} is available at
+examples listed in Table~\ref{tab:algorithms} is available at
 \url{http://web.mit.edu/domino}.

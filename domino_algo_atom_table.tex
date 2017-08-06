@@ -1,0 +1,35 @@
+\begin{table}[!t]
+\begin{small}
+  \begin{tabular}{|p{0.15\columnwidth}|p{0.10\columnwidth}|p{0.06\columnwidth}|p{0.08\columnwidth}|}
+\hline
+Algorithm & Most expressive atom required & \# of stages, max. atoms/stage & Ingress or Egress Pipeline?\\
+\hline
+Bloom filter (3 hash functions) & Read/Write & 4, 3 & Either\\
+\hline
+Heavy Hitters~\cite{opensketch} (3 hash functions) & RAW & 10, 9 & Either\\
+\hline
+Flowlets~\cite{flowlets} & PRAW & 6, 2 & Ingress\\
+\hline
+RCP~\cite{rcp} & PRAW & 3, 3 & Egress\\
+\hline
+Sampled NetFlow~\cite{sampled_nflow} & IfElseRAW & 4, 2 & Either\\
+\hline
+HULL~\cite{hull} & Sub & 7, 1 & Egress\\
+\hline
+Adaptive Virtual Queue~\cite{avq} & Nested & 7, 3 & Ingress\\
+\hline
+Priority computation for weighted fair queueing (Chapter~\ref{chap:pifo}) & Nested & 4, 2 & Ingress\\
+\hline
+DNS TTL change tracking~\cite{dns_change} & Nested & 6,3 & Ingress\\
+\hline
+CONGA~\cite{conga} & Pairs & 4, 2 & Ingress\\
+\hline
+%trTCM~\cite{trTCM} & Update token counts for each token bucket & Doesn't map & 7, 3 & Either \\
+%\hline
+CoDel~\cite{codel} & Doesn't map & 15, 3 & Egress\\
+\hline
+\end{tabular}
+\end{small}
+\caption{Mapping Domino algorithms to atoms}
+\label{tab:algo_atoms}
+\end{table}
