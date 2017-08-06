@@ -74,7 +74,7 @@ multiple instances of this atom.
 %transistor with a feature size of 32 nm)
 
 \Para{Designing stateless atoms.}
-Stateless atoms are easier to design because arbitrary stateless operations can
+Stateless atoms are easier to design because complicated stateless operations can
 be broken up into multiple pipeline stages without violating
 atomicity~(\S\ref{ss:atoms}). We design a stateless atom that can support
 simple arithmetic (add, subtract, left shift, right shift), logical (and, or,
@@ -86,17 +86,41 @@ meets timing at 1 GHz and occupies an area of 1384 \si{\micro\meter\squared}
 
 \Para{Designing stateful atoms.}
 The choice of stateful atoms determines the algorithms a line-rate router can
-support. A more complex stateful atom can support more data-plane algorithms,
-but may not meet timing at 1 GHz and occupies more area. To illustrate this
-effect, we design a containment hierarchy (Table~\ref{tab:templates}) of
-stateful atoms, where each atom can express all stateful operations that its
-predecessor can.  These atoms start out with the simplest stateful capability:
-the ability to read or write state alone.  They then move on to the ability to
-read, add, and write back state atomically (RAW), a predicated version of the
-same (PRAW), and so on. When synthesized to a 32-nm standard-cell library, all
-our stateful atoms meet timing at 1 GHz.  However, the atom's area and minimum
-end-to-end propagation delay increases with the atom's
-complexity~(Table~\ref{tab:templates}).
+support. Unlike a stateless computation that can be easily pipelined over
+multiple stateless atoms, there is no easy way to pipeline a stateful
+computation over multiple stateful atoms, while still guaranteeing atomicity.
+For instance, \S\ref{ss:atoms} illustrates how atomicity is violated even for a
+counter, a very simple stateful operation.
+
+However, designing the right set of stateful atoms for a router is a
+chicken-and-egg problem: the choice of stateful atoms determines which
+algorithms can execute on that target, while the choice of algorithms dictates
+what stateful atoms are required in the router. Indeed, other programmable
+substrates (\eg graphics processors and digital signal processors) go through
+an iterative process to design a good instruction set.
+
+ We use the Domino compiler to help us design a good set of stateful atoms.
+Concretely, we pick a data-plane algorithm and partially execute the
+\pktlanguage compiler to generate a codelet pipeline.  We then inspect the
+stateful codelets, and create an atom that expresses all the computations
+required by the stateful codelets. We verify that this atom can indeed express
+all these computations by fully executing the compiler on the data-plane
+algorithm with that atom as the target. We then move on to the next algorithm,
+and check if the same atom suffices. If not, we repeatedly extend our atom
+through a process of trial-and-error to capture more computations, all the
+while using the compiler to verify our intuitions on extending atoms.
+
+In the process, we generate a containment hierarchy of atoms
+(Table~\ref{tab:templates}), each of which works for a subset of algorithms.
+The complexity of the atoms increases as we proceed down this hierarchy. A more
+complex stateful atom can support more data-plane algorithms, but occupies more
+area and may not meet timing at 1 GHz. These atoms start out with the simplest
+stateful capability: the ability to read or write state alone.  They then move
+on to the ability to read, add, and write back state atomically (RAW), a
+predicated version of the same (PRAW), and so on. When synthesized to a 32-nm
+standard-cell library, all our stateful atoms meet timing at 1 GHz.  However,
+the atom's area and minimum end-to-end propagation delay increases with the
+atom's complexity~(Table~\ref{tab:templates}).
 
 \Para{The compiler targets.}
 We design seven \absmachine machines as compiler targets. A single \absmachine
@@ -314,33 +338,6 @@ In summary, for a router designer, the critical path of atoms is the most
 important metric to optimize. The most programmable line-rate routers will have
 the highest density of useful stateful functionality squeezed into a critical
 path budget of 1 clock cycle.
-
-\Para{Compilers can be used to design instruction sets.} Designing an
-instruction set for a programmable substrate is a chicken-and-egg problem: the
-choice of instructions determines which algorithms can execute on that target,
-while the choice of algorithms dictates what instructions are required in the
-target. Indeed, other programmable substrates (\eg graphics processors and
-digital signal processors) go through an iterative process to design a good
-instruction set.
-
- A compiler can aid this process. To show how, we describe how we designed the
-stateful atoms in Table~\ref{tab:templates}. We pick a data-plane algorithm and
-partially execute the \pktlanguage compiler to generate a codelet pipeline.  We
-then inspect the stateful codelets, and create an atom that expresses all the
-computations required by the stateful codelets. We verify that this atom can
-indeed express all these computations by fully executing the compiler on the
-data-plane algorithm with that atom as the target. We then move on to the next
-algorithm, and check if the same atom suffices. If not, we repeatedly extend
-our atom through a process of trial-and-error to capture more computations, all
-the while using the compiler to verify our intuitions on extending atoms. In
-the process, we generate a hierarchy of atoms, each of which works for a subset
-of algorithms.
-
-Our atom design process is manual and ad hoc at this point, but it already
-shows how  a compiler can aid in instruction-set design for programmable
-routers. Using the same iterative approach involving a compiler, we anticipate
-the atoms in \absmachine machines evolving as data-plane algorithms demand more
-of the hardware.
 
 %%\textbf{Compilation time:}
 %%Compilation time is dominated by SKETCH's search procedure.  To speed up the
