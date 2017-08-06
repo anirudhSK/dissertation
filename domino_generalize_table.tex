@@ -1,0 +1,43 @@
+%TODO: Double check these numbers once
+\begin{table}[!t]
+\centering
+\begin{small}
+  \begin{tabular}{|p{0.3\columnwidth}|p{0.3\columnwidth} | p{0.1\columnwidth}}
+\hline
+Algorithm & Guard & Most expressive atom required\\
+\hline
+HULA probe processing logic~\cite{hula}\footnote{Note that the HULA algorithm
+requires some coordination between the ingress and egress pipelines to ensure
+the link utilization is available in the ingress. However, a slightly stale
+value of the link utilization doesn't severely affect the performance of the
+forwarding algorithm.} & Match all HULA probe packets & Pairs \\
+\hline
+HULA forwarding logic~\cite{hula} & Match all data packets & PRAW \\
+\hline
+BLUE increase logic~\cite{blue} & Match all packets whose enqueue queue depth exceeds a threshold & PRAW \\
+\hline
+BLUE decrease logic~\cite{blue} & Match all packets where the link utilization is low & Sub \\
+\hline
+FTP monitoring~\cite{snap} & Match all packets & PRAW \\
+\hline
+HashPipe (first stage)~\cite{hashpipe} & Match all packets & IfElseRAW \\
+\hline
+HashPipe (second and subsequent stages)~\cite{hashpipe} & Match only packets that make it past the first stage & Pairs\\
+\hline
+Checking for frequent domain name changes for a given IP address~\cite{snap} & Match all DNS packets & PRAW \\
+\hline
+Detect first packet of a flow (Figure~\ref{fig:example-perf-queries}) & Match packets belonging to a particular flow & PRAW \\
+\hline
+Counting packet reordering within a TCP connection (Figure~\ref{fig:example-perf-queries}) & Match packets belonging to a particular flow & PRAW \\
+\hline
+Heavy hitter detection~\cite{snap} & Match packets with the TCP SYN flag set & Pairs \\
+\hline
+Spam detection~\cite{snap} & Match all packets & Pairs \\
+\hline
+Stateful firewall~\cite{snap} & Match all packets & PRAW \\
+\hline
+Superspreader detection~\cite{snap} & Match all packets & NestedIf \\
+\hline
+\caption{The atoms in Table~\ref{tab:templates} generalize to new, unanticipated use cases.}
+\label{tab:atoms_generalize}
+\end{table}

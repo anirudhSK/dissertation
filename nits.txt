@@ -16,3 +16,4 @@
 * into vs. in to
 * data plane vs. router vs. high-speed router. Be consistent.
 * Harmonize all figures into powerpoint?
+* pq_* uses figure for everything, while we use tables for tables. Make sure we use tables for tables in the dissertation.

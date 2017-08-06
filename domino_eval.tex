@@ -195,12 +195,15 @@ Because our stateful atoms are arranged in a containment hierarchy, we list the
 algorithm in Table~\ref{tab:algo_atoms}.
 \input{domino_algo_atoms_table}
 
-As Table~\ref{tab:algo_atoms} shows, the choice of stateful atom determines what
-algorithms can run on a router. For instance, with only the ability to read or
-write state, only Bloom filters can run at line rate, because it
-only requires the ability to test and set membership bits.  Adding the ability
-to increment state (the RAW atom) permits heavy hitter detection to run at line rate,
-because it employs a count-min sketch that is incremented on each packet.
+As Table~\ref{tab:algo_atoms} shows, the choice of stateful atom determines
+what algorithms can run on a router. For instance, with only the ability to
+read or write state, only Bloom filters can run at line rate, because it only
+requires the ability to test and set membership bits.  Adding the ability to
+increment state (the RAW atom) permits heavy hitter detection to run at line
+rate, because it employs a count-min sketch that is incremented on each packet.
+One example of an algorithm that cannot be supported by any of our atoms is
+CoDel, which requires a square root operation that is not provided by our
+atoms.
 
 Table~\ref{tab:algo_atoms} also lists where each algorithm runs (ingress or
 egress), the algorithm's memory requirements for storing state, and guards
@@ -240,6 +243,68 @@ independently on a single queue for each output port or independently on
 multiple queues for each output port). In the case of CoDel, the guard selects
 packets by their output port or output queue and runs the appropriate instance
 of the same CoDel packet transaction on the selected packet.
+
+\subsection{Generality of atoms}
+
+One concern with designing atoms using the trial-and-error method described in
+\S\ref{ss:targets} is the potential for ``overfitting'', where the atoms only
+work for the algorithms that inspired the design of these atoms and do not
+generalize to new and as-yet-unseen algorithms. The main argument for a
+programmable router is the ability to change its functionality without hardware
+redesign. However, if the atoms needed to change with every new algorithm, this
+argument no longer holds.
+
+To evaluate the generality of our atoms, we wrote a new set of algorithms in
+Domino after freezing our set of atoms to the set above
+(Table~\ref{tab:templates}). Using the Domino compiler, we again evaluated the
+most expressive atom required to run each of these algorithms at the router's
+line rate.
+
+\input{domino_generalize_table}
+The results, shown in Table~\ref{tab:atoms_generalize}, suggest that the atoms
+we have designed are general enough to support several unanticipated use cases.
+However, for many of these algorithms, we had to expend a considerable amount
+of effort in manually rewriting these algorithms so that our compiler would
+compile them to the atoms we have. This is because our current compiler is not
+intelligent enough to carry out these rewrites automatically. We illustrate
+this problem using an example drawn from the BLUE queue management
+algorithm~\cite{blue}.
+
+\Para{Rewriting algorithms so that they compile.}
+The BLUE algorithm increments a marking probability whenever there's the queue
+exceeds a certain size or on a packet drop. However, BLUE adds some hysteresis
+to ensure that the marking probability doesn't change too frequently. It does
+so by checking that a certain amount of time has elapsed since the last
+increment. The code for this probability increment can be summarized below:
+
+\begin{verbatim}
+if (p.now - last_update > FREEZE_TIME) {
+  p_mark = p_mark + DELTA1;
+  last_update = p.now;
+}
+\end{verbatim}
+
+Unfortunately, in the above form the BLUE algorithm cannot be compiled to PRAW
+atom because the conditional check in the PRAW atom only allows a piece of
+state to be compared to another packet field or constant, \ie only checks of
+the form $A >/</==/!= B$. The conditional check above is the of the form $A - B
+> C$, which is beyond the PRAW atom. However, we can manually rewrite the algorithm
+to precompute p.now - FREEZE\_TIME in a previous stage:
+
+\begin{verbatim}
+p.now_plus_free = p.now - FREEZE_TIME;
+if (p.now_plus_free > last_update) {
+   p_mark = p_mark + DELTA1;
+   last_update = p.now;
+}
+\end{verbatim}
+
+This algorithm {\em does} compile, because the conditional check is of the form
+supported by the PRAW atom. Detecting and performing such precomputation is
+beyond our compiler's current abilities, requiring us to assist the compiler by
+manually rewriting code in some cases. 
+ 
+%TODO: What still doesn't work? CSFQ, PIE, etc.
 
 \subsection{Lessons for programmable routers}
 \label{ss:lessons}
