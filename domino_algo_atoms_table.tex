@@ -2,7 +2,7 @@
 \begin{small}
 \begin{tabular}{|p{0.12\columnwidth}|p{0.1\columnwidth}|p{0.05\columnwidth}|p{0.05\columnwidth}|p{0.08\columnwidth}|p{0.25\columnwidth}|p{0.17\columnwidth}|}
 \hline
-Algorithm & Most expressive atom required & Stages & Max. atoms/stage & Ingress or Egress Pipeline? & Size of state scales with? & Guard \\
+Algorithm & Most expressive atom required & Stages & Max. atoms/stage & Ingress or Egress Pipeline? & Amount of stateful memory proportional to? & Guard \\
 \hline
 Bloom filter & Read/Write & 4 & 3 & Either & (Size of bloom filter array) * (\# of hash functions) & Match all packets \\
 \hline

@@ -170,14 +170,52 @@ Because our stateful atoms are arranged in a containment hierarchy, we list the
 \textit{most expressive} stateful atom/target required for each data-plane
 algorithm in Table~\ref{tab:algo_atoms}.
 \input{domino_algo_atoms_table}
-%TODO: Mention what guards and scaling mean
 
 As Table~\ref{tab:algo_atoms} shows, the choice of stateful atom determines what
 algorithms can run on a router. For instance, with only the ability to read or
-write state, only the Bloom Filter algorithm can run at line rate, because it
+write state, only Bloom filters can run at line rate, because it
 only requires the ability to test and set membership bits.  Adding the ability
-to increment state (the RAW atom) permits Heavy Hitters to run at line rate,
+to increment state (the RAW atom) permits heavy hitter detection to run at line rate,
 because it employs a count-min sketch that is incremented on each packet.
+
+Table~\ref{tab:algo_atoms} also lists where each algorithm runs (ingress or
+egress), the algorithm's memory requirements for storing state, and guards
+(\S\ref{ss:guards}) for each algorithm. We explain each of these three columns
+below.
+
+An algorithm may run either on the ingress pipeline (\eg load balancing
+algorithms like flowlet switching), egress pipeline (\eg active queue
+management algorithms like CoDel), or both (\eg packet sampling algorithms like
+sampled NetFlow). This choice depends on what information the algorithm needs
+to execute and what other router functionlity depends on this algorithm. For
+instance, CoDel needs access to a packet's queueing delay, which is only
+available after the packet is dequeued from the scheduler and sent to the
+egress pipeline. On the other hand, flowlet switching is a load balancing
+algorithm that determines the next hop for a packet (and hence the output
+port). Because the output port determines which output queue within the
+scheduler the packet must be enqueued into, it needs to be determined in the
+ingress pipeline, before the packet enters the scheduler.
+
+Different algorithms require different amounts of memory to store the state
+associated with the algorithm. For instance, the amount of stateful memory is
+proportional to the size of each array and the number of arrays (hash
+functions) in the case of heavy hitter detection and Bloom filters. On the
+other hand, the amount of stateful memory is proportional to the number of
+output ports for algorithms that run independently for each output port (\eg
+HULL, AVG) or proportional to the number of output queues for algorithms that
+run independently at each output queue (\eg CoDel).
+
+The guard column specifies how packets are selected for execution by an
+algorithm's packet transaction. For instance, the heavy hitter detection
+algorithm runs a single packet transaction on all packets, while the DNS TTL
+change tracking algorithm runs a single packet transaction on all {\em DNS}
+packets. On the other hand, to implement CoDel, the router needs to run a
+separate instance of CoDel's packet transaction for either each output port or
+each output queue (depending on whether the CoDel algorithm is running
+independently on a single queue for each output port or independently on
+multiple queues for each output port). In the case of CoDel, the guard selects
+packets by their output port or output queue and runs the appropriate instance
+of the same CoDel packet transaction on the selected packet.
 
 \subsection{Lessons for programmable routers}
 \label{ss:lessons}
