@@ -1,20 +1,24 @@
-1. HashPipe
-3. trTCM as an example of something that doesn't compile
-4. PIE (might be too complicated)
-6. AFD?
 8. George Varghese / Cristi Estan's bitmap algorithms?
-9. Minlan's SKETCHes.
+9. Minlan's SKETCHes (OpenSketch we already implement, FlowRadar seems doable)
 10. UnivMon.
-11. PERC.
-12. CSFQ? (might be too complicated)
-13. The most detailed version of RED?
 17. Other scheduling transactions in the PIFO work.
 18. Software load balancer.
 19. Anantha
 20. Bidirectional fault detection
-21. SilkRoad, better NetFlow, CounterBraids, etc.
+21. SilkRoad, CounterBraids, etc.
 22. Maglev.
 23. DCQCN.
+
+Tentatively too complicated for us:
+========================
+CSFQ
+Full version of RED
+AFD
+trTCM
+PERC
+PIE
+AFD
+The most detailed version of RED from the original TON paper
 
 Limitations:
 
