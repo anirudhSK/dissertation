@@ -8,7 +8,6 @@ The section:
 --> But the near miss suggests a path to designing a universal instruction set.
 --> if (g1) f1 ... if(g2) f2 ... and so on
 --> What is the optimal stateful instruction set? 
---> Add two columns: trigger/guards + state memory requirements (per-flow, per-address, etc.) One guard is implicit: per-flow/per-address etc., the second one depends on the applocation.
 -----------
 
 

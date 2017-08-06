@@ -1,14 +1,14 @@
 \begin{table}[!t]
 \begin{small}
-  \begin{tabular}{|p{0.2\columnwidth}|p{0.6\columnwidth}|p{0.06\columnwidth}|p{0.06\columnwidth}|}
+  \begin{tabular}{|p{0.2\columnwidth}|p{0.6\columnwidth}|p{0.05\columnwidth}|p{0.05\columnwidth}|}
 \hline
 Algorithm & Stateful operations & LOC & P4 LOC\\
 \hline
 Bloom filter (3 hash functions) & Test/Set membership bit on every packet. & 29 & 104 \\
 \hline
-Heavy Hitters~\cite{opensketch} (3 hash functions) & Increment count-min sketch~\cite{cormode} on every packet. & 35 & 192 \\
+Heavy hitters~\cite{opensketch} (3 hash functions) & Increment count-min sketch~\cite{cormode} on every packet. & 35 & 192 \\
 \hline
-Flowlets~\cite{flowlets} & Update saved next hop if flowlet threshold is exceeded.& 37 & 107 \\
+Flowlet switching~\cite{flowlets} & Update saved next hop if flowlet threshold is exceeded.& 37 & 107 \\
 \hline
 RCP~\cite{rcp} & Accumulate RTT sum if RTT is under maximum allowable RTT. & 23 & 75 \\
 \hline
@@ -16,7 +16,7 @@ Sampled NetFlow~\cite{sampled_nflow} & Sample a packet if packet count reaches N
 \hline
 HULL~\cite{hull} & Update counter for virtual queue. & 26 & 95 \\
 \hline
-Adaptive Virtual Queue~\cite{avq} & Update virtual queue size and virtual capacity. & 36 & 147 \\
+Adaptive Virtual Queue (AVQ)~\cite{avq} & Update virtual queue size and virtual capacity. & 36 & 147 \\
 \hline
 Priority computation for weighted fair queueing (Chapter~\ref{chap:pifo}) & Compute packet's virtual start time using finish time of last packet in that flow. & 29 & 87 \\
 \hline

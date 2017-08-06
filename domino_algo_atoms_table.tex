@@ -1,33 +1,32 @@
-%TODO: Need to add a column about state requirements and guards 
 \begin{table}[!t]
 \begin{small}
-  \begin{tabular}{|p{0.3\columnwidth}|p{0.1\columnwidth}|p{0.05\columnwidth}|p{0.05\columnwidth}|p{0.08\columnwidth}|}
+\begin{tabular}{|p{0.12\columnwidth}|p{0.1\columnwidth}|p{0.05\columnwidth}|p{0.05\columnwidth}|p{0.08\columnwidth}|p{0.25\columnwidth}|p{0.17\columnwidth}|}
 \hline
-Algorithm & Most expressive atom required & Stages & Max. atoms/stage & Ingress or Egress Pipeline?\\
+Algorithm & Most expressive atom required & Stages & Max. atoms/stage & Ingress or Egress Pipeline? & Size of state scales with? & Guard \\
 \hline
-Bloom filter (3 hash functions) & Read/Write & 4 & 3 & Either\\
+Bloom filter & Read/Write & 4 & 3 & Either & (Size of bloom filter array) * (\# of hash functions) & Match all packets \\
 \hline
-Heavy Hitters~\cite{opensketch} (3 hash functions) & RAW & 10 & 9 & Either\\
+Heavy hitters & RAW & 10 & 9 & Either & (Size of sketch array) * (\# of hash functions) & Match all packets \\
 \hline
-Flowlets~\cite{flowlets} & PRAW & 6 & 2 & Ingress\\
+Flowlet switching & PRAW & 6 & 2 & Ingress & Size of flowlet table & Match all packets \\
 \hline
-RCP~\cite{rcp} & PRAW & 3 & 3 & Egress\\
+RCP & PRAW & 3 & 3 & Egress & Constant: 3 scalar integers (total number of bytes, sum of RTTs, number of packets) & Match all packets \\
 \hline
-Sampled NetFlow~\cite{sampled_nflow} & IfElseRAW & 4 & 2 & Either\\
+Sampled NetFlow & IfElseRAW & 4 & 2 & Either & Constant: 1 scalar integer for the counter & Match all packets \\
 \hline
-HULL~\cite{hull} & Sub & 7 & 1 & Egress\\
+HULL & Sub & 7 & 1 & Egress & Number of output ports & Match on output port \\
 \hline
-Adaptive Virtual Queue~\cite{avq} & Nested & 7 & 3 & Ingress\\
+AVQ & Nested & 7 & 3 & Ingress & Number of output ports & Match on output port \\
 \hline
-Priority computation for weighted fair queueing (Chapter~\ref{chap:pifo}) & Nested & 4 & 2 & Ingress\\
+Priorities for weighted fair queueing & Nested & 4 & 2 & Ingress & Number of flows & Match on output port \\
 \hline
-DNS TTL change tracking~\cite{dns_change} & Nested & 6 & 3 & Ingress\\
+DNS TTL change tracking~\cite{dns_change} & Nested & 6 & 3 & Ingress & Number of DNS records tracked & Match all DNS packets  \\
 \hline
-CONGA~\cite{conga} & Pairs & 4 & 2 & Ingress\\
+CONGA & Pairs & 4 & 2 & Ingress & Number of destination ToRs & Match all packets \\
 \hline
 %trTCM~\cite{trTCM} & Update token counts for each token bucket & Doesn't map & 7, 3 & Either \\
 %\hline
-CoDel~\cite{codel} & Doesn't map & 15 & 3 & Egress\\
+CoDel & Doesn't map & 15 & 3 & Egress & Number of output ports or number of output queues & Match on output port or output queue \\
 \hline
 \end{tabular}
 \end{small}
