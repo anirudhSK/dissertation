@@ -432,14 +432,10 @@ howpublished = "\url{http://www.cisco.com/en/US/prod/collateral/switches/ps9441/
 
 @INPROCEEDINGS{pie, 
 author={Rong Pan and Natarajan, P. and Piglione, C. and Prabhu, M.S. and Subramanian, V. and Baker, F. and VerSteeg, B.}, 
-booktitle={High Performance Switching and Routing (HPSR), 2013 IEEE 14th International Conference on}, 
-title={PIE: A lightweight control scheme to address the bufferbloat problem}, 
+booktitle={{IEEE HPSR}},
+title={{PIE: A lightweight control scheme to address the bufferbloat problem}}, 
 year={2013}, 
-month={July}, 
-pages={148-155}, 
-keywords={Internet;jitter;packet switching;queueing theory;Internet;Linux testbed;PIE;average queueing latency;bufferbloat problem;intelligent queue management schemes;lightweight control scheme;proportional integral controller enhanced;quality of service;Delays;Estimation;Internet;Jitter;Linux;Probability;Throughput;Active Queue Management (AQM);Explicit Congestion Notification (ECN);Quality of Service (QoS);bufferbloat}, 
-doi={10.1109/HPSR.2013.6602305}, 
-ISSN={2325-5552},}
+}
 
 @misc{netronome,
 title = {{Netronome showcases next-gen intelligent server adapter delivering 20x ovs performance at open networking summit 2015}},
@@ -1093,26 +1089,6 @@ howpublished = "\url{http://www.poforwarding.org/}"
   howpublished = "\url{https://en.wikipedia.org/wiki/Common_subexpression_elimination}",
 }
 
-@article{csfq,
-   author = {Stoica, Ion and others},
-    title = {{Core-stateless Fair Queueing: A Scalable Architecture to Approximate Fair Bandwidth Allocations in High-speed Networks}},
-     journal = {IEEE/ACM Trans. Netw.},
-      issue_date = {February 2003},
-       volume = {11},
-        number = {1},
-         month = feb,
-          year = {2003},
-           issn = {1063-6692},
-            pages = {33--46},
-             numpages = {14},
-              url = {http://dx.doi.org/10.1109/TNET.2002.808414},
-               doi = {10.1109/TNET.2002.808414},
-                acmid = {638337},
-                 publisher = {IEEE Press},
-                  address = {Piscataway, NJ, USA},
-                   keywords = {binary linear codes, covering radius, least covering radius},
-} 
-
 @misc{dpdk,
   title = {{{DPDK}: Data Plane Development Kit}},
   howpublished = "\url{http://dpdk.org/}",
@@ -1547,17 +1523,6 @@ howpublished = "\url{http://www.broadcom.com/products/Switching/Data-Center/BCM5
 title = {P4 for an {FPGA} target},
 howpublished = "\url{http://schd.ws/hosted_files/p4workshop2015/33/GordonB-P4-Workshop-June-04-2015.pdf}"
 }
-
-@INPROCEEDINGS{pie, 
-author={Rong Pan and Natarajan, P. and Piglione, C. and Prabhu, M.S. and Subramanian, V. and Baker, F. and VerSteeg, B.}, 
-booktitle={High Performance Switching and Routing (HPSR), 2013 IEEE 14th International Conference on}, 
-title={PIE: A lightweight control scheme to address the bufferbloat problem}, 
-year={2013}, 
-month={July}, 
-pages={148-155}, 
-keywords={Internet;jitter;packet switching;queueing theory;Internet;Linux testbed;PIE;average queueing latency;bufferbloat problem;intelligent queue management schemes;lightweight control scheme;proportional integral controller enhanced;quality of service;Delays;Estimation;Internet;Jitter;Linux;Probability;Throughput;Active Queue Management (AQM);Explicit Congestion Notification (ECN);Quality of Service (QoS);bufferbloat}, 
-doi={10.1109/HPSR.2013.6602305}, 
-ISSN={2325-5552},}
 
 @misc{netronome,
 title = {Netronome showcases next-gen intelligent server adapter delivering 20x ovs performance at open networking summit 2015},
@@ -2042,11 +2007,6 @@ author = {Singh, Arjun and Ong, Joon and Agarwal, Amit and Anderson, Glen and Ar
        year = {2015},
 } 
 
-@misc{trTCM,
-  title = {{{RFC} 2698 - A Two Rate Three Color Meter}},
-  howpublished = "\url{https://tools.ietf.org/html/rfc2698}",
-}
-
 @article{avq,
    author = {Kunniyur, Srisankar S. and Srikant, R.},
     title = {{An Adaptive Virtual Queue (AVQ) Algorithm for Active Queue Management}},
@@ -2259,21 +2219,8 @@ author = {Moshref, Masoud and Bhargava, Apoorv and Gupta, Adhip and Yu, Minlan a
 @article{csfq,
    author = {Stoica, Ion and Shenker, Scott and Zhang, Hui},
     title = {{Core-stateless Fair Queueing: A Scalable Architecture to Approximate Fair Bandwidth Allocations in High-speed Networks}},
-     journal = {IEEE/ACM Trans. Netw.},
-      issue_date = {February 2003},
-       volume = {11},
-        number = {1},
-         month = feb,
+     journal = {IEEE/ACM Transactions on Networking},
           year = {2003},
-           issn = {1063-6692},
-            pages = {33--46},
-             numpages = {14},
-              url = {http://dx.doi.org/10.1109/TNET.2002.808414},
-               doi = {10.1109/TNET.2002.808414},
-                acmid = {638337},
-                 publisher = {IEEE Press},
-                  address = {Piscataway, NJ, USA},
-                   keywords = {binary linear codes, covering radius, least covering radius},
 } 
 
 @misc{ixp2800,
@@ -3255,4 +3202,26 @@ howpublished={\url{https://newsroom.cisco.com/feature-content?type=webcontent&ar
  title = {{HULA: Scalable Load Balancing Using Programmable Data Planes}},
  booktitle = {SOSR},
  year = {2016},
+}
+
+@inproceedings{perc,
+ author = {Jose, Lavanya and Yan, Lisa and Alizadeh, Mohammad and Varghese, George and McKeown, Nick and Katti, Sachin},
+ title = {{High Speed Networks Need Proactive Congestion Control}},
+ booktitle = {{HotNets}},
+ year = {2015},
+}
+
+@article{afd,
+ author = {Pan, Rong and Breslau, Lee and Prabhakar, Balaji and Shenker, Scott},
+ title = {{Approximate Fairness Through Differential Dropping}},
+ journal = {SIGCOMM Computer Communication Review},
+ month = {April},
+ year = {2003},
+} 
+
+@article{unsat_core,
+author = {Lynce, I and Marques-silva, J},
+year = {2004},
+title = {{On Computing Minimum Unsatisfiable Cores}},
+booktitle={{The Seventh International Conference on Theory and Applications of Satisfiability Testing}}
 }

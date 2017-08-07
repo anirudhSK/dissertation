@@ -6,6 +6,8 @@
 %(to a lesser extent) the sharing of the pipeline across the ports of the
 %routers.
 
+%TODO: Discuss ingress-egress state sharing, multi-pipeline state sharing
+%using recirculation
 This chapter describes the hardware architecture of a high-speed router to
 provide a mental model of a router chip for the rest of this dissertation. We
 first describe the main functions of a router. We then describe the performance
@@ -255,7 +257,7 @@ Throughout this chapter, we assume a single pipeline router for simplicity. For
 concreteness, we assume the pipeline runs at 1 GHz, although our concepts
 generalize to other clock frequencies as well. This is equivalent to saying
 that every pipeline stage handles a new packet every clock cycle (1 ns). We
-discuss multi-pipeline routers later (\S\ref{ss:multiple}). 
+discuss multi-pipeline routers later (\S\ref{ss:multiple_pipelines}). 
 
 \section{Conclusion}
 This chapter provided an overview of the hardware architecture of a high-speed
