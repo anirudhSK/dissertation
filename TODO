@@ -1,16 +1,22 @@
-1. Distinguish computational capabilities of a pipeline from information not
-being available. For instance, RED needs queue depth that is not available, but
-the EWMA operation itself is rather straightforward.
-
-2. Try and explain why trTCM does not compile (might need us to hack on the domino compiler source code).
-
+High:
+==========
 3. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
+
+Medium:
+==========
+2. Try and explain why trTCM does not compile (might need us to hack on the domino compiler source code).
 
 4. Proof and explanation of fixed-point algorithm in Marple. Explain compiler
 in Marple more clearly.
 
-10. Future proofness of these designs (or) will the ideas hold in ten years?
-
 11. Be more precise about English text around the theorems.
+
+Others:
+==========
+Future proofness of these designs (or) will the ideas hold in ten years?
+
+Distinguish computational capabilities of a pipeline from information not
+being available. For instance, RED needs queue depth that is not available, but
+the EWMA operation itself is rather straightforward.
 
 Try and express the other PIFO scheduling transactions as Domino programs as well
