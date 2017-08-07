@@ -1,6 +1,6 @@
 \section{Evaluation}
 \label{s:eval}
-%TODO: Needs one careful proof reading pass (abbreviate trTCM)
+%TODO: Needs one careful proof reading pass
 
 \input{domino_algo_table}
 
@@ -326,19 +326,21 @@ operations. We leave these investigations to future work.
 Another class of algorithms are algorithms that outside the boundary of our
 atoms, as determined by the SKETCH-based code generator within the Domino
 compiler (\S\ref{ss:code_gen}). An example is the two-color three-rate
-meter~\cite{trTCM}. We have found that explaining {\em why} an algorithm cannot
-compile to a target with a particular atom is challenging.
+meter~\cite{trTCM} (trTCM). We have found that explaining {\em why} an algorithm cannot
+compile to a target with a particular atom is challenging. Next, we describe
+our initial attempts at explaining why an algorithm does not compile.
 
+\Para{Explaining why algorithms do not compile.}
 So far, to explain why an algorithm does not compile, we have had to manually
 pare down an algorithm until we are left with a problematic ``core'' of the
 algorithm that does not map to the underlying atom. We show an
-example of this procedure applied to the two-color three-rate meter.
+example of this procedure applied to trTCM.
 
-The two-color three-rate meter marks packets with one of three colors depending
-on whether the packet's rate falls above a peak rate (red), between a peak and
-committed rate (orange), or below a committed rate (green). Its code is shown
-below, where tp and tc are two token buckets filling at the peak and committed
-rate, and last\_time is the last time either of the two buckets was updated.
+trTCM marks packets with one of three colors depending on whether the packet's
+rate falls above a peak rate (red), between a peak and committed rate (orange),
+or below a committed rate (green). Its code is shown below, where tp and tc are
+two token buckets filling at the peak and committed rate, and last\_time is the
+last time either of the two buckets was updated.
 
 \begin{verbatim}
 if (tp < pkt.size) {
@@ -381,8 +383,8 @@ tc = tc + CIR * (pkt.time);
 if (tc > CBS) tc = CBS;
 \end{verbatim}
 
-However, paring down this algorithm just a little bit further {\em does} lead
-to a code snippet that compiles to the Pair atom:
+However, paring down just a little bit further leads us to a code snippet that
+{\em does} compile to the Pair atom:
 
 \begin{verbatim}
 if (tc < pkt.size) {
@@ -394,19 +396,19 @@ tc = tc + CIR * (pkt.time);
 if (tc > CBS) tc = CBS;
 \end{verbatim}
 
-Based on these observations, we conjecture that the reason that the two-color
-three-rate meter does not compile is that it requires one more conditional
-check than is supported by the Pairs atom. However, we concede that it would be
-helpful to have a more precise explanation along with suggestions on how to fix
-the algorithm in order to compile.
+Based on these observations, we conjecture that the reason that trTCM does not
+compile is that it requires one more conditional check than is supported by the
+Pairs atom. We concede that it would be helpful to have a more precise
+explanation along with suggestions on how to fix trTCM so that it compiles.
 
 Our method of paring down an algorithm to find a problematic non-compilable
 subset of the algorithm is similar to how some SAT solvers provide an
-unsatisfiable core~\cite{unsat_core}. This unsatisfiable core helps the SAT
-solver's user understand why a particular input to a SAT solver is
-unsatisfiable. Because our SKETCH-based code generator uses a SAT solver
-internally, we hope to draw on these techniques for finding unsatisfiable cores
-to help automate this paring down process.
+unsatisfiable core~\cite{unsat_core}. This unsatisfiable core is a subset of
+the clauses in the input formula that is still unsatisfiable and helps a user
+understand why a particular input formula is unsatisfiable. Because our
+SKETCH-based code generator uses a SAT solver internally~\cite{sketch_asplos},
+we hope to draw on algorithms for finding unsatisfiable cores~\cite{unsat_core}
+to automate the paring down process in Domino.
 
 \subsection{Lessons for programmable routers}
 \label{ss:lessons}
