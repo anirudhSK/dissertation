@@ -303,8 +303,42 @@ This algorithm {\em does} compile, because the conditional check is of the form
 supported by the PRAW atom. Detecting and performing such precomputation is
 beyond our compiler's current abilities, requiring us to assist the compiler by
 manually rewriting code in some cases. 
- 
-%TODO: What still doesn't work? CSFQ, PIE, etc.
+
+\Para{Algorithms that are not supported by our atoms.} In addition to CoDel,
+described earlier, we found several other algorithms that are not supported by
+any of our atoms. We describe these classes below.
+
+One class of algorithms requires operations on real numbers.  CoDel belongs to
+this class because it computes an inverse square root to decide when to next
+drop a packet. A second example is PIE~\cite{pie}, which computes an enqueue
+drop probability using a sequence of multiply and divide operations. A third
+example is Core Stateless Fair Queueing~\cite{csfq}, which requires real-valued
+multiply and divide operations to estimate the fair share rate and aggregate
+arrival rate at a router. Other examples include Approximate Fair
+Dropping~\cite{afd} and PERC~\cite{perc}. We should note that these algorithms
+were not explicitly designed with hardware in mind, and it is possible that
+they can be modified to accommodate the constraints of high-speed hardware
+without losing performance.  It may also be sufficient to use fixed-point or
+integer arithmetic instead of floating point arithmetic for some of these
+operations. We leave these investigations to future work.
+
+Another class of algorithms are algorithms that fall just outside the boundary
+of our atoms, as determined by our (conservative) compiler. An example is the
+two-color three-rate meter~\cite{trTCM}. We have found that explaining {\em
+why} an algorithm cannot compile to a target with a particular atom is
+challenging. So far, we have had to manually  pare down an algorithm until we
+are left with a problematic ``core'' of the algorithm that does not map to the
+underlying atom. This is similar to how some SAT solvers provide an
+unsatisfiable core so that a user can understand why a particular input to a
+SAT solver is unsatisfiable~\cite{unsat_core}. Automating this process and
+providing guidance to the programmer on how they should fix their algorithm so
+that it compiles is an interesting direction for future work.
+%TODO: Explain why it fails
+
+%% but note that in
+%%subsequent work (described in \S\ref{sec:hardware-feasibility}) we found that
+%%an atom supporting a multiplication followed by an addition is feasible at 1
+%%GHz speeds.  
 
 \subsection{Lessons for programmable routers}
 \label{ss:lessons}
