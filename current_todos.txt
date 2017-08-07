@@ -1,2 +1,0 @@
-2. generalizability.txt
-3. Proof of fixed-point theorem.
