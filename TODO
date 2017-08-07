@@ -4,8 +4,6 @@ High:
 
 Medium:
 ==========
-2. Try and explain why trTCM does not compile (might need us to hack on the domino compiler source code).
-
 4. Proof and explanation of fixed-point algorithm in Marple. Explain compiler
 in Marple more clearly.
 
