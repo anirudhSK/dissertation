@@ -368,16 +368,6 @@ packet transaction's semantics because they are mutually dependent on each
 other.  The Pairs atom, where the update to a state variable is conditioned on
 a predicate of a pair of state variables, allows CONGA to run at line rate.
 
-\Para{There will always be algorithms that cannot run at a target's line rate.}
-While the targets and their atoms in Table~\ref{tab:templates} are sufficient
-for several data-plane algorithms, there are algorithms that they cannot run at
-line rate.  An example is CoDel, which cannot be implemented because it
-requires a square root operation that is not provided by any of our targets.
-One possibility is a look-up table abstraction that allows us to approximate
-such mathematical functions. However, regardless of what set of atoms we design
-for a particular target, there will always be algorithms that cannot run at
-line rate.
-
 \begin{table}[!t]
   \centering
   \begin{small}
