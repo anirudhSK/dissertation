@@ -262,12 +262,11 @@ work for the algorithms that inspired the design of these atoms and do not
 generalize to new and unseen algorithms. The main argument for a programmable
 router is the ability to change its functionality without hardware redesign.
 However, if the atoms need to change with every new algorithm, this argument no
-longer holds.\footnote{We definitely anticipate router instruction sets, and
-hence atoms, evolving with time. For instance, \S\ref{sec:hardware-feasibility}
-describes a new atom we had to add to support scalable measurement after we
-developed our initial set of atoms. However, to justify a programmable router,
-the rate at which instruction sets need to change should ideally be slower than
-the rate at which new algorithms are developed.}
+longer holds.\footnote{Router instruction sets, and hence atoms, will evolve
+with time. For instance, \S\ref{sec:hardware-feasibility} describes a new atom
+we added for scalable and programmable measurement. However, to justify a
+programmable router, the rate at which atoms need to change should be slower
+than the rate at which new algorithms are developed.}
 
 To evaluate the generality of our atoms, we wrote a new set of algorithms in
 Domino after freezing our set of atoms to the set above
