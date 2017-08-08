@@ -1,11 +1,5 @@
 \chapter{The Hardware Architecture of a High-Speed Router}
 \label{chap:arch}
-%TODO: We should say what we mean by shared memory later? It's confusing to
-%dismiss shared-memory here and then talk about shared memory routers later.
-%Really the shared-memory in shared memory routers refers to the scheduler and
-%(to a lesser extent) the sharing of the pipeline across the ports of the
-%routers.
-
 This chapter describes the hardware architecture of a high-speed router to
 provide the reader with a mental model of a router chip for the rest of this
 dissertation. We first describe the main functions of a router. We then
@@ -265,7 +259,20 @@ dequeues). The limited set of operations on the scheduler memory allows the
 development of multi-ported memory for the scheduler without considerable area
 expense.
 
-Throughout this chapter, we assume a single pipeline router for simplicity. For
+As a matter of terminology, we note that single pipeline routers and
+multi-pipeline routers with multi-ported memories in the scheduler are also
+called {\em shared memory} routers~\cite{dctcp}. The term shared memory is a
+reference to the fact that the memory for the packet buffer is shared across
+all output ports because it behaves like one logically centralized pool of
+memory. Sharing packet buffer memory in a single pipeline router is relatively
+easy. This is because, on every clock cycle, the memory is enqueued into at
+most once (from the single ingress pipeline) and dequeued from at most once
+(from the single egress pipeline). In a multi-pipeline router, this requires
+multi-ported memory, which does reduce the total size of the shared memory
+pool~\cite{dctcp}. In Chapter~\ref{chap:pifo} when we refer to a shared memory
+router, we mean a single pipeline shared memory router. 
+
+Throughout this dissertation, we assume a single pipeline router for simplicity. For
 concreteness, we assume the pipeline runs at 1 GHz (\ie every pipeline stage
 handles a new packet every 1 ns), although our concepts generalize to other
 clock frequencies as well. We discuss how our ideas can be extended to
