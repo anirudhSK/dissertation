@@ -48,4 +48,9 @@ packet-processing functions on fast routers for the first time, such as
 in-network congestion control, active queue management, data-plane load
 balancing, network measurement, and packet scheduling.
 
-%TODO: Summarize broader lessons here as well
+Based on these three systems, we distill two lessons for designing fast and
+programmable routers in the future. First, specializing our designs to
+programming specific classes of router functionality significantly improves
+performance (by 10x or more) relative to a general-purpose solution that can
+program any router functionality. Second, jointly designing hardware and
+software provides us with more leverage than designing either in isolation.
