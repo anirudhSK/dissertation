@@ -255,7 +255,8 @@ packets by their output port or output queue and runs the appropriate instance
 of the same CoDel packet transaction on the selected packet.
 
 \subsection{Generality or future proofness of atoms}
-
+%TODO: This is quite brittle
+\input{domino_generalize_table}
 One concern with designing atoms using the trial-and-error method described in
 \S\ref{ss:targets} is the potential for ``overfitting,'' \ie  the atoms only
 work for the algorithms that inspired the design of these atoms and do not
@@ -274,7 +275,6 @@ Domino after freezing our set of atoms to the set above
 most expressive atom required to run each of these algorithms at the router's
 line rate.
 
-\input{domino_generalize_table}
 The results, shown in Table~\ref{tab:atoms_generalize}, suggest that the atoms
 we have designed are general enough to support several unanticipated use cases.
 However, for many of these algorithms, we had to expend a considerable amount
