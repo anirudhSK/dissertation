@@ -14,11 +14,10 @@ Historically, the evolution of network routers was driven primarily by
 performance. Recently, owing to the need for better control over network
 operations and the constant demand for new features, programmability of routers
 has become as important as performance.  However, today's fastest routers,
-which support aggregate capacities between several hundred Gbit/s and a few
-Tbit/s (10--100 ports each running at a line rate of 10--100 Gbit/s), use
+which have 10--100 ports each running at a line rate of 10--100 Gbit/s, use
 fixed-function hardware, which cannot be modified after deployment. This
-disseration will describe three router hardware primitives and their
-corresponding programming models in software that allow network operators to
+disseration describes three router hardware primitives and their
+corresponding software programming models that allow network operators to
 program specific classes of router functionality on such fast routers.
 
 First, we develop a system for programming stateful packet-processing
@@ -36,22 +35,17 @@ simple idea: a priority queue of packets in hardware coupled with a software
 program to assign each packet's priority in the priority queue.
 
 Third, we develop a system for programmable and scalable measurement of network
-statistics on a per-flow basis. Our goal is to allow programmers to flexibly
-define what they want to measure while scaling to a large number of flows. We
-formally characterize a broad class of statistics measurements for which a
-scalable implementation is possible. This class includes many useful statistics
-such as a moving average filter over packet latencies on a per-flow basis,
-counters, and counters that are conditionally incremented.
+statistics. Our goal is to allow programmers to flexibly define what they want
+to measure for each flow while scaling to a large number of flows. We formalize
+a class of statistics that permit a scalable
+implementation and show that it includes many useful statistics (\eg
+moving averages and counters).
 
-Together, these systems demonstrate that it is possible to program several
-packet-processing functions on fast routers for the first time, such as
-in-network congestion control, active queue management, data-plane load
-balancing, network measurement, and packet scheduling.
-
-Based on these three systems, we distill two lessons for designing fast and
-programmable routers in the future. First, specializing our designs to
-programming specific classes of router functionality significantly improves
-performance (by 10x or more) relative to a general-purpose solution that can
-program any router functionality. Second, jointly designing hardware and
-software provides us with more leverage than designing only hardware or
-software while treating the other as fixed.
+These systems show that it is possible to program several packet-processing
+functions on fast routers for the first time. Based on these systems, we
+distill two lessons for designing fast and programmable routers in the future.
+First, specializing designs to programming specific classes of router
+functionality improves performance by 10x or more relative to a general-purpose
+solution that can program any router functionality. Second, joint design of
+hardware and software provides us with more leverage relative to designing only
+one of them while keeping the other fixed.
