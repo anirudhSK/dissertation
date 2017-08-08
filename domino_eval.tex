@@ -1,17 +1,15 @@
 \section{Evaluation}
 \label{s:eval}
-%TODO: Needs one careful proof reading pass
-
 \input{domino_algo_table}
 
 We evaluate \pktlanguage's expressiveness by using it to program several
 data-plane algorithms (Table~\ref{tab:algorithms}), and comparing it to writing
-them in P4~(\S\ref{ss:expressiveness}). To validate that these
-algorithms can run at line rate, we design a concrete set of \absmachine
-machines (Table~\ref{tab:templates}) as compiler targets for
+them in P4~(\S\ref{ss:expressiveness}). To validate that these algorithms can
+run at line rate, we design a concrete set of \absmachine machines
+(Table~\ref{tab:templates}) as compiler targets for
 \pktlanguage~(\S\ref{ss:targets}).  We estimate that these machines are
 feasible in hardware because their atoms incur modest chip area overhead.  We
-use the \pktlanguage compiler to compile the algorithms in
+use the \pktlanguage compiler to show that we can compile the algorithms in
 Table~\ref{tab:algorithms} to the targets in
 Table~\ref{tab:templates}~(\S\ref{domino_ss:compiler}).  We conclude with some
 lessons for programmable router design~(\S\ref{ss:lessons}).
@@ -27,24 +25,26 @@ programming scheduling using push-in first-out queues, as described in greater
 detail in Chapter~\ref{chap:pifo}.
 
 In all these cases, the algorithms are already available as blocks of
-imperative code from online sources; translating them to \pktlanguage syntax
-was straightforward. In contrast, expressing any of them in P4\footnote{We are
-referring to P4 at the time the Domino paper was published. As we describe in
-\S\ref{s:impact}, many of Domino's ideas (including packet transactions) are
-part of the latest version of P4.}
-requires manually teasing out portions of the algorithm that can reside in
-independent match-action tables and then chaining these tables together.
+imperative code from online sources or published papers; translating them to
+\pktlanguage syntax was straightforward. In contrast, expressing any of them in
+P4\footnote{We are referring to P4 at the time the Domino paper was published.
+As we describe in \S\ref{s:impact}, many of Domino's ideas (including packet
+transactions) are part of the latest version of P4.} requires manually teasing
+out portions of the algorithm that can reside in independent match-action
+tables and then chaining these tables together.
 
-Of the algorithms in Table~\ref{tab:algorithms}, only flowlet switching has a
-publicly available P4 implementation~\cite{p4_flowlet} that we can compare
-against. This implementation requires 231 lines of uncommented P4, compared to
-only 37 lines of \pktlanguage code in Figure~\ref{fig:flowlet_code}. Not only
-that, using P4 also requires the programmer to manually specify tables, the
-actions within tables, and how tables are chained---all to implement a single
-data-plane algorithm. The \pktlanguage compiler automates this process; to
-demonstrate this, we developed a backend for \pktlanguage that generates the
-equivalent P4 code. We list the number of lines of code for these
-auto-generated P4 programs in Table~\ref{tab:algorithms}.
+% TODO: What about the new heavy hitters algorithm from the tutorial?
+Of the algorithms in Table~\ref{tab:algorithms}, flowlet switching has a
+publicly available P4 implementation~\cite{p4_flowlet} that we can directly
+compare against. This implementation requires 231 lines of uncommented P4,
+compared to only 37 lines of \pktlanguage code in
+Figure~\ref{fig:flowlet_code}. Furthermore, using P4 also requires the
+programmer to manually specify tables, the actions within tables, and how
+tables are chained---all to implement a single data-plane algorithm. The
+\pktlanguage compiler automates this process; to demonstrate this, we developed
+a backend for \pktlanguage that generates the equivalent P4 code. We list the
+number of lines of code for these auto-generated P4 programs in
+Table~\ref{tab:algorithms}.
 %%
 %%Data-plane algorithms on software platforms today (NPUs, Click, the Linux qdisc
 %%subsystem~\cite{qdisc})  are programmed in languages resembling
@@ -66,32 +66,33 @@ We synthesize a digital circuit corresponding to an atom template by writing
 the atom template in Verilog, and using the Synopsys Design
 Compiler~\cite{synopsys_dc} to compile the Verilog code. The Design Compiler
 checks if the resulting circuit meets timing at 1 GHz in a 32-nm standard-cell
-library, and outputs its gate area. We use this gate area, along with the area
-of a 200 \si{\milli\metre\squared} baseline router chip~\cite{gibb_parsing},
-to estimate the area overhead for provisioning a \absmachine machine with
-multiple instances of this atom.
+library and outputs its gate area. We use this gate area, along with the area
+of a 200 \si{\milli\metre\squared} baseline router chip~\cite{gibb_parsing}, to
+estimate the area overhead for provisioning a \absmachine machine with multiple
+instances of this atom.
 
 % (a library of primitive gates designed using a
 %transistor with a feature size of 32 nm)
 
 \Para{Designing stateless atoms.}
-Stateless atoms are easier to design because complicated stateless operations can
-be broken up into multiple pipeline stages without violating
+Stateless atoms are relatively easy to design because complicated stateless
+operations can be broken up into multiple pipeline stages without violating
 atomicity~(\S\ref{ss:atoms}). We design a stateless atom that can support
 simple arithmetic (add, subtract, left shift, right shift), logical (and, or,
 xor), relational ({\tt >=}, {\tt <=}, {\tt ==}, {\tt !=}), and conditional
 instructions (C's ``{\tt ?}'' operator) on a pair of packet fields. Any packet
-field can also be substituted with a constant operand. This stateless atom
-meets timing at 1 GHz and occupies an area of 1384 \si{\micro\meter\squared}
+field can also be substituted with a constant operand. This stateless atom is
+similar to the stateless instruction set described by RMT~\cite{rmt}. When
+synthesized using the Synopsys Design Compiler, this atom meets timing at 1 GHz
+and occupies an area of 1384 \si{\micro\meter\squared}
 (Table~\ref{tab:templates}).
 
 \Para{Designing stateful atoms.}
-The choice of stateful atoms determines the algorithms a line-rate router can
-support. Unlike a stateless computation that can be easily pipelined over
-multiple stateless atoms, there is no easy way to pipeline a stateful
-computation over multiple stateful atoms, while still guaranteeing atomicity.
-For instance, \S\ref{ss:atoms} illustrates how atomicity is violated even for a
-counter, a very simple stateful operation.
+As we have seen, a stateless computation can be easily pipelined over multiple
+stateless atoms in different pipeline stages. However, there is no easy way to
+pipeline a stateful computation over multiple stateful atoms and still retain
+atomicity.  For instance, \S\ref{ss:atoms} illustrates how pipelining violates
+atomicity even for a counter.
 
 However, designing the right set of stateful atoms for a router is a
 chicken-and-egg problem: the choice of stateful atoms determines which
@@ -100,28 +101,34 @@ what stateful atoms are required in the router. Indeed, other programmable
 substrates (\eg graphics processors and digital signal processors) go through
 an iterative process to design a good instruction set.
 
- We use the Domino compiler to help us design a good set of stateful atoms.
-Concretely, we pick a data-plane algorithm and partially execute the
-\pktlanguage compiler to generate a codelet pipeline.  We then inspect the
-stateful codelets, and create an atom that expresses all the computations
-required by the stateful codelets. We verify that this atom can indeed express
-all these computations by fully executing the compiler on the data-plane
-algorithm with that atom as the target. We then move on to the next algorithm,
-and check if the same atom suffices. If not, we repeatedly extend our atom
-through a process of trial-and-error to capture more computations, all the
-while using the compiler to verify our intuitions on extending atoms.
+ We use the Domino compiler to help us design a reasonable set of stateful
+atoms.  Concretely, we pick a data-plane algorithm and execute the first two
+stages of the \pktlanguage compiler to generate a codelet pipeline.  We then
+inspect the stateful codelets, and create an atom that expresses all the
+computations required by the stateful codelets. We verify that this atom can
+indeed express all these computations by executing all three stages of the
+compiler on the data-plane algorithm with that atom as the target. We then move
+on to the next algorithm, and check if the same atom suffices. If not, we
+repeatedly extend our atom through a trial-and-error process to capture more
+computations, all the while using the compiler to verify our intuitions on
+extending atoms.
 
 In the process, we generate a containment hierarchy of atoms
 (Table~\ref{tab:templates}), each of which works for a subset of algorithms.
-The complexity of the atoms increases as we proceed down this hierarchy. A more
-complex stateful atom can support more data-plane algorithms, but occupies more
-area and may not meet timing at 1 GHz. These atoms start out with the simplest
-stateful capability: the ability to read or write state alone.  They then move
-on to the ability to read, add, and write back state atomically (RAW), a
-predicated version of the same (PRAW), and so on. When synthesized to a 32-nm
-standard-cell library, all our stateful atoms meet timing at 1 GHz.  However,
-the atom's area and minimum end-to-end propagation delay increases with the
-atom's complexity~(Table~\ref{tab:templates}).
+The complexity of the atoms increases as we proceed down this hierarchy: every
+atom in the hierarchy can express all the computations that its predecessors
+can. These atoms start out with the simplest stateful capability: the ability
+to read or write state alone (Read/Write).  They then move on to the ability to
+read, add, and write back state atomically (RAW), a predicated version of the
+same (PRAW), a version that permits two independent read-add-writes depending
+on whether a predicate is true or false (IfElseRAW), and so on.
+
+A more complex stateful atom can support more data-plane algorithms, but it
+occupies more area and may not meet timing at 1 GHz.  When synthesized to a
+32-nm standard-cell library, however, we find that all our stateful atoms
+comfortably meet timing at 1 GHz.  However, the area and minimum
+input-to-output delay of the atom's circuit increases with the atom's
+complexity~(Table~\ref{tab:templates}).
 
 \Para{The compiler targets.}
 We design seven \absmachine machines as compiler targets. A single \absmachine
@@ -132,10 +139,10 @@ Table~\ref{tab:templates}.
 \item 300 are stateful atoms of one of the seven stateful atom types from
 Table~\ref{tab:templates} (Read/Write through Pairs).
 \end{CompactEnumerate}
-These 300 stateless and stateful atoms are laid out physically as 10 stateless
-and stateful atoms per pipeline stage and 30 pipeline stages. While the number
-300 and the pipeline layout are arbitrary, they are sufficient for all examples
-in Table~\ref{tab:algorithms}, and incur modest area overhead as we show next. In
+These 300 stateless and stateful atoms are laid out as 10 stateless and
+stateful atoms per pipeline stage and 30 pipeline stages. While the number 300
+and the pipeline layout are arbitrary, they are sufficient for all examples in
+Table~\ref{tab:algorithms}, and incur modest area overhead as we show next. In
 the future, we anticipate these numbers being decided empirically based on what
 algorithms are most frequently run on such platforms.
 
@@ -183,18 +190,20 @@ and 300 instances of the single stateless atom.}
 \subsection{Compiling \pktlanguage algorithms to \absmachine machines}
 \label{domino_ss:compiler}
 We now consider every target from Table~\ref{tab:templates} and every
-data-plane algorithm from Table~\ref{tab:algorithms} to determine if the algorithm
-can run at the line rate of a particular \absmachine machine. Because every
-target is uniquely identified by its stateful atom type, we use the name of the
-stateful atom to refer to the target itself.
+data-plane algorithm from Table~\ref{tab:algorithms} to determine if the
+algorithm can run at the line rate of a particular \absmachine machine. Because
+every target is uniquely identified by its stateful atom type, we use the name
+of the stateful atom to refer to the target itself.
 
 We say an algorithm can run at line rate on a \absmachine machine if every
 codelet within the data-plane algorithm can be mapped (\S\ref{ss:code_gen}) to
 either the stateful or stateless atoms provided by the \absmachine machine.
 Because our stateful atoms are arranged in a containment hierarchy, we list the
 \textit{most expressive} stateful atom/target required for each data-plane
-algorithm in Table~\ref{tab:algo_atoms}.
+algorithm in Table~\ref{tab:algo_atoms}.\footnote{Most expressive in the sense
+that we do not need a more expressive atom to run this algorithm.}
 \input{domino_algo_atoms_table}
+%TODO: Consider using maximally expressive?
 
 As Table~\ref{tab:algo_atoms} shows, the choice of stateful atom determines
 what algorithms can run on a router. For instance, with only the ability to
@@ -203,8 +212,8 @@ requires the ability to test and set membership bits.  Adding the ability to
 increment state (the RAW atom) permits heavy hitter detection to run at line
 rate, because it employs a count-min sketch that is incremented on each packet.
 One example of an algorithm that cannot be supported by any of our atoms is
-CoDel, which requires a square root operation that is not provided by our
-atoms.
+CoDel, which requires a square root operation that is not provided by any of
+our atoms.
 
 Table~\ref{tab:algo_atoms} also lists where each algorithm runs (ingress or
 egress), the algorithm's memory requirements for storing state, and guards
@@ -214,15 +223,15 @@ below.
 An algorithm may run either on the ingress pipeline (\eg load balancing
 algorithms like flowlet switching), egress pipeline (\eg active queue
 management algorithms like CoDel), or both (\eg packet sampling algorithms like
-sampled NetFlow). This choice depends on what information the algorithm needs
-to execute and what other router functionlity depends on this algorithm. For
-instance, CoDel needs access to a packet's queueing delay, which is only
-available after the packet is dequeued from the scheduler and sent to the
-egress pipeline. On the other hand, flowlet switching is a load balancing
+sampled NetFlow). An algorithm's location depends on what information the
+algorithm needs to execute and what other router functionlity depends on this
+algorithm. For instance, CoDel needs access to a packet's queueing delay, which
+is only available after the packet is dequeued from the scheduler and sent to
+the egress pipeline. On the other hand, flowlet switching is a load balancing
 algorithm that determines the next hop for a packet (and hence the output
-port). Because the output port determines which output queue within the
-scheduler the packet must be enqueued into, it needs to be determined in the
-ingress pipeline, before the packet enters the scheduler.
+port). Because the output port determines which output queue the packet must be
+enqueued into, it needs to be determined in the ingress pipeline, before the
+packet enters the scheduler.
 
 Different algorithms require different amounts of memory to store the state
 associated with the algorithm. For instance, the amount of stateful memory is
@@ -231,7 +240,7 @@ functions) in the case of heavy hitter detection and Bloom filters. On the
 other hand, the amount of stateful memory is proportional to the number of
 output ports for algorithms that run independently for each output port (\eg
 HULL, AVG) or proportional to the number of output queues for algorithms that
-run independently at each output queue (\eg CoDel).
+run independently for each output queue (\eg CoDel).
 
 The guard column specifies how packets are selected for execution by an
 algorithm's packet transaction. For instance, the heavy hitter detection
@@ -248,12 +257,17 @@ of the same CoDel packet transaction on the selected packet.
 \subsection{Generality or future proofness of atoms}
 
 One concern with designing atoms using the trial-and-error method described in
-\S\ref{ss:targets} is the potential for ``overfitting'', where the atoms only
+\S\ref{ss:targets} is the potential for ``overfitting,'' \ie  the atoms only
 work for the algorithms that inspired the design of these atoms and do not
-generalize to new and as-yet-unseen algorithms. The main argument for a
-programmable router is the ability to change its functionality without hardware
-redesign. However, if the atoms needed to change with every new algorithm, this
-argument no longer holds.
+generalize to new and unseen algorithms. The main argument for a programmable
+router is the ability to change its functionality without hardware redesign.
+However, if the atoms need to change with every new algorithm, this argument no
+longer holds.\footnote{We definitely anticipate router instruction sets, and
+hence atoms, evolving with time. For instance, \S\ref{sec:hardware-feasibility}
+describes a new atom we had to add to support scalable measurement after we
+developed our initial set of atoms. However, to justify a programmable router,
+the rate at which instruction sets need to change should ideally be slower than
+the rate at which new algorithms are developed.}
 
 To evaluate the generality of our atoms, we wrote a new set of algorithms in
 Domino after freezing our set of atoms to the set above
@@ -266,17 +280,17 @@ The results, shown in Table~\ref{tab:atoms_generalize}, suggest that the atoms
 we have designed are general enough to support several unanticipated use cases.
 However, for many of these algorithms, we had to expend a considerable amount
 of effort in manually rewriting these algorithms so that our compiler would
-compile them to the atoms we have. This is because our current compiler is not
+compile them to our frozen atoms. This is because our current compiler is not
 intelligent enough to carry out these rewrites automatically. We illustrate
 this problem using an example drawn from the BLUE queue management
 algorithm~\cite{blue}.
 
 \Para{Rewriting algorithms so that they compile.}
-The BLUE algorithm increments a marking probability whenever there's the queue
+The BLUE algorithm increments a packet marking probability whenever the queue
 exceeds a certain size or on a packet drop. However, BLUE adds some hysteresis
 to ensure that the marking probability doesn't change too frequently. It does
 so by checking that a certain amount of time has elapsed since the last
-increment. The code for this probability increment can be summarized below:
+increment.  The code for this probability increment is given below:
 
 \begin{verbatim}
 if (p.now - last_update > FREEZE_TIME) {
@@ -285,12 +299,12 @@ if (p.now - last_update > FREEZE_TIME) {
 }
 \end{verbatim}
 
-Unfortunately, in the above form the BLUE algorithm cannot be compiled to PRAW
-atom because the conditional check in the PRAW atom only allows a piece of
-state to be compared to another packet field or constant, \ie only checks of
-the form $A >/</==/!= B$. The conditional check above is the of the form $A - B
-> C$, which is beyond the PRAW atom. However, we can manually rewrite the algorithm
-to precompute p.now - FREEZE\_TIME in a previous stage:
+Unfortunately, in the above form, the BLUE algorithm cannot be compiled to the
+PRAW atom. The conditional check in the PRAW atom only allows a piece of state
+to be compared to another packet field or constant, \ie only checks of the form
+$A >/</==/!= B$. The conditional check above is the of the form $A - B
+> C$, which is beyond the PRAW atom. However, we can manually rewrite the
+algorithm to precompute p.now - FREEZE\_TIME in a previous stage:
 
 \begin{verbatim}
 p.now_plus_free = p.now - FREEZE_TIME;
@@ -305,42 +319,43 @@ supported by the PRAW atom. Detecting and performing such precomputation is
 beyond our compiler's current abilities, requiring us to assist the compiler by
 manually rewriting code in some cases. 
 
-\Para{Algorithms that are not supported by our atoms.} In addition to CoDel,
-described earlier, we found several other algorithms that are not supported by
-any of our atoms. We describe these classes below.
+\Para{Algorithms that are not supported by our atoms.} When evaluating the
+generality of our atoms, we found two classes of algorithms that are not
+supported by any of our atoms. We describe these classes below.
 
-One class of algorithms requires operations on real numbers.  CoDel belongs to
-this class because it computes an inverse square root to decide when to next
-drop a packet. A second example is PIE~\cite{pie}, which computes an enqueue
-drop probability using a sequence of multiply and divide operations. A third
-example is Core Stateless Fair Queueing~\cite{csfq}, which requires real-valued
-multiply and divide operations to estimate the fair share rate and aggregate
-arrival rate at a router. Other examples include Approximate Fair
-Dropping~\cite{afd} and PERC~\cite{perc}. We should note that these algorithms
-were not explicitly designed with hardware in mind, and it is possible that
-they can be modified to accommodate the constraints of high-speed hardware
-without losing performance.  It may also be sufficient to use fixed-point or
-integer arithmetic instead of floating point arithmetic for some of these
-operations. We leave these investigations to future work.
+One class of algorithms requires operations on real numbers.  Our earlier
+example, CoDel, belongs to this class because it computes an inverse square
+root to decide when to next drop a packet. A second example is PIE~\cite{pie},
+which computes an enqueue drop probability using a sequence of multiply and
+divide operations. A third example is Core Stateless Fair Queueing~\cite{csfq},
+which requires real-valued multiply and divide operations to estimate the fair
+share rate and aggregate arrival rate at a router. Other examples include
+Approximate Fair Dropping~\cite{afd} and PERC~\cite{perc}. We should note that
+these algorithms were not explicitly designed with hardware in mind, and it is
+possible that they can be modified to accommodate the constraints of high-speed
+hardware without losing performance.  It may also be sufficient to use
+fixed-point or integer arithmetic instead of floating point arithmetic for some
+of these operations. We leave these investigations to future work.
 
-Another class of algorithms are algorithms that outside the boundary of our
-atoms, as determined by the SKETCH-based code generator within the Domino
+Another class of algorithms are algorithms that fall outside the boundary of
+our atoms, as determined by the SKETCH-based code generator within the Domino
 compiler (\S\ref{ss:code_gen}). An example is the two-color three-rate
-meter~\cite{trTCM} (trTCM). We have found that explaining {\em why} an algorithm cannot
-compile to a target with a particular atom is challenging. Next, we describe
+meter~\cite{trTCM} (trTCM), which does not compile to Pairs, our most
+expressive atom. We have found that explaining {\em why} an algorithm cannot
+compile to a target with a particular atom is challenging.  Below, we describe
 our initial attempts at explaining why an algorithm does not compile.
 
 \Para{Explaining why algorithms do not compile.}
 So far, to explain why an algorithm does not compile, we have had to manually
 pare down an algorithm until we are left with a problematic ``core'' of the
-algorithm that does not map to the underlying atom. We show an
-example of this procedure applied to trTCM.
+algorithm that does not compile to the underlying atom. We show an example of
+this procedure applied to trTCM.
 
 trTCM marks packets with one of three colors depending on whether the packet's
 rate falls above a peak rate (red), between a peak and committed rate (orange),
 or below a committed rate (green). Its code is shown below, where tp and tc are
-two token buckets filling at the peak and committed rate, and last\_time is the
-last time either of the two buckets was updated.
+two token buckets filling at the peak and committed rate respectively, and
+last\_time is the last time either of the two buckets was updated.
 
 \begin{verbatim}
 if (tp < pkt.size) {
@@ -401,22 +416,25 @@ compile is that it requires one more conditional check than is supported by the
 Pairs atom. We concede that it would be helpful to have a more precise
 explanation along with suggestions on how to fix trTCM so that it compiles.
 
-Our method of paring down an algorithm to find a problematic non-compilable
-subset of the algorithm is similar to how some SAT solvers provide an
-unsatisfiable core~\cite{unsat_core}. This unsatisfiable core is a subset of
-the clauses in the input formula that is still unsatisfiable and helps a user
-understand why a particular input formula is unsatisfiable. Because our
-SKETCH-based code generator uses a SAT solver internally~\cite{sketch_asplos},
-we hope to draw on algorithms for finding unsatisfiable cores~\cite{unsat_core}
-to automate the paring down process in Domino.
+Our method of paring down an algorithm to find a non-compilable subset of the
+algorithm is similar to how some SAT solvers provide an unsatisfiable
+core~\cite{unsat_core} when an input boolean formula is unsatisfiable. This
+unsatisfiable core is a subset of the clauses in the input boolean formula that
+is still unsatisfiable and helps a user understand why a particular input
+formula is unsatisfiable. Because our SKETCH-based code generator uses a SAT
+solver internally~\cite{sketch_asplos}, we hope to draw on algorithms for
+finding unsatisfiable cores~\cite{unsat_core} to automate the paring down
+process in Domino.
 
 \subsection{Lessons for programmable routers}
 \label{ss:lessons}
 
+To conclude our evaluation, we distill some lessons for designing programmable
+routers.
 \Para{Atoms that allow modifications to a single state variable support many
-algorithms.} The algorithms from Bloom Filter through DNS TTL Change Tracking
-in Table~\ref{tab:algo_atoms} can run at line rate using the Nested Ifs atom that
-modifies a single state variable.
+algorithms.} The algorithms from Bloom filters through DNS TTL Change Tracking
+in Table~\ref{tab:algo_atoms} can run at line rate using the Nested Ifs atom
+that modifies a single state variable.
 
 \Para{But, some algorithms modify a pair of state variables atomically.}
 An example is CONGA; we reproduce CONGA's relevant code snippet below:

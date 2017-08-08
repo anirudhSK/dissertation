@@ -6,11 +6,14 @@
 \hline
 Algorithm & Guard & Most expressive atom required\\
 \hline
-HULA probe processing logic~\cite{hula}\footnote{Note that the HULA algorithm
-requires some coordination between the ingress and egress pipelines to ensure
-the link utilization is available in the ingress. However, a slightly stale
-value of the link utilization doesn't severely affect the performance of the
-forwarding algorithm.} & Match all HULA probe packets & Pairs \\
+HULA probe processing logic~\cite{hula}\footnote{The HULA algorithm requires
+some coordination between the ingress and egress pipelines to ensure the link
+utilization is available in the ingress. This coordination can be achieved by
+occasionally creating a fake packet to carry information from one pipeline to
+another, but comes at the cost of the link utilization being slightly out of
+date at any given time. However, a slightly stale value of the link utilization
+doesn't severely affect the performance of the forwarding algorithm.} & Match
+all HULA probe packets & Pairs \\
 \hline
 HULA forwarding logic~\cite{hula} & Match all data packets & PRAW \\
 \hline
