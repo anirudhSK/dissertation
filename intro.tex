@@ -732,8 +732,6 @@ Turing-complete: they cannot simulate a Turing machine, an idealization of the
 general-purpose CPU.  We refer the reader to \S\ref{domino_ss:limitations} and
 Table~\ref{tab:restrict}, \S\ref{pifo_ss:limitations}, and \S\ref{sec:compiler}
 for specific examples of what each of the three systems cannot express.
-%TODO: Change reference to Marple limitations once we put in the new text from
-%the SIGCOMM camera ready.
 
 Yet, each covers a large number of use cases within specific functionality
 classes (stateful data-plane algorithms, scheduling, and measurement queries)
@@ -771,17 +769,18 @@ corresponding software (packet transactions, scheduling trees, and performance
 queries) for specific goals (stateful data-plane algorithms, scheduling, and
 statistics measurement).
 
-\subsection{Vertically integrated thinking} Philosophically, the results in the
-dissertation advocate for vertically integrated thinking, where a single system
-design incorporates the entire computing stack. We design programmable hardware
-at the bottom of this stack, work our way up through the compiler for this
-hardware, and expose this to the programmer at the highest layer through a
-domain-specific language.
-
-For decades now, systems programmers have treated the hardware as programmable,
-but unmodifiable. There are undeniable benefits to writing software for
-off-the-shelf commodity hardware because it is immediately deployable. This is
-in contrast to vertically integrated systems that need to be first designed in
-hardware and then programmed in software. At the same time, the results here
-suggest that there are substantial performance benefits from redesigning the
-entire stack from the ground up.
+%%
+%%\subsection{Vertically integrated thinking} Philosophically, the results in the
+%%dissertation advocate for vertically integrated thinking, where a single system
+%%design incorporates the entire computing stack. We design programmable hardware
+%%at the bottom of this stack, work our way up through the compiler for this
+%%hardware, and expose this to the programmer at the highest layer through a
+%%domain-specific language.
+%%
+%%For decades now, systems programmers have treated the hardware as programmable,
+%%but unmodifiable. There are undeniable benefits to writing software for
+%%off-the-shelf commodity hardware because it is immediately deployable. This is
+%%in contrast to vertically integrated systems that need to be first designed in
+%%hardware and then programmed in software. At the same time, the results here
+%%suggest that there are substantial performance benefits from redesigning the
+%%entire stack from the ground up.
