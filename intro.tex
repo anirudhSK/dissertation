@@ -100,7 +100,6 @@ the early routers~\cite{imp} were minicomputers loaded with forwarding
 software. Second, since the mid 90s, growing demands for higher link speeds,
 fueled by the Internet's growth, have meant that the fastest routers are now
 built out of dedicated hardware, specialized for packet forwarding.
-%TODO: More examples of early routers ...
 
 Hardware specialization gives these routers a 10--100 $\times$ performance
 improvement relative to software routers.  This performance improvement is the
@@ -187,7 +186,6 @@ wires, we do not perform this place-and-route step when estimating area.} When
 we say a hardware design is feasible, we mean that it meets timing at a high
 clock frequency (1 GHz in this dissertation) and its gate area is modest
 relative to the chip area of a router chip.
-%TODO: Maybe add something for standard designs.
 
 To evaluate if our systems are programmable, we evaluate the expressiveness of
 the programming models in each of our system. If we are able to express a
@@ -327,12 +325,11 @@ heavy-hitter detection~\cite{opensketch} uses a count-min sketch~\cite{cormode}
 that relies on a atomic counter. Finally, algorithms like flowlet
 switching~\cite{flowlets} require conditional writes to a state variable.
 
-%TODO: Add generalization results
-In a subsequent project~\cite{perf_query} (Chapter~\ref{chap:perf_query}) that
-we carried out after the Domino work, we found that we could reuse the same
-atoms for other use cases, providing evidence that these atoms generalize and
-are useful beyond the algorithms that influenced their design in the first
-place.
+After freezing the design of these atoms, we found that the atoms could express
+several new use cases that were unanticipated when the atoms were designed
+(Table~\ref{tab:atoms_generalize}). This provides us with some evidence that
+these atoms are indeed programmable and can generalize to new algorithms beyond
+the initial algorithms that influenced their design in the first place.
 
 \section{Programmable packet scheduling}
 Packet scheduling is an important determinant of network performance. The
