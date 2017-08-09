@@ -19,3 +19,4 @@
 * consider changing paras to subsubsections so that they show up in the TOC?
 * How to get footnotes in tables?
 * fast vs. high-speed. Be consistent, I like the term fast.
+* some sentences are too long. break them up.
