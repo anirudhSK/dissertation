@@ -4,32 +4,33 @@
 \section{Background}
 \label{s:intro_background}
 
-Computer networks contain two types of nodes: the {\em end hosts} that generate
-packets and the {\em routers}\footnote{We use the term router to refer to both
-switches and routers in this dissertation.} that forward these packets between
-the end hosts. Historically, the Internet was architected so that most of the
-complexity resided in the end hosts, while the routers themselves were simple.
-According to Clark~\cite{design_philosophy}, this architecture was a result of
-the primary design goal of the Internet: the ability to easily interconnect a
-diverse set of existing networks (\eg long-haul networks, local-area networks,
-satellite networks, and radio networks). Quoting Clark, "The Internet
-architecture achieves this flexibility by making a minimum set of assumptions
-about the function which the net will provide."
+Computer networks contain two types of elements: the {\em end hosts} that
+generate packets and the {\em routers}\footnote{We use the term router to refer
+to both switches and routers in this dissertation.} that forward these packets
+between the end hosts. Historically, the Internet was architected so that most
+of the complexity resided in the end hosts, while the routers themselves were
+simple.  According to Clark~\cite{design_philosophy}, this architecture was a
+result of the primary design goal of the Internet: the ability to easily
+interconnect a wide variety of existing networks (\eg long-haul networks,
+local-area networks, satellite networks, and radio networks) through a set of
+gateways (routers in our terminology) between these networks. Quoting Clark,
+``The Internet architecture achieves this flexibility by making a minimum set
+of assumptions about the function which the net will provide.''
 
-The minimum functionality assumed of and provided by the network was
-best-effort and unreliable packet forwarding. Notably absent from a router's
-feature set were reliable packet delivery, packet prioritization, monitoring
-features to attribute a router's resource usage to specific end hosts, and
-security features to detect network breaches. As a result, the early routers
-were singularly dedicated to packet forwarding. A minimal router feature set
-made it simpler to design high-speed routers and helped broaden the Internet's
-reach by interconnecting existing networks with minimum friction. But, it
-sidelined other goals~\cite{design_philosophy} such as improving network
-performance, security, and monitoring.
+The basic minimum functionality assumed of and provided by the network's
+routers was best-effort and unreliable packet forwarding. Notably absent from a
+router's feature set were reliable packet delivery, packet prioritization,
+monitoring features to attribute a router's resource usage to specific end
+hosts, and security features to detect network breaches. As a result, the early
+routers were singularly dedicated to packet forwarding. A minimal router
+feature set made it simpler to design high-speed routers. It also helped
+broaden the Internet's reach by interconnecting existing networks with minimum
+friction. But, it sidelined other goals~\cite{design_philosophy} such as
+network performance, security, and monitoring.
  
 Today, four decades after ideas underlying the Internet were first
 published~\cite{cerf74}, it is clear that routers need to do much more than
-forward packets for at least two reasons. First, once the basic goal of
+packet forwarding for at least two reasons. First, once the basic goal of
 interconnecting different networks is achieved, other goals like performance,
 security, and monitoring rise in prominence.  Second, many large-scale private
 networks (\eg datacenters, private wide-area networks, enterprise networks) do
@@ -49,25 +50,25 @@ fixed-function}\footnote{The term fixed-function was first used to describe
 graphics processing units (GPUs) with limited or no
 programmability~\cite{gpu_fixed}. We use it in an analogous sense here.} in the
 sense that their functionality cannot be changed once the router has been
-built. In such cases, the operator has no alternative but to wait two--three
-years for the next generation of the router hardware. This is best illustrated
-by the lag time between the standardization and availability of new overlay
+built. In such cases, the operator has no alternative but to wait 2--3 years
+for the next generation of the router hardware. This is best illustrated by the
+lag time between the standardization and availability of new overlay
 protocols~\cite{nvgre}.
 
 As a result, the rate of innovation in new router algorithms is outstripping
-our ability to get these algorithms into production routers, \ie routers that
-are seen in the wild today and have aggregate speeds in the several hundred
-Gbit/s to Tbit/s range.  Figure~\ref{fig:router_algos} shows a timeline of
-prominent router algorithms that have been developed since the 1980s. Of these,
-only a handful are available in production routers because there is no way to
-program a new router algorithm on these routers.
-%TODO: Maybe give examples of production routers. 
+our ability to get these algorithms into today's fastest routers. These routers
+have between 10 and 100 ports, each running at between 10 and 100 Gbit/s, \ie
+aggregate speeds in the several hundred Gbit/s to Tbit/s range.
+Figure~\ref{fig:router_algos} shows a timeline of prominent router algorithms
+that have been developed since the 1980s. Of these, only a handful are
+available in the fastest routers today because there is no way to program a new
+router algorithm on these routers.
 
 \begin{figure}
 \centering
 \includegraphics[width=\columnwidth]{router_alg_timeline.pdf}
 \caption{Timeline of prominent router algorithms since the 1980s. Only the ones
-shaded in blue are available on production routers today.}
+shaded in blue are available on the fastest routers today.}
 \label{fig:router_algos}
 \end{figure}
 
@@ -85,7 +86,7 @@ congestion control, which divides up a network's capacity fairly among
 competing users. There are many in-network solutions to congestion
 control~\cite{xcp, rcp}, which outperform the end-host-only approaches to
 congestion control used today~\cite{cubic, compound}. But, there is no way to
-deploy them.
+deploy them on a fixed-function router today.
 
 Another alternative is to use a \textit{software router}: a catch-all term for
 a router built on top of some programmable substrate, such as a general-purpose
@@ -109,20 +110,21 @@ either different parts of the same packet or packets belonging to different
 ports. Second, pipeline parallelism, the ability to simultaneously perform
 different operations on different packets. But, hardware specialization carries
 a cost: because routers are built out of specialized hardware, they are
-fixed-function devices that can not be reconfigured in the field.
+fixed-function devices that can not be reconfigured or programmed in the field.
 
 Recent work in software-defined networking~\cite{openflow} (SDN) and
 programmable router chips~\cite{rmt, xpliant, flexpipe} has endowed fast
-routers with limited flexibility. SDN allows operators to program the network
+routers with limited flexibility. SDN allows operators to program the network's
 control plane, which is the part of the network that computes a network's
-routing tables, by moving route computations out of the routers and on to a
-programmable server. Programmable router chips allow operators to program
-parts of the data plane, which is the part of the network that forwards packets
-based on the routing tables, such as packet header manipulations that do not
-modify router state.  However, these solutions are still not sufficient to
-express the grayed-out algorithms shown in Figure~\ref{fig:router_algos}
-because (1) these algorithms programmatically manipulate router state and (2)
-they require flexibility in packet scheduling, which is untouched by both SDN
+routing tables. SDN does this by moving route computations out of the routers
+and on to a programmable server running on a CPU. Programmable router chips
+allow operators to program parts of the data plane---the part of the network
+that forwards packets based on the routing tables---such as packet header
+manipulations that do not modify router state.  However, these solutions are
+still not sufficient to express the grayed-out algorithms shown in
+Figure~\ref{fig:router_algos} because (1) these algorithms programmatically
+manipulate router state and (2) they require flexibility in packet scheduling.
+Both router state and the router's scheduler are largely ignored by both SDN
 and programmable router chips.
 
 \begin{figure}
@@ -130,10 +132,12 @@ and programmable router chips.
 \includegraphics[width=\columnwidth]{router_evolution.pdf}
 \caption{Aggregate capacity of routers since the first router on the ARPANET in
 1969~\cite{imp}. Until the mid 90s, software routers were sufficient. Since
-then, however, the fastest routers have been built out of dedicated hardware.}
+then, however, the fastest routers have been built out of dedicated hardware
+and are typically fixed-function devices.}
 \label{fig:router_evolution}
 \end{figure}
 
+%%% Resume here %%%%
 \section{Primary contributions}
 \input{contributions_table}
 
