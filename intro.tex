@@ -667,7 +667,7 @@ throughput of \textasciitilde100K--1M operations per second per
 core~\cite{kafka_benchmark, redis_benchmark, memcached_benchmark,
 redis_vs_memcached_update, spark-streaming}, but processing every single packet
 from a single 1 Tbit/s router requires around \textasciitilde100M operations
-per second even for relatively large 1 KB packets. Instead, we use programmable
+per second even for relatively large 10000 bit packets. Instead, we use programmable
 routers as first-class citizens to perform early filtering, aggregation, and
 packet transformations. The net effect is a substantial reduction in the amount
 of data sent out to and processed by the collection server.

@@ -1,19 +1,13 @@
-%TODO: Need to proof read this section
 \chapter{Background and Related Work}
 \label{chap:related}
 
-As background for the rest of this dissertation, we first review the history of
+As background for the rest of this dissertation, we first review several prior
 approaches to programmability in networks (\S\ref{s:bgnd_bgnd}). We then review
 work that is closely related to and concurrent with the work presented in this
 dissertation (\S\ref{s:concurrent}).  This chapter focuses on literature that
 is generally related to the broad themes of this dissertation.
 Chapters~\ref{chap:domino}, \ref{chap:pifo}, and \ref{chap:perf_query} discuss
-literature that is more specifically related to specific techniques or
-algorithms used in each system.
-%
-%prior compiler techniques that influenced Domino's compiler, hardware designs
-%for priority queues that are related to the PIFO hardware design, and work on
-%distributed aggregations that is relavant to our linear-in-state formalism.
+literature that is more specifically related to each of our three systems.
 
 \section{A history of programmable networks}
 \label{s:bgnd_bgnd}
@@ -29,8 +23,8 @@ computer.
 This approach of implementing routers on top of minicomputers was sufficient
 for the modest forwarding rates required at the time. For instance, the IMP
 paper reports that the IMP's maximum throughput was around 700 kbit/s,
-sufficient to service several 50 kbit/s lines in both directions.  Implementing
-routers on top of minicomputers was also eminently programmable: changing the
+sufficient to service several 50 kbit/s lines in both directions.  Such
+minicomputer-based routers were also eminently programmable: changing the
 functionality of the router simply required upgrading the forwarding software
 and loading the minicomputer with a new piece of software.
 
@@ -42,13 +36,15 @@ startup Proteon~\cite{proteon}, and William Yeager's ``Ships in the Night''
 multiple-protocol router~\cite{ships}, which was the basis for the Stanford
 startup Cisco Systems.
 
-By the mid 90s, software could no longer keep up with the increase in link
-speeds that were caused by the rapid adoption of the Internet and the World
-Wide Web. Juniper Network's M40 router~\cite{m40} was an early example
-of a hardware router in 1998.  As we described in Chapter~\ref{chap:intro},
-since the mid 90s, the fastest routers have predominantly been built out of
-dedicated hardware because hardware specialization is the only way to sustain
-the yearly increases in link speeds (Figure~\ref{fig:router_evolution}).
+By the mid 90s, software could no longer keep up with the demand for higher
+link speeds caused by the rapid adoption of the Internet and the World Wide
+Web. Juniper Network's M40 router~\cite{m40} was an early example of a hardware
+router in 1998.  The M40 contained a dedicated chip to implement the router's
+data plane along with a control processor to implement the router's control
+plane. As we described in Chapter~\ref{chap:intro}, since the mid 90s, the
+fastest routers have predominantly been built out of dedicated hardware because
+hardware specialization is the only way to sustain the yearly increases in link
+speeds (Figure~\ref{fig:router_evolution}).
 
 \subsection{Active Networks (mid 90s)}
 The mid 90s saw the development of active networks~\cite{ants, switchware}, an
@@ -56,31 +52,37 @@ approach that advocated that the network be programmable or ``active'' to allow
 the deployment of new services in the network infrastructure. There were at
 least two approaches to active networks. First, the programmable router
 approach~\cite{switchware}, which allowed a network operator to program a
-router in a restricted manner. Second, the capsule approach~\cite{ants, wetherall_thesis, anet_retrospective}, where
-end hosts would embed programs into packets as capsules, which would then be
-executed by the router.
+router in a restricted manner. Second, the capsule approach~\cite{ants,
+wetherall_thesis, anet_retrospective}, where end hosts would embed programs
+into packets as capsules, which would then be executed by the router.
 
 Active networks came to be associated mostly with the capsule
-approach~\cite{sdn_history}, which raised security concerns. Because programs
-were embedded into packets by end users, it was possible that a malicious or
-erroneous program could corrupt the entire router. These concerns were resolved
-by executing the program within an application-level virtual machine like the
-Java virtual machine~\cite{ants, wetherall_thesis, anet_retrospective}, but at the cost of degraded forwarding
-performance. As an example, the SNAP~\cite{snap_active_packets} system that
-prototyped the capsule approach reported a forwarding rate of 100 Mbit/s in 2001,
-about two orders of magnitude slower than the Juniper M40 40 Gbit/s
-hardware router developed in 1998~\cite{m40}.
+approach~\cite{sdn_history}. But the capsule approach raised some security
+concerns. Because programs were embedded into packets by end users, it was
+possible that a malicious or erroneous end user program could corrupt the
+entire router.  One way to resolve security concerns was to execute the capsule
+program within an isolated application-level virtual machine like the Java
+virtual machine~\cite{ants, wetherall_thesis, anet_retrospective}. However,
+this came at the cost of degraded forwarding performance. As an example, the
+SNAP~\cite{snap_active_packets} system that prototyped the capsule approach
+reported a forwarding rate of 100 Mbit/s in 2001, about two orders of magnitude
+slower than the Juniper M40 40 Gbit/s hardware router developed in
+1998~\cite{m40}.
+%TODO: SNAP does not use a JVM. I think it uses other isolation techniques.
+%This part could be improved.
 
-While the capsule approach---arguably the most ambitious of all active
-networking visions---has not panned out in its most general form due to
-security concerns, recent systems~\cite{int} have exposed a far more restricted
-subset of a router's features to end hosts (\eg the ability for an end host to
-read router state, but not write to it), reminiscent of the capsule approach.
-On the other hand, the programmable router approach has seen further work in
-various forms: software routers, software-defined networking, and programmable
-router chips all provide network operators with varying levels of router
+The capsule approach---probably the most ambitious of all active networking
+visions---has not panned out in its most general form due to security concerns.
+However, recent systems~\cite{int} have exposed a far more restricted subset of
+a router's features to end hosts (\eg the ability for an end host to read
+router state, but not write to it), reminiscent of the capsule approach.  On
+the other hand, the programmable router approach {\em has} seen adoption in
+various forms: software-defined networking and programmable router chips both
+provide network operators with different kinds of restricted router
 programmability.
 
+
+%% resume here.
 \subsection{Software routers (1999 to present)}
 One approach to programmability since the late 90s has been to use a
 general-purpose substrate for writing packet processing programs---in contrast
@@ -237,7 +239,7 @@ program what per-flow statistics a router must measure for a large number of
 flows. We hope this dissertation suggests directions for the future evolution
 of programmable router chips.
 
-\section{Concurrent research on enabling network programmability (2013 to now)}
+\section{Concurrent research on network programmability (2013 to now)}
 \label{s:concurrent}
 
 \subsection{Centralized data planes}
