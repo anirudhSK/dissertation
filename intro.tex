@@ -4,29 +4,29 @@
 \section{Background}
 \label{s:intro_background}
 
-Computer networks contain two types of elements: the {\em end hosts} that
-generate packets and the {\em routers}\footnote{We use the term router to refer
-to both switches and routers in this dissertation.} that forward these packets
-between the end hosts. Historically, the Internet was architected so that most
-of the complexity resided in the end hosts, while the routers themselves were
-simple.  According to Clark~\cite{design_philosophy}, this architecture was a
-result of the primary design goal of the Internet: the ability to easily
-interconnect a wide variety of existing networks (\eg long-haul networks,
-local-area networks, satellite networks, and radio networks) through a set of
-gateways (routers in our terminology) between these networks. Quoting Clark,
-``The Internet architecture achieves this flexibility by making a minimum set
-of assumptions about the function which the net will provide.''
+Computer networks contain two types of elements: {\em end hosts} that generate
+packets and {\em routers}\footnote{We use the term router to refer to both
+switches and routers in this dissertation.} that forward these packets between
+the end hosts. Historically, the Internet was architected so that most of the
+complexity resided in the end hosts, while the routers themselves were simple.
+According to Clark~\cite{design_philosophy}, this architecture was a result of
+the primary design goal of the Internet: the ability to easily interconnect a
+wide variety of existing networks (\eg long-haul networks, local-area networks,
+satellite networks, and radio networks) through a set of gateways (routers in
+our terminology) between these networks. Quoting Clark, ``The Internet
+architecture achieves this flexibility by making a minimum set of assumptions
+about the function which the net will provide.''
 
-The basic minimum functionality assumed of and provided by the network's
-routers was best-effort and unreliable packet forwarding. Notably absent from a
-router's feature set were reliable packet delivery, packet prioritization,
-monitoring features to attribute a router's resource usage to specific end
-hosts, and security features to detect network breaches. As a result, the early
-routers were singularly dedicated to packet forwarding. A minimal router
-feature set made it simpler to design high-speed routers. It also helped
-broaden the Internet's reach by interconnecting existing networks with minimum
-friction. But, it sidelined other goals~\cite{design_philosophy} such as
-network performance, security, and monitoring.
+The minimum functionality assumed of and provided by the network's routers was
+best-effort and unreliable packet forwarding. Notably absent from a router's
+feature set were reliable packet delivery, packet prioritization, monitoring
+features to attribute a router's resource usage to specific end hosts, and
+security features to detect network breaches. As a result, the early routers
+were singularly dedicated to packet forwarding. A focus on packet forwarding
+alone made it simpler to design high-speed routers. It also helped broaden the
+Internet's reach by interconnecting existing networks with minimum friction.
+But, it sidelined other goals~\cite{design_philosophy} such as network
+performance, security, and monitoring.
  
 Today, four decades after ideas underlying the Internet were first
 published~\cite{cerf74}, it is clear that routers need to do much more than
@@ -35,21 +35,21 @@ interconnecting different networks is achieved, other goals like performance,
 security, and monitoring rise in prominence.  Second, many large-scale private
 networks (\eg datacenters, private wide-area networks, enterprise networks) do
 not need to concern themselves with interconnecting diverse networks as the
-Internet had to---and hence can expect more from their network. As a result, a
-typical router today implements many features beyond packet forwarding,
-pertaining to security (\eg access control), monitoring (\eg counting the
-number of packets belonging to each flow), and performance (\eg priority
-queues).
+Internet had to. Such private networks can expect more from the network. As a
+result, a typical router today implements many features beyond packet
+forwarding, pertaining to security (\eg access control), monitoring (\eg
+counting the number of packets belonging to each flow), and performance (\eg
+priority queues).
 
-While a router's functionality has steadily increased with time, there's little
+While a router's feature set has grown steadily with time, there's little
 consensus between network operators and router vendors on a router's feature
 set. Inevitably, there are network operators whose needs fall outside their
 router's feature set. But because today's fastest routers are built out of
 specialized forwarding hardware, they are largely {\em
 fixed-function}\footnote{The term fixed-function was first used to describe
 graphics processing units (GPUs) with limited or no
-programmability~\cite{gpu_fixed}. We use it in an analogous sense here.} in the
-sense that their functionality cannot be changed once the router has been
+programmability~\cite{gpu_fixed}. We use it in an analogous sense here.}
+devices, \ie their functionality cannot be changed once the router has been
 built. In such cases, the operator has no alternative but to wait 2--3 years
 for the next generation of the router hardware. This is best illustrated by the
 lag time between the standardization and availability of new overlay
@@ -79,14 +79,16 @@ hosts, however, results in cumbersome or suboptimal solutions. As a first
 example, imagine measuring the queuing latency at a particular hop in the
 network. One could do this by collecting end-to-end ping measurements between a
 variety of vantage points and then fusing these measurements together to
-estimate per-hop queueing latency. Not only is this indirect, it is also
-inaccurate relatively to directly instrumenting the router at that hop to
-measure its own queueing latency. As a second example, consider the problem of
-congestion control, which divides up a network's capacity fairly among
-competing users. There are many in-network solutions to congestion
-control~\cite{xcp, rcp}, which outperform the end-host-only approaches to
-congestion control used today~\cite{cubic, compound}. But, there is no way to
-deploy them on a fixed-function router today.
+estimate per-hop queueing latency---a process commonly called network
+tomography. Not only is this indirect, it is also inaccurate relatively to
+directly instrumenting the router at that hop to measure its own queueing
+latency. As a second example, consider the problem of congestion control, which
+divides up a network's capacity fairly among competing users. There are many
+in-network solutions to congestion control~\cite{xcp, rcp}, which outperform
+the end-host-only approaches to congestion control used today~\cite{cubic,
+compound}. However, there is no way to deploy these in-network solutions using
+a fixed-function router today.
+%TODO: find citation for tomography
 
 Another alternative is to use a \textit{software router}: a catch-all term for
 a router built on top of some programmable substrate, such as a general-purpose
@@ -100,7 +102,7 @@ First, until the mid 90s, software routers were in fact the fastest routers;
 the early routers~\cite{imp} were minicomputers loaded with forwarding
 software. Second, since the mid 90s, growing demands for higher link speeds,
 fueled by the Internet's growth, have meant that the fastest routers are now
-built out of dedicated hardware, specialized for packet forwarding.
+built out of dedicated hardware.
 
 Hardware specialization gives these routers a 10--100 $\times$ performance
 improvement relative to software routers.  This performance improvement is the
@@ -112,36 +114,42 @@ different operations on different packets. But, hardware specialization carries
 a cost: because routers are built out of specialized hardware, they are
 fixed-function devices that can not be reconfigured or programmed in the field.
 
-Recent work in software-defined networking~\cite{openflow} (SDN) and
+Recent work in software-defined networking~\cite{sdn_history} (SDN) and
 programmable router chips~\cite{rmt, xpliant, flexpipe} has endowed fast
 routers with limited flexibility. SDN allows operators to program the network's
 control plane, which is the part of the network that computes a network's
 routing tables. SDN does this by moving route computations out of the routers
-and on to a programmable server running on a CPU. Programmable router chips
-allow operators to program parts of the data plane---the part of the network
-that forwards packets based on the routing tables---such as packet header
-manipulations that do not modify router state.  However, these solutions are
-still not sufficient to express the grayed-out algorithms shown in
-Figure~\ref{fig:router_algos} because (1) these algorithms programmatically
-manipulate router state and (2) they require flexibility in packet scheduling.
-Both router state and the router's scheduler are largely ignored by both SDN
-and programmable router chips.
+and on to a logically centralized programmable server running on a CPU.
+
+Programmable router chips allow operators to program parts of the data plane:
+the part of the network that forwards packets based on the routing tables. For
+instance, these chips allow an operator to program the router's parser to
+recognize a new protocol format, such as a new overlay format~\cite{nvgre}.
+They also allow the operator to program packet header transformations (\eg
+decrementing the IP TTL field) so long as these transformations do not modify
+router state.
+
+However, both SDN and programmable router chips are still insufficient to
+express the grayed-out algorithms shown in Figure~\ref{fig:router_algos}
+because (1) these algorithms programmatically manipulate router state and (2)
+they require flexibility in packet scheduling.  Both router state and the
+router's scheduler are largely ignored by both SDN and programmable router
+chips.
 
 \begin{figure}
 \centering
 \includegraphics[width=\columnwidth]{router_evolution.pdf}
 \caption{Aggregate capacity of routers since the first router on the ARPANET in
 1969~\cite{imp}. Until the mid 90s, software routers were sufficient. Since
-then, however, the fastest routers have been built out of dedicated hardware
-and are typically fixed-function devices.}
+then, however, the fastest routers have largely been fixed-function devices,
+ built out of dedicated non-programmable hardware.}
 \label{fig:router_evolution}
 \end{figure}
 
-%%% Resume here %%%%
 \section{Primary contributions}
 \input{contributions_table}
 
-This dissertation considers the problem of building routers that approach the
+This dissertation considers the problem of designing routers that approach the
 speeds of today's fastest fixed-function routers, while also being
 programmable. My thesis is that {\em it is possible to design router hardware
 that is both fast and programmable, if we restrict ourselves to programming
@@ -151,37 +159,41 @@ provide a much more restricted form of programmability than a Turing-complete
 processor.  The challenge here is to pick classes of router functionality that
 are simultaneously (1) practically useful to network operators, (2) broad
 enough to cover a range of current and future use cases within that class, and
-yet (3) narrow enough to permit a high-speed hardware implementation. We will
-describe high-speed programmable hardware primitives and their corresponding
-programming models in software for three classes of router functionality:
-stateful data-plane algorithms, packet scheduling, and scalable network
-measurement.  Table~\ref{tab:contributions} summarizes our contributions.
+yet (3) narrowly focused enough to permit a high-speed hardware implementation.
+We will describe high-speed programmable hardware primitives and their
+corresponding programming models in software for three classes of router
+functionality: stateful data-plane algorithms, packet scheduling, and scalable
+network measurement.  Table~\ref{tab:contributions} summarizes our
+contributions.
 
 \subsection{Evaluation metrics}
 \label{ss:eval_metrics}
 
-The goal of this dissertation is to design high performance and programmable
-routers. We measure each of our three systems on these two attributes,
-performance and programmability, as follows.
+The goal of this dissertation is to design fast and programmable routers.
+Accordingly, we measure each of our three systems on two attributes,
+performance and programmability, as described below.
 
-The traditional approach to evaluating performance is to measure a system's
-throughput on some workloads. This approach does not apply to hardware, which is
-built for a specific clock rate or throughput, and processes inputs at that
-clock rate even under worst-case conditions. To provide such worst-case
-guarantees, hardware designs exploit spatial parallelism, both within a
-pipeline stage and across pipeline stages.  Put differently, hardware designs
-spend area in return for deterministic  high performance. The question then is
-whether these designs consume a large amount of area to provide such
-performance guarantees.
+The traditional approach to evaluating performance of a software system is to
+measure the system's throughput on some workloads. This approach does not apply
+to evaluating hardware designs, which are built for a specific clock rate or
+throughput. Hardware designs provide this clock rate or throughput even under
+worst-case conditions, regardless of the workload presented to them. To provide
+worst-case guarantees, hardware designs exploit spatial parallelism---by
+chaining together computations in a pipeline (pipeline parallelism) and
+simultaneously performing multiple operations within a pipeline stage (data
+parallelism).  Put differently, hardware designs spend circuit area in return
+for deterministic  high performance. The question then is whether these designs
+consume a large amount of area to provide such performance guarantees and
+whether they can provide an acceptable clock rate.
  
 Hence, to evaluate performance, we estimate if the hardware components of our
 systems can run at a high clock rate while not taking up too much gate and wire
 area. To do so, we code up any new hardware components as programs in the
 Verilog hardware description language.  We then pass this Verilog program to a
 logic synthesis tool~\cite{synopsys_dc, cadence_rc} that produces a gate-level
-implementation from the program.  The synthesis tool also reports whether the
-resulting implementation meets timing at a given clock frequency and the area
-taken up by the gates in the implementation.\footnote{A full hardware
+implementation from Verilog programs.  The synthesis tool also reports whether
+the resulting implementation meets timing at a given clock frequency and the
+area taken up by the gates in the implementation.\footnote{A full hardware
 implementation also requires a place-and-route~\cite{par} step after logic
 synthesis to physically place these gates and route wires between them. This
 increases the area of designs, especially if the design is dominated by wires,
@@ -189,7 +201,8 @@ as is the case with crossbars. Because our designs are dominated by gates, not
 wires, we do not perform this place-and-route step when estimating area.} When
 we say a hardware design is feasible, we mean that it meets timing at a high
 clock frequency (1 GHz in this dissertation) and its gate area is modest
-relative to the chip area of a router chip.
+relative to the area of a router chip (200 \si{\milli\meter\squared} based on
+the minimum area estimates provided by Gibb et al.~\cite{gibb_parsing}). 
 
 To evaluate if our systems are programmable, we evaluate the expressiveness of
 the programming models in each of our system. If we are able to express a
@@ -199,11 +212,10 @@ beyond specific examples, we do not yet have theoretical characterizations of
 the set of programs that can or cannot be programmed using our programming
 models (\S\ref{ss:limit_completeness}).
 
-In addition, to assess the basic correctness of our designs, we built a C++
-simulator of a programmable router that abstracts the essential computational
-elements of a programmable router and models their behavior at the level of
-individual clock cycles. This simulator and the abstract machine model that it
-assumes are detailed in \S\ref{s:absmachine}.
+In addition, to assess the correctness of our designs, we built a C++ simulator
+of a programmable router that models the behavior of the essential
+computational elements of a programmable router at the level of individual
+clock cycles (\S\ref{s:absmachine}).
 
 \section{Stateful data-plane algorithms}
 In Chapter~\ref{chap:domino}), we consider the problem of programming {\em
@@ -216,37 +228,42 @@ CONGA~\cite{conga} and flowlet switching~\cite{flowlets}), and in-network
 congestion control (\eg XCP~\cite{xcp} and RCP~\cite{rcp}).
 
 High-speed data-plane programming poses two challenges: (1) what hardware
-instructions are required to support programmable state modification at the
-router's line rate, and (2) what is the right programming model? To address
-these challenges, we develop a system for data-plane programming, Domino, which
+instructions are required to support programmable state modification at high
+speeds, and (2) what is the right programming model? To address these
+challenges, we develop a system for data-plane programming, Domino, which
 contains three main components: an instruction set (atoms), a programming model
-(packet transactions), and a compiler.
+(packet transactions), and a compiler from packet transactions to atoms.
 
 \subsection{Atoms}
 \label{ss:intro_atoms}
-\textit{Atoms} capture a router's instruction set. They
-specify atomic units of packet processing provided by the router hardware, \eg
-an atomic counter or an atomic test-and-set. Figure~\ref{fig:simple_atom} shows
-an example atom. Atoms are atomic in the sense that if some state is updated by
-an atom as part of processing a packet, the next packet arriving at that atom
-will see the updated value of that state. The processing within atoms is
-constrained to meet the atomicity requirement: when designing atoms we ensure
-that the input-to-output latency of the atom's digital circuit is under a clock
-cycle. This ensures that any state updated by the atom has been updated to its
-correct value in time for the next packet arriving at the atom a clock cycle
-later.
+\textit{Atoms} capture a router's instruction set. They specify atomic units of
+packet processing provided by the router hardware, \eg an atomic counter or an
+atomic test-and-set. Figure~\ref{fig:simple_atom} shows an example atom. Atoms
+are atomic in the sense that if some state is updated by an atom as part of
+processing a packet, the next packet arriving at that atom will see the updated
+value of that state. The processing within atoms is constrained to meet the
+atomicity requirement. We enforce this constraint when designing atoms in
+hardware by ensuring  that the input-to-output latency of the atom's digital
+circuit is under a clock cycle. This gurantees that any state updated by the
+atom has been updated to its correct value in time for the next packet arriving
+at the atom a clock cycle later.\footnote{Note that this is a sufficient
+condition for atomicity and may not always be necessary.}
+%TODO: If I write out the multi-cycle atomics in concl.tex, I can reference that
+%in the footnote.
 
-\subsection{Packet transactions} \textit{Packet transactions} provide a programming
-model for data-plane algorithms. A packet transaction is an atomic and isolated
-block of code capturing an algorithm's logic written in a domain-specific
-language (DSL) called Domino. Figure~\ref{fig:simple_transaction} shows an
-example packet transaction.  Packet transactions provide programmers with the
-illusion that the transaction's body executes serially from start to finish on
-each packet, with no overlap in packet processing across packets---akin to an
-infinitely fast single-threaded processor carrying out packet processing on
-each packet. Packet transactions are expressive and capture many important
-data-plane algorithms.  Further, their serial semantics shield programmers from
-the router's data and pipeline parallelism.
+\subsection{Packet transactions} \textit{Packet transactions} provide a
+programming model for data-plane algorithms. A packet transaction is an atomic
+and isolated block of code capturing an algorithm's logic written in a
+domain-specific language (DSL) called Domino.
+Figure~\ref{fig:simple_transaction} shows an example packet transaction.
+Packet transactions provide programmers with the illusion that the
+transaction's body executes serially from start to finish on each packet, in
+the order in which packets arrive at the router. Conceptually, when programming
+with packet transactions, there is no overlap in packet processing across
+packets---akin to an infinitely fast single-threaded processor carrying out
+packet processing on each packet. Packet transactions are expressive and
+capture many important data-plane algorithms.  Further, their serial semantics
+shield programmers from the router's data and pipeline parallelism.
 %%Packet transactions have been
 %%adopted in P4~\cite{p4}, a packet-processing language that is emerging as an
 %%industry standard for programming router chips.  P4 programmers can now use an
@@ -270,13 +287,15 @@ one-to-one to an atom provided by the underlying router, rejecting the code if
 the codelet cannot be supported by the atom.
 
 The compiler provides an {\em all-or-nothing} guarantee: if the compiler
-compiles the packet transaction it will run at the line rate of the router; all
-other programs that cannot run at line rate---because there isn't an atom to
-carry out the program's operations at line rate---will be rejected. A
-conventional compiler for a general-purpose CPU compiles all programs, but a
-program's run-time performance depends on its complexity. In Domino, only
-programs that are simple enough to run at the router's line rate will be
-compiled, obviating the need for any performance profiling.
+compiles a program, the program will run at the line rate of the router. All
+other programs that cannot run at the router's line rate will be rejected. A
+program may be rejected either because the router's atoms are not expressive
+enough for the program's operations or there aren't enough atoms for all
+operations in the program. A conventional compiler for a general-purpose CPU
+compiles all programs, but a program's run-time performance depends on its
+complexity. In Domino, only programs that are simple enough to run at the
+router's line rate will be compiled, obviating the need for any performance
+profiling.
 
 \subsection{Evaluation}
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
@@ -284,7 +303,8 @@ determine what algorithms the router can support, while the algorithms
 determine what atoms are required in the first place. Designing the right atoms
 is especially important for a programmable router because, in contrast to a
 general-purpose CPU, there is no way to ``emulate'' functionality in software
-when hardware support is not available.
+when hardware support is not available: recall that if an atom does not exist
+to support a program's operations, the program will be rejected.
 
 \begin{figure}[!t]
 \begin{minipage}{0.48\textwidth}
@@ -307,7 +327,8 @@ packet. State variables (count) are in red.}
 
 \begin{figure}[!t]
 \includegraphics[width=\textwidth]{compiler_passes_example.pdf}
-\caption{The three passes of Domino's compiler shown on the packet transaction from Figure~\ref{fig:simple_transaction}.}
+\caption{The three passes of Domino's compiler shown on the packet transaction
+from Figure~\ref{fig:simple_transaction}.}
 \label{fig:compiler_passes_example}
 \end{figure}
 
@@ -326,10 +347,10 @@ progressively program more and more algorithms from
 Figure~\ref{fig:router_algos}. For instance, measurement using Bloom filters
 only requires simple read and write operations on state. On the other hand,
 heavy-hitter detection~\cite{opensketch} uses a count-min sketch~\cite{cormode}
-that relies on a atomic counter. Finally, algorithms like flowlet
+that relies on an atomic counter. Finally, algorithms like flowlet
 switching~\cite{flowlets} require conditional writes to a state variable.
 
-After freezing the design of these atoms, we found that the atoms could express
+After freezing the design of these atoms, we found that our atoms could express
 several new use cases that were unanticipated when the atoms were designed
 (Table~\ref{tab:atoms_generalize}). This provides us with some evidence that
 these atoms are indeed programmable and can generalize to new algorithms beyond
@@ -342,9 +363,10 @@ instance, an algorithm that divides link capacity fairly is ideal in a
 multi-tenant setting~\cite{wfq}, while the shortest remaining processing time
 algorithm is ideal for a single tenant who desires low flow completion
 time~\cite{pFabric}. Today's routers provide a fixed set of scheduling
-algorithms. While configuration settings on these scheduling algorithms can be
-tweaked, there is no way for an operator to program a new scheduling algorithm
-that is tailored to their needs.
+algorithms (\eg priority queues, Deficit Round Robin~\cite{drr}, and rate
+limiting~\cite{tbf}). While configuration settings on these scheduling
+algorithms can be tweaked, there is no way for an operator to program a new
+scheduling algorithm that is tailored to their needs.
 
 Routers lack programmable scheduling because there is no single abstraction to
 express many scheduling algorithms~\cite{wfq, srpt, srr, pFabric, lstf} that
@@ -355,29 +377,32 @@ left with using a general-purpose substrate such as a CPU to program
 scheduling. As we mentioned earlier, this can seriously hurt performance.
 
  Push In First Out Queues (PIFOs) (Chapter~\ref{chap:pifo}) provide such an
-abstraction.\footnote{PIFOs were first used as a proof construct to establish
-the equivalence of combined input-output queued routers and purely output
-queued routers~\cite{pifo}. Our contribution is to show that they can gainfully
-be used for programmable packet scheduling.} They exploit our observation that
-in many practical schedulers, the relative order of packets that are already
-buffered does not change in response to new packet arrivals
+abstraction.\footnote{PIFOs were first used as a theoretical proof construct to
+establish the equivalence of combined input-output queued routers and purely
+output queued routers~\cite{pifo}. We show here that they can be used
+practically for programmable packet scheduling.} They exploit our observation
+that in many practical schedulers the relative order of packets that are
+already buffered does not change in response to new packet arrivals
 (\S\ref{s:deconstruct}). Hence, when a packet arrives, it can be pushed into
-the right location based on a packet priority (push in), but packets can always
-be dequeued from the head (first out). A PIFO is simply a
-priority queue of packets with a small program to assign each packet its
-priority. Yet, by flexibly programming a packet's priority assignment, a
-network operator can use the PIFO abstraction to program a variety of
-previously proposed scheduling algorithms. 
-%TODO: Clarify why we don't just use the term priority queue instead of a PIFO?
+the right location based on a packet priority (push in), but packets are always
+dequeued from the head (first out). A PIFO is simply a priority queue of
+packets with a small program to assign each packet its priority.\foonote{We use
+the term PIFO instead of priority queue because, within the context of
+networking, priority queues typically refer to an implementation of
+work-conserving priority scheduling. PIFOs can be used for both work-conserving
+and non-work-conserving algorithms (\S\ref{s:expressive}).} Yet, by flexibly
+programming a packet's priority assignment, a network operator can use PIFOs to
+program a variety of previously proposed scheduling algorithms. 
 
 \subsection{Programming model for packet scheduling} Our programming model for
 scheduling couples a PIFO with a program to determine a packet's {\em rank} in
 the PIFO. This rank can denote the packet's scheduling order (for
-work-conserving algorithms such as Weighted Fair Queueing) or absolute
-wall-clock departure time (for non-work-conserving algorithms such as traffic
-shaping). This program is written as a packet transaction, introduced earlier.
-Depending on whether the program determines the scheduling order or time, the
-program is called either a scheduling transaction or a shaping transaction.
+work-conserving algorithms such as Weighted Fair Queueing~\cite{wfq}) or
+absolute wall-clock departure time (for non-work-conserving algorithms such as
+traffic shaping~\cite{tbf}). This program is written as a packet transaction,
+introduced earlier.  Depending on whether the program determines the scheduling
+order or time, the program is called either a scheduling transaction or a
+shaping transaction.
 
 \begin{figure}
 \begin{minipage}[!h]{0.48\textwidth}
@@ -430,7 +455,8 @@ property is the class of hierarchical scheduling algorithms. A well-known
 example of this class is Hierarchical Packet Fair Queueing (HPFQ)~\cite{hpfq}.
 HPFQ first divides up the link's capacity fairly among classes, and then when
 each class is scheduled, divides up the class's transmission opportunities
-fairly among its constituent flows.
+fairly among its constituent flows. It can be thought of a recursive version of
+fair queueing.
 
 \begin{figure}[!t]
 \centering
@@ -450,6 +476,7 @@ predicate that determines which packets are handled by that node, (2) a
 scheduling transaction that determines a packet's rank in a scheduling PIFO
 attached to that node, and (3) an optional shaping transaction that determines
 a packet's rank in an optional shaping PIFO attached to that node.
+%TODO: Maybe remove the optional shaping PIFO from the intro
 
 \begin{figure}[!t]
   \centering
@@ -473,16 +500,18 @@ scheduling and (optionally) shaping transactions attached to the path's nodes.
 Figure~\ref{fig:shaping_timing} illustrates the timing of various operations
 related to a node's scheduling and a shaping PIFO. A node's scheduling
 transaction inserts either a packet or a PIFO reference into the node's
-scheduling PIFO. A node's shaping transaction inserts a reference to the node's
-scheduling PIFO in the node's shaping PIFO. Once the shaping transaction has
-executed, execution of transactions for this packet is temporarily suspended.
-When that reference is dequeued from the shaping PIFO, it is enqueued into the
-node's parent's scheduling PIFO using the parent's scheduling transaction and
-the rest of the leaf-to-root path is resumed.  The shaping PIFO thus provides
-an optional mechanism for a node to {\em defer} enqueues into its parent's
-scheduling PIFO, which is useful when combining hierarchical scheduling with
-traffic shaping (Figure~\ref{fig:hshaping} in Chapter~\ref{chap:pifo} shows an
-example).
+scheduling PIFO. A node's shaping transaction inserts a reference $R$ to the
+node's scheduling PIFO in the node's shaping PIFO. Once the shaping transaction
+has executed, execution of transactions for this packet is temporarily
+suspended.  When the reference $R$ is dequeued from the shaping PIFO, it is
+enqueued into the node's parent's scheduling PIFO using the parent's scheduling
+transaction and the rest of the leaf-to-root path is resumed.  The shaping PIFO
+thus provides an optional mechanism for a node to {\em defer} enqueues into its
+parent's scheduling PIFO, which is useful when combining hierarchical
+scheduling with traffic shaping (Figure~\ref{fig:hshaping} in
+Chapter~\ref{chap:pifo} shows an example).
+
+\subsection{Expressiveness of PIFOs}
 
 The PIFO-based programming model unifies several scheduling algorithms and
 allows us to program a wide variety of scheduling algorithms using the single
@@ -494,45 +523,44 @@ and fine-grained priority scheduling (\eg Shortest Job First).
 \subsection{Hardware for PIFOs}
 \label{ss:intro_pifo_hardware}
 
-We designed high-speed hardware to support a
-PIFO-based programming model. When designing hardware for PIFOs, we set out to
-meet performance targets that are typical for a single-chip shared-memory
-router today. These are routers that are built out of a single
-application-specific integrated circuit (ASIC), and whose packet buffer and
-scheduling logic is shared across all ports. Sharing the packet buffer and
-scheduling logic reduces the memory and digital logic cost associated with
-packet scheduling.
+We designed high-speed hardware to support a PIFO-based programming model. When
+designing hardware for PIFOs, we set out to meet performance targets that are
+typical for a single-chip shared-memory router today. These are routers that
+are built out of a single chip (also called an application-specific integrated
+circuit or ASIC), and whose packet buffer and scheduling logic is shared across
+all ports. Sharing the packet buffer and scheduling logic reduces the memory
+and digital logic cost associated with packet scheduling.
 
-For concreteness, we picked a target clock frequency of 1 GHz to reflect a
-requirement of performing one enqueue and one dequeue every nanosecond (typical
-of high-speed routers today~\cite{rmt}). We targeted a packet buffer of size 12
-MByte based on the buffer size of the Broadcom Trident
-II~\cite{bcom_buffer}, a recent commercial single-chip shared memory
-router. With a cell size of 200 bytes,\footnote{A cell is the minimum unit of
-memory allocation in the packet buffer.} a 12 MByte buffer can support up to
-60000 packets.
+For concreteness, we picked a target clock frequency of 1 GHz to reflect the
+requirement of performing one enqueue and one dequeue every nanosecond, typical
+of high-speed routers today~\cite{rmt}. We targeted a packet buffer of size 12
+MByte based on the buffer size of the Broadcom Trident II~\cite{bcom_buffer}, a
+commercial single-chip shared memory router. With a cell size of 200
+bytes,\footnote{A cell is the minimum unit of memory allocation in the packet
+buffer.} a 12 MByte buffer can support up to 60000 packets in the worst case.
 
-A naive way to implement a 60K-entry PIFO is to use a flat sorted array of 60K
-elements and insert an incoming element into this array in a manner reminiscent
-of insertion sort. Concretely, an incoming element's rank would be compared in
-parallel to the ranks of all 60K elements. This would produce a bitmask
-denoting which elements were greater than or lesser than the incoming element.
-Because the PIFO is sorted, the bitmask would have a single 0-to-1 transition.
-The position of this 0-to-1 transition could be detected using a priority
-encoder. Finally, the new element could be inserted into this position.
-However, the difficulty with this approach is that it is hard to lay out 60K
-parallel comparators, one for each element in the PIFO.
+Hence we need a PIFO that can support up to 60K packets. A naive way to
+implement a 60K-entry PIFO is to use a flat sorted array of 60K elements and
+insert an incoming element into this array in a manner reminiscent of insertion
+sort. Concretely, an incoming element's rank would be compared in parallel to
+the ranks of all 60K elements. This would produce a bitmask denoting which
+elements were greater than or lesser than the incoming element.  Because the
+array is always sorted, the bitmask would have a single 0-to-1 transition.  The
+position of this 0-to-1 transition could be detected using a priority encoder.
+Finally, the new element could be inserted into this position.  However, the
+difficulty with this approach is that it is hard to lay out 60K parallel
+comparators, one for each element in the PIFO.
 
 Instead, we exploit the observation that in most practical scheduling
-algorithms, the scheduling is really across flows and not packets. This is
-because packet ranks increase monotonically within a flow to prevent packet
-reordering within a flow. Because ranks increase monotonically within a flow,
-we only need to look at the first packet of each flow to determine which packet
-to dequeue next. This reduces the number of elements that need to be sorted
-from 60K packets in the naive implementation to around 1K
-flows.\footnote{Again, we picked this number with reference to the Broadcom
+algorithms, scheduling is performed across flows and not individual packets.
+This is because packet ranks increase monotonically within a flow to prevent
+packet reordering within a flow. Because ranks increase monotonically within a
+flow, we only need to look at the first packet of each flow to determine which
+packet to dequeue next. This reduces the number of elements that need to be
+sorted from 60K packets in the naive implementation to around 1K flows in the
+smarter implementation. We picked this 1K number with reference to the Broadcom
 Trident II that supports \textasciitilde10 queues on each of its
-\textasciitilde100 ports}
+\textasciitilde100 ports.
 
 We find that transistor technology has evolved to the point where it is
 relatively cheap to build a sorted array of 1K flows, where a flow can be
@@ -544,15 +572,16 @@ chip~\cite{glen_parsing}.
 
 \section{Scalable network measurement}
 Chapter~\ref{chap:perf_query} considers the problem of programmable and
-scalable network measurement. Can we allow network operators to specify the
-per-flow statistics they want to measure (\eg a moving average over queueing
-latencies or a count of packets or bytes) at the flow granularity they desire
-(\eg at the 5-tuple level or at the level of each distinct destination IP
-address)? Current router solutions for measurement~\cite{netflow,
-tetration-telemetry} fix either the statistics that can be measured or the
-granularity at which the statistics can be measured. The challenge here is to
-provide a set of measurement primitives that can cover a range of statistics
-while scaling to a large number of flows.
+scalable network measurement. Concretely, can we allow network operators to
+flexibly specify the per-flow statistics they want to measure (\eg a moving
+average over queueing latencies or a count of packets or bytes) at the flow
+granularity they desire (\eg at the 5-tuple level or at the level of each
+distinct destination IP address)? Current router solutions for
+measurement~\cite{netflow, tetration-telemetry} fix either the statistics that
+can be measured or the granularity at which the statistics can be measured. The
+challenge here is to provide a set of measurement primitives that can cover a
+range of statistics while also scaling to a large number of flows, because the
+granularity of a flow can be as fine-grained as the 5-tuple.
 
 \begin{figure}
 \begin{minipage}[!h]{\textwidth}
@@ -585,13 +614,15 @@ network.}
 \label{fig:example_queries}
 \end{figure}
 
+%TODO: Need to specify somewhere that this is a network-wide programming model
 \subsection{Programming model} To allow network operators to express a wide
-range of performance measurement questions, we provide network operators with
-the abstraction of a performance packet stream: a stream of tuples, one for
-each packet, containing information identifying the packet (source and
-destination address, source and destination ports) and its performance
-information (the timestamp at which the packet was enqueued and dequeued).
-
+range of performance measurement questions, we provide them with the
+abstraction of a single performance packet stream for the entire network.
+Conceptually, the performance packet stream is a stream of tuples, one for each
+packet, containing information identifying the packet (source and destination
+address and ports) and its performance information (the timestamp at which the
+packet was enqueued into and dequeued from each queue in the network).
+%%>>> Resume here >>>
 Network operators can write queries that operate on this performance packet
 stream using a query language, \TheSystem. \TheSystem has functional constructs
 like {\ct map}, {\ct filter}, and {\ct groupby} similar to functional APIs in
