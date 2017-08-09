@@ -614,7 +614,6 @@ network.}
 \label{fig:example_queries}
 \end{figure}
 
-%TODO: Need to specify somewhere that this is a network-wide programming model
 \subsection{Programming model} To allow network operators to express a wide
 range of performance measurement questions, we provide them with the
 abstraction of a single performance packet stream for the entire network.
@@ -622,69 +621,78 @@ Conceptually, the performance packet stream is a stream of tuples, one for each
 packet, containing information identifying the packet (source and destination
 address and ports) and its performance information (the timestamp at which the
 packet was enqueued into and dequeued from each queue in the network).
-%%>>> Resume here >>>
+
 Network operators can write queries that operate on this performance packet
-stream using a query language, \TheSystem. \TheSystem has functional constructs
-like {\ct map}, {\ct filter}, and {\ct groupby} similar to functional APIs in
-mainstream programming languages like Python, Java, Scala, and Haskell.
+stream using a query language called \TheSystem. \TheSystem has functional
+constructs like {\ct map}, {\ct filter}, and {\ct groupby} similar to
+functional APIs in programming languages like Python, Java, Scala, and Haskell.
 Figure~\ref{fig:example_queries} shows some example queries in \TheSystem.
-These constructs take a stream of tuples as input and return an output stream.
+These constructs take a stream of tuples as input and return an output stream
+of tuples. Because all constructs produce and consume streams, \TheSystem
+queries can be easily composed.
+
 The output stream either transforms each tuple in the input stream ({\ct map}),
 drops certain tuples from the input stream based on a predicate ({\ct filter}),
 or partitions the input stream into substreams based on a predicate and then
 aggregates the tuples within each substream based on a user-defined aggregation
-function ({\ct groupby}).\footnote{Aggregation functions are also known as fold
-functions or reduce functions in functional languages.  \TheSystem's use of
-user-defined aggregation functions differentiates its groupby construct from
-the groupby construct supported by classical query languages like SQL. SQL only
-supports specific order-independent aggregation functions like counts and
-averages. It does not allow general user-defined and order-dependent
-aggregation functions.} Because all constructs produce and consume streams,
-\TheSystem queries can be easily composed.
+function ({\ct groupby}). \TheSystem's use of user-defined aggregation
+functions differentiates its groupby construct from the groupby construct
+supported by classical query languages like SQL. SQL only supports specific
+order-independent aggregation functions like counts and averages. It does not
+allow general user-defined and potentially order-dependent aggregation
+functions. 
 
 \TheSystem allows operators to express both queries that do and do not require
-router state to execute. For instance, a stateless {\ct map} query could take
-an input packet stream, round off the enqueue timestamp of each packet in the
-stream to the nearest millisecond, and return the result as a new stream.  This
-query is stateless because it can operate independently on each packet without
+router state. For instance, a stateless {\ct map} query could take an input
+packet stream, round off the enqueue timestamp of each packet in the stream to
+the nearest millisecond, and return the result as a new stream.  This query is
+stateless because it can operate independently on each packet without
 maintaining any state on the router that persists between packets. On the other
 hand, consider a {\ct groubpy} query that (1) partitions the packet stream into
 substreams based on the 5-tuple and (2) counts the number of packets within
 each substream. This query is stateful because it needs to maintain a
-dictionary mapping each 5-tuple to its count as persistent router state; this
-dictionary is updated by incrementing some 5-tuple's counter on each packet.
+dictionary mapping each 5-tuple to its count as part of the persistent router
+state. To implement the {\ct groubpy} query, this dictionary is updated by
+incrementing some 5-tuple's counter on each packet.
 
 \subsection{Router hardware for performance queries}
 \label{ss:intro_pq_hardware}
 
 A naive implementation of performance queries would stream every packet to a
-centralized collection server, which would execute the performance query
-against the incoming packet stream. However, this would require enormous
-computational capacity on the server and almost a dedicated measurement network
-to stream every packet to the server. Instead, we use programmable routers as
-first-class citizens to perform early filtering, aggregation, and packet
-transformations to reduce the amount of data sent out to and processed by the
-collection server.
+centralized collection server, which would execute the performance query on the
+incoming packet stream. However, this would require enormous computational
+capacity on the server and a separate measurement network just to stream every
+packet to the server. For instance, modern stream processing systems support a
+throughput of \textasciitilde100K--1M operations per second per
+core~\cite{kafka_benchmark, redis_benchmark, memcached_benchmark,
+redis_vs_memcached_update, spark-streaming}, but processing every single packet
+from a single 1 Tbit/s router requires around \textasciitilde100M operations
+per second even for relatively large 1 KB packets. Instead, we use programmable
+routers as first-class citizens to perform early filtering, aggregation, and
+packet transformations. The net effect is a substantial reduction in the amount
+of data sent out to and processed by the collection server.
 
 Supporting stateless queries ({\ct map} and {\ct filter}) is relatively
 straightforward. Emerging programmable router chips~\cite{rmt, xpliant,
 flexpipe, tofino} already provide an instruction set that performs stateless
-manipulations on packet headers. We leverage this instruction set as is to
+transformations on packet headers. We leverage this instruction set as is to
 execute stateless queries because a packet-processing pipeline naturally fits
 the streaming model of our queries.
 
 To support \TheSystem's stateful construct, the {\ct groupby}, we design a
 programmable key-value store in hardware. The keys represent the flows and the
-values represent the state being aggregated as packets are processed. For
-instance, the key could be a 5-tuple and the value could be a count of bytes or
-packets belonging to that 5-tuple.
+values represent the state being aggregated according to the aggregation
+function as packets are processed. For instance, the key could be a 5-tuple and
+the value could be a count of bytes or packets belonging to that 5-tuple.
 
 This key-value store has two requirements that are at odds with each other: it
 needs to be fast to process packets at the router's line rate (a packet every
 nanosecond), and it needs to be large to store a large number of flows. Static
 random-access memory (SRAM) can be accessed once every nanosecond, but has low
-memory density. On the other hand, dynamic random-access memory (DRAM) has much
-better density, but can be accessed once every tens of nanoseconds.
+memory density and can only fit a small number of flows. On the other hand,
+dynamic random-access memory (DRAM) has much better density allowing it to
+support many more flows, but can be accessed only once every ten nanoseconds or
+so.
 
 We use caching to address both requirements: a fast SRAM cache stores the
 currently active flows, while a backing store in DRAM handles evictions from
@@ -692,7 +700,8 @@ the cache. However, cache misses in traditional processor designs lead to
 unpredictable memory access latencies while the data is being fetched from the
 main memory. A processor handles this by occasionally stalling its pipeline to
 handle a cache miss. But stalling a router pipeline prevents us from providing
-the deterministic latency guarantees that routers are known for.
+the deterministic latency guarantees that routers are known and benchmarked
+for.
 
 \begin{figure}
 \centering
@@ -712,12 +721,12 @@ accurately \ie the value after the merge should be the same as the value that
 would be obtained in an ideal system with an infinitely large cache that needs
 no merging?
 
-%TODO: Insert reference to theorems here.
-We can prove that there are aggregation functions for which it is not possible
-to merge efficiently without losing accuracy. However, we formally characterize
-a class of aggregation functions for which such merging {\em is} possible
-without losing accuracy. We call this class the class the {\em linear-in-state}
-class because aggregation functions in this class take the form:
+We can prove (\S\ref{ss:proofs}) that there are aggregation functions for which
+it is not possible to merge efficiently without losing accuracy. However, we
+formally characterize a class of aggregation functions for which such merging
+{\em is} possible without losing accuracy. We call this class the class the
+{\em linear-in-state} class because aggregation functions in this class take
+the following form:
 \begin{equation}
 S = A(p) * S + B(p)
 \end{equation}
@@ -738,7 +747,7 @@ pipeline to determine the hardware feasibility of \TheSystem queries and a
 P4-based software router~\cite{p4-bmv2} for end-to-end case studies of
 \TheSystem in Mininet~\cite{mininet}. We find that \TheSystem queries occupy a
 small fraction of the router's computational and memory resources.
-Computationally, they require a small number of atoms. Memory-wise, the
+Computationally, queries require a small number of atoms. Memory-wise, the
 programmable key-value store requires an SRAM cache that occupies a modest
 amount of additional chip area. Our Mininet experiments show that \TheSystem
 can be used to iteratively troubleshoot problems such as occasional latency
@@ -747,20 +756,24 @@ spikes that occur because of bursty background traffic.
  We determine the eviction rate from the SRAM cache using a trace-driven
 simulation on publicly available packet traces from CAIDA~\cite{caida2016,
 caida2014} and a university data center~\cite{theo_dc}. For a 64 Mbit on-chip
-cache, which occupies about 10\% of the area of a 64×10-Gbit/s router chip,
-we estimate that the cache eviction rate from a single top-of-rack router can
-be handled by a single 8-core server running Redis~\cite{redis}.
+cache, which occupies about 10\% of the area of a 64×10-Gbit/s router chip, we
+estimate that the cache eviction rate from a single top-of-rack router can be
+handled by a single 8-core server running Redis~\cite{redis}. Relative to a
+strawman that sends every packet to the collection server (\ie a 100\% eviction
+rate), the on-chip cache results in a reduction in eviction rate of 34--81x
+(Figure~\ref{fig:evt-rate-queries}).
 
 \section{Lessons learned} We conclude this chapter by distilling some general
-lessons for programmable router design that go beyond the specific
-contributions of each of the three systems.
+lessons for designing fast and programmable routers in the future that go
+beyond the specific contributions of each of the three systems.
 
 \subsection{The power of specialization} The most important lesson here is the
 power of specialization: the idea of targeting hardware and software to
 specific classes of router functionality.  The three systems in the
 dissertation demonstrate how narrowing our focus to specific router
 functionality allows us to resolve the performance-programmability tradeoff
-that has affected routers so far and get the best of both worlds.
+that has affected software routers so far. Put differently, it allows us to get
+the best of both worlds, but for restricted classes of router functionalities.
 
 More formally, the three systems are specialized in the sense that they are not
 Turing-complete: they cannot simulate a Turing machine, an idealization of the
@@ -776,26 +789,27 @@ improvement in performance relative to a general-purpose software router.
 Intellectually, these results suggest that there is a rich space of system
 designs that is as yet unexplored---if we choose to look beyond Turing-complete
 systems. 
-%TODO: Clarify a little more in the previous subsection
 
 \subsection{Jointly designing hardware and software} We are entering an era
 where Moore's law has slowed down or effectively stopped~\cite{dark_silicon,
 four_horsemen}.  In this new era, transistors are no longer guaranteed to get
-smaller or faster every year. In the heyday of Moore's law, processor hardware
-automatically got faster year on year. Software automatically enjoyed the free
-lunch of improved performance because of improvements in the underlying
-hardware. With the imminent end of Moore's law, it is no longer apparent how
-these performance improvements will be sustained.
+smaller or faster every year. Besides, it may not be cost effective to move to
+smaller or faster transistors because of rising non-recurrent engineering costs
+associated with newer transistor technologies~\cite{nre_moonwalk}. In the
+heyday of Moore's law, processor hardware automatically got faster year on
+year. Software automatically enjoyed the free lunch of improved performance
+because of improvements in the underlying hardware. With the imminent end of
+Moore's law, it is no longer apparent how these performance improvements will
+be sustained.
 
 Jointly designing hardware and software in service of a higher level goal
 suggests a way to continue improving performance. Year on year, the greatest
-performance improvements will now come from human creativity in specializing
+performance improvements could now come from human creativity in specializing
 hardware to specific goals and then appropriately exposing this specialized
 hardware to software. This is already visible in domains such as machine
-learning. For instance, the tensor processing unit~\cite{tpu} is an ASIC
+learning. For instance, the tensor processing unit~\cite{tpu} is a chip
 tailored to deep learning, and TensorFlow~\cite{tensorflow} is its
 corresponding programming model.
-%TODO: goals or applications
 
 The systems presented in this dissertation are examples of joint hardware and
 software design in the context of networking, where we develop both the

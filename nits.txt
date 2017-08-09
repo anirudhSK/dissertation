@@ -20,3 +20,4 @@
 * How to get footnotes in tables?
 * fast vs. high-speed. Be consistent, I like the term fast.
 * some sentences are too long. break them up.
+* groupby with and without ct
