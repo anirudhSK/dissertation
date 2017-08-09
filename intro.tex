@@ -386,7 +386,7 @@ already buffered does not change in response to new packet arrivals
 (\S\ref{s:deconstruct}). Hence, when a packet arrives, it can be pushed into
 the right location based on a packet priority (push in), but packets are always
 dequeued from the head (first out). A PIFO is simply a priority queue of
-packets with a small program to assign each packet its priority.\foonote{We use
+packets with a small program to assign each packet its priority.\footnote{We use
 the term PIFO instead of priority queue because, within the context of
 networking, priority queues typically refer to an implementation of
 work-conserving priority scheduling. PIFOs can be used for both work-conserving
