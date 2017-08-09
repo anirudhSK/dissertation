@@ -24,19 +24,19 @@ First, we develop a system for programming stateful packet-processing
 algorithms such as algorithms for in-network congestion control, buffer
 management, and data-plane traffic engineering. The challenge here is the fact
 that these algorithms maintain and update state on the router.  We develop a
-small but expressive instruction set for stateful manipulation on fast routers,
-and then expose this to the programmer through a high-level programming model
+small but expressive instruction set for state manipulation on fast routers.
+ We then expose this to the programmer through a high-level programming model
 and compiler.
 
 Second, we develop a system to program packet scheduling: the task of picking
 which packet to transmit next on a link. Our main contribution here is the
 finding that many packet scheduling algorithms can be programmed using one
 simple idea: a priority queue of packets in hardware coupled with a software
-program to assign each packet's priority in the priority queue.
+program to assign each packet's priority in this queue.
 
 Third, we develop a system for programmable and scalable measurement of network
 statistics. Our goal is to allow programmers to flexibly define what they want
-to measure for each flow while scaling to a large number of flows. We formalize
+to measure for each flow and scale to a large number of flows. We formalize
 a class of statistics that permit a scalable
 implementation and show that it includes many useful statistics (\eg
 moving averages and counters).
@@ -44,8 +44,8 @@ moving averages and counters).
 These systems show that it is possible to program several packet-processing
 functions on fast routers for the first time. Based on these systems, we
 distill two lessons for designing fast and programmable routers in the future.
-First, specializing designs to programming specific classes of router
-functionality improves performance by 10x or more relative to a general-purpose
-solution that can program any router functionality. Second, joint design of
+First, specialized designs that program only specific classes of router
+functionality improve packet processing throughput by 10x or more relative to a general-purpose
+solution. Second, joint design of
 hardware and software provides us with more leverage relative to designing only
 one of them while keeping the other fixed.
