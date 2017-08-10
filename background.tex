@@ -180,14 +180,14 @@ also be viewed as a practical use case for software routers at the edge where
 the link rate requirements are modest.
 %TODO: cite domain 2.0
 
-\subsection{Edge-based software-defined networking (2013 to now)}
+\subsection{Edge-based or end-host-based software-defined networking (2013 to now)}
 While OpenFlow provided a foot in the door, it soon became clear that the
 OpenFlow API was not expressive enough to capture all the needs of network
 operators. Extensions to the API included the ability to maintain simple state
 machines in the data plane~\cite{fast}, the ability to perform counter-based
 network measurements using sketches~\cite{opensketch}, and the ability to be
 independent of the actual protocol in the packet's headers~\cite{pof}.
-%TODO: Compare against fast in Domino chapter?
+%We compare against fast in stateful packet processing a few subsections later
 
 These difficulties with repeatedly extending OpenFlow led to the edge-based
 approach to software-defined networking~\cite{fabric_sdn, nvp, openvswitch}. In
@@ -203,10 +203,17 @@ As a result, the edge routers had far less demanding performance requirements
 relative to the core, which allowed them to be implemented on general-purpose
 CPUs.  Using a general-purpose CPU for programming the edge routers allowed
 them to be far more programmable than the restricted OpenFlow API for routers
-would have allowed. Open Virtual Switch~\cite{openvswitch} was probably the
-most well-known example of an edge router. More recently, increasing
-performance requirements on the edge have led to moving the functionality of
-such virtual switches on to an FPGA~\cite{daniel_firestone_nsdi}.
+would have allowed. Open Virtual Switch~\cite{openvswitch} is one well-known
+example of an edge router; it runs within the hypervisor on an end host and
+connects together multiple virtual machines on a single end host to the
+network.  More recently, increasing performance requirements on the edge have
+led to moving the functionality of such virtual switches on to an
+FPGA~\cite{daniel_firestone_nsdi}.
+
+Taken to its logical extreme, the edge router could be the
+end host itself. Hence, we include approaches that use the end host to achieve
+network flexibility within our discussion of edge-based approaches.
+
 
 While quite a bit of programmable networking functionality can be carried out
 at the edge (\eg network virtualization, access control, security policies
