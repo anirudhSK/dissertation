@@ -6,9 +6,12 @@ dissertation. We first describe the main functions of a router. We then
 describe the performance requirements for a high-speed router today. Motivated
 by these performance requirements, we consider two strawman hardware
 architectures and explain their shortcomings. We then describe the predominant
-pipeline-based architecture of high-speed routers today.
+pipeline-based architecture of high-speed routers today. We conclude by
+describing how the programmable hardware primitives proposed by this
+dissertation fit within the hardware architecture of a high-speed router.
 
 \section{Overview of a router's functionality}
+%TODO: Maybe introduce match-action in the previous section?
 
 A router's functionality can be divided into two major planes: the {\em control
 plane} and the {\em data plane}. The control plane is responsible for network
@@ -21,20 +24,22 @@ these tables specifies that the router must carry out a specific {\em action}
 on a packet if the incoming packet's header {\em matches} a particular pattern.
 As an example, a rule could instruct the router to transmit a packet on a
 particular output port (action) if the packet has a certain destination IP address
-(match). The data plane is responsible for reading the match-action table and
-carrying out the appropriate action operation on every packet.  The data plane
-matches the relevant packet headers against the match part of a match-action
-table rule. If the packet matches a particular rule, the data plane carries out
-the action half of that rule on the packet's headers.
+(match).
 
-The control plane typically runs when the network's topology changes or when a
-network's policy changes. The data plane, on the other hand, needs to run on
-every packet. The rate of policy or topology changes is typically much lesser
-than the rate at which packets are processed at a router. Hence, the control
-plane runs on a general-purpose CPU, while the data plane is implemented in
-dedicated hardware as part of a router chip or ASIC.
-Figure~\ref{fig:router_box} shows an example router with its control and data
-planes.
+The data plane is responsible for reading the match-action table and carrying
+out the appropriate action operation on every packet.  The data plane matches
+the relevant packet headers against the match part of a match-action table
+rule. If the packet matches a particular rule, the data plane carries out the
+action half of that rule on the packet's headers. If the packet does not match
+any rule, some default action is carried out.
+
+The control plane typically runs when the network's topology or the network's
+policy changes. The data plane, on the other hand, needs to run on every
+packet. The rate of policy or topology changes is typically much less than the
+rate at which packets are processed at a router. Hence, the control plane runs
+on a general-purpose CPU, while the data plane is implemented in dedicated
+hardware as part of a router chip or ASIC.  Figure~\ref{fig:router_box} shows
+an example router with its control and data planes.
 
 \begin{figure}
 \centering
@@ -54,38 +59,37 @@ understand the hardware architecture of the router chip that implements the
 router's data plane, it is useful to have a sense of the performance
 requirements of a high-speed router.
 
-For illustration, let's consider a high-speed 1 Tbit/s router, representative
-of many high-speed routers today~\cite{trident2, tomahawk, tomahawk2}. Let's
-assume that the router needs to forward 1000 bit packets. Finally, let's assume
-that on each packet, the router needs to carry out \textasciitilde10
-operations, such as determining the output port based on the destination
-address, access control, tuneling, measurement, and decrementing the IP TTL
-field. These requirements imply that the router needs to support about 10
-operations on a billion packets per second, or equivalently, 10 billion
-operations per second.
+For illustration, let's consider a 1 Tbit/s router, representative of many
+high-speed routers today~\cite{trident2, tomahawk, tomahawk2}. Let's assume
+that the router needs to forward 1000 bit packets. Finally, let's assume that
+on each packet, the router needs to carry out \textasciitilde10 operations,
+such as determining the output port based on the destination address, access
+control, tuneling, measurement, and decrementing the IP TTL field. These
+requirements imply that the router needs to support about 10 operations on a
+billion packets per second, or 10 billion operations per second.
 
 \section{Strawman 1: a single 10 GHz processor}
 One approach to architecting a router chip is to build a single in-order scalar
-processor that can run at 10 GHz and support 10 billion packet operations per
-second (Figure~\ref{fig:single_processor}). But a clock rate of 10 GHz is out
-of reach today. Even with painstaking manual design, the fastest general
-purpose processor chips today do not exceed 3.5 Ghz, and most other chips (\eg
-graphics processors and digital signal processors) have lower clock speeds in
-the 1 GHz range.
+processor that can run at 10 GHz and support 10 billion operations per second
+(Figure~\ref{fig:single_processor}). But a clock rate of 10 GHz is out of reach
+today. Even with painstaking manual design, the fastest general purpose
+processor chips today do not exceed 3.5 Ghz, and most other chips (\eg graphics
+processors and digital signal processors) have lower clock speeds in the 1 GHz
+range.
 
 \section{Strawman 2: an array of processors with shared memory}
 An obvious solution to this problem is to have many scalar in-order processors
 operate in parallel on different packets. In this architecture, when a packet
 comes in, a distributor sends the packet to a free in-order processor. This
-processor then performs all operations for that packet, before accepting a new
-packet. This architecture is similar to some network processors~\cite{ixp1200,
-ixp2800, quantumflow}.  With such an approach, to handle 10 billion operations
-per second, we would need 10 1-GHz processors. Each processor would perform 1
-billion operations per second, which is much more feasible
-(Figure~\ref{fig:processor_array}).
+processor then runs that packet to completion, \ie it performs all operations
+for that packet before accepting a new packet. This architecture is similar to
+some network processors~\cite{ixp1200, ixp2800, quantumflow}.  With such an
+approach, to handle 10 billion operations per second, we would need 10 1-GHz
+processors. Each processor would perform 1 billion operations per second, which
+is much more feasible (Figure~\ref{fig:processor_array}).
 
-The problem with the processor array approach is that it needs shared memory,
-\ie memory that is accessible from all processors. This memory would centrally
+The problem with the processor array approach is that it needs shared memory:
+ memory that is accessible from all processors. This memory would centrally
 store all match-action tables that need to be consulted during packet
 forwarding. This memory needs to be accessible from all processors so that any
 processor can match packets against any match-action table on every clock
@@ -98,8 +102,12 @@ per cycle (single-ported memory). Supporting 10 billion matches per second at a
 1 GHz clock requires a {\em multi-ported} memory that can handle multiple reads
 every clock cycle. Multi-ported memory consumes considerably more area than
 single-ported memory.  Further, there is a substantial increase in wiring delay
-and area when a single block of memory needs to be connected to many different
-processors.
+and wiring area when a single block of memory needs to be connected to many
+different processors.
+%TODO: Say that alternatively the memories could run slower (single ported)
+% You could either slow down the entire rate of packet processing (or) you
+% you could do intelligent scheduling in the style of dRMT to make do with single ported
+% memory.
 
 \begin{figure}[!t]
 \begin{minipage}{0.3\textwidth}
@@ -119,16 +127,16 @@ processors.
 \end{figure}
 
 \section{A pipeline architecture for high-speed routers}
-To avoid the area and wiring concerns associated with multi-ported memories,
-high-speed routers are typically architected as a shared-nothing {\em
-pipeline}. Each pipeline stage is dedicated to a fixed functionality, such as
-destination address lookup, tuneling, measurement, or access control. Each
-pipeline stage has its own dedicated local memory to store its own match-action
-tables, corresponding to destination address lookup, tuneling, measurement, or
-access control, as the case may be. This architecture provides parallelism: at
-any point, each pipeline stage is working on a different packet. It also does
-so without sharing memory between processors: each match-action table is local
-and can be accessed only by the pipeline stage to which it belongs.
+To avoid having to use multi-ported memories, high-speed routers are typically
+architected as a shared-nothing {\em pipeline}. Each pipeline stage is
+dedicated to a fixed functionality, such as destination address lookup,
+tuneling, measurement, or access control. Each pipeline stage has its own
+dedicated local memory to store its own match-action tables, corresponding to
+destination address lookup, tuneling, measurement, or access control, as the
+case may be. This architecture provides parallelism: at any point, each
+pipeline stage is working on a different packet. It also does so without
+sharing memory between processors: each match-action table is local and can be
+accessed only by the pipeline stage to which it belongs.
 
 This pipeline architecture is the architecture followed by most high-speed
 routers today. Packets arriving at a
@@ -163,21 +171,22 @@ Within a pipeline stage, the match unit extracts the relevant packet headers
 from the packets so that the extracted headers can be matched against specific
 patterns in a match-action table. For instance, a match unit might extract the
 TCP headers out of all the packet headers to match the TCP's source port
-against 22 to detect SSH traffic and prioritize it.
+against 22 to detect SSH traffic and, as part of the action, prioritize SSH
+traffic by setting the IP ToS field.
 
-%rules vs. entries be consistent
+%TODO: rules vs. entries be consistent
 Once the relevant headers are extracted, they are matched against match-action
 rules stored in an on-chip match-action table. This match can either be exact
 (\eg determining the next hop based on the destination's MAC address) or can
 use wildcards to indicate don't-care bits (\eg matching a destination IP
-address against different IP subnets). The memory for the match-action table is
-itself structured as a hash table in SRAM (for exact matches) and as a ternary
-content-addressable memory (TCAM) (for wildcard matches).
+address against different possible IP subnets). The memory for the match-action
+table is structured as a hash table in SRAM (for exact matches) and as a
+ternary content-addressable memory (TCAM) (for wildcard matches).
 
 If a match is successful, the rule that matched against the headers of the
 incoming packet is returned. This rule contains the relevant information
 required for the action, such as the concrete numeric value of the output port
-in the case of destination-address lookup. If the packet does not match
+in the case of a destination-address lookup. If the packet does not match
 successfully against any rule in the match-action table, some default action is
 carried out. Typically, the default action sends the packet to the control
 plane CPU of the router.
@@ -207,18 +216,16 @@ progressive increase in the number of fields supported by OpenFlow~\cite{p4}.
 This eventually lead to the development of flexible match-action processing as
 embodied in recent high-speed routers~\cite{xpliant, flexpipe, tofino}. In
 these routers, a programmable parser~\cite{gibb_parsing} allows the user to
-specify a new protocol format. Using this programmable parser, the router
-parses bytes into this new protocol format, and the ingress and egress
-pipelines can match on header fields that are part of the new protocol format.
-This is enabled by a input multiplexer in a match-action stage, which can
-extract a user-specified field from anywhere in the packet's headers for
-matching---as opposed to being constrained to a fixed set of fields available
-at fixed locations in the packet's headers. The net result is the ability to
-program a router to recognize a new packet format, then match on fields within
-this new format, and finally the ability to compose new user-defined actions
-out of a small set of primitive actions that support modifications on
-individual packet fields.
-%TODO: sentence above is a bit murky.
+specify a new protocol format. Using the programmable parser, the router parses
+bytes into this new protocol format, and the ingress and egress pipelines can
+match on header fields that are part of the new protocol format.  This is
+enabled by a input multiplexer in a match-action stage, which can extract a
+user-specified field from anywhere in the packet's headers for matching,
+without being constrained to a fixed set of fields available at fixed locations
+in the packet's headers. The net result is the ability to program a router to
+recognize a new packet format, then match on fields within this new format, and
+finally the ability to compose new user-defined actions out of a small set of
+primitive actions that support modifications on individual packet fields.
 
 However, flexible match-action processing largely ignores the question of
 programmable manipulation of {\em state} in the data plane as part of the
@@ -232,26 +239,26 @@ supports programmable state modification in the data plane of the router.
 Both the ingress and egress pipelines are shared across a number of router
 ports.  They handle aggregate traffic belonging to all these ports, regardless
 of packet sizes. When the aggregate traffic requirement is small enough, a
-single ingress and egress pipeline suffices. For instance, a 64-port router
-with a line rate of 10 Gbit/s per port and a minimum packet size of 64 bytes
-needs to process around a billion packets per second, after accounting for
-minimum inter-packet gaps~\cite{rmt}.  This requirement can be supported by a
-single pipeline that runs at 1 GHz and is shared across all 64 ports.
+single ingress and egress pipeline suffice. For instance, a 64-port router with
+a line rate of 10 Gbit/s per port and a minimum packet size of 64 bytes needs
+to process around a billion packets per second, after accounting for minimum
+inter-packet gaps~\cite{rmt}.  This requirement can be supported by a single
+pipeline that runs at 1 GHz and is shared across all 64 ports.
 
 For higher aggregate capacities, multiple 1-GHz pipelines are required because,
- as discussed earlier, it is technically challenging to achieve a clock rate
+as discussed earlier, it is technically challenging to achieve a clock rate
 higher than 1 GHz in most chips. While having multiple pipelines allows the
 router to scale to higher aggregate speeds, it comes at the cost of fragmenting
 state across different pipelines.  For instance, packets in one pipeline cannot
-access state present in another pipeline. Hence, it is challenging to maintain a
-piece of global state that is accessed by and modified by every packet going
+access state present in another pipeline. Hence, it is challenging to maintain
+a piece of global state that is accessed by and modified by every packet going
 through a multi-pipeline router.
 %TODO: consider multi-pipeline diagram?
 
 Even in a multi-pipeline router, there is a single shared piece of hardware for
-the scheduler that handles inputs from multiple ingress pipelines and dequeues
-its packets into multiple egress pipelines. To support the ability to handle
-inputs and outputs from multiple pipelines, the scheduler's memory is
+the scheduler that enqueues packets from multiple ingress pipelines and
+dequeues its packets into multiple egress pipelines. To support the ability to
+handle inputs and outputs from multiple pipelines, the scheduler's memory is
 multi-ported.  This is possible without considerable area overhead by
 exploiting the fact that most of the scheduler's memory is structured as a set
 of first-in first-out queues with a limited set of operations (\eg enqueues and
@@ -272,11 +279,11 @@ multi-ported memory, which does reduce the total size of the shared memory
 pool~\cite{dctcp}. In Chapter~\ref{chap:pifo} when we refer to a shared memory
 router, we mean a single pipeline shared memory router. 
 
-Throughout this dissertation, we assume a single pipeline router for simplicity. For
-concreteness, we assume the pipeline runs at 1 GHz (\ie every pipeline stage
-handles a new packet every 1 ns), although our concepts generalize to other
-clock frequencies as well. We discuss how our ideas can be extended to
-multi-pipeline routers later (\S\ref{ss:multiple_pipelines}). 
+Throughout most of this dissertation, we assume a single pipeline router for
+simplicity. For concreteness, we assume the pipeline runs at 1 GHz (\ie every
+pipeline stage handles a new packet every 1 ns), although our concepts
+generalize to other clock frequencies. We discuss how our ideas can be extended
+to multi-pipeline routers later (\S\ref{ss:multiple_pipelines}). 
 
 \section{Conclusion}
 This chapter provided an overview of the hardware architecture of a high-speed
@@ -294,5 +301,6 @@ first-in first-out queues usually found in a scheduler. Finally, the on-chip
 cache of our programmable key-value store, introduced in
 \S\ref{ss:intro_pq_hardware} and detailed in \S\ref{sec:aggregation}, takes the
 place of a match-action table within a match-action stage. The off-chip backing
-store in our key-value store runs on the control plane: either the
-general-purpose CPU controlling the router or a centralized measurement server.
+store in our key-value store runs on the control plane: either on the
+general-purpose CPU controlling the router or on a centralized measurement
+server.

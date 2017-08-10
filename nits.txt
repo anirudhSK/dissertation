@@ -29,3 +29,4 @@
 * ensure that the background is actually contrasted against the dissertation
 * using the vs. a vs. not using it at all
 * replace endpoints with end hosts
+* queueing vs. queuing
