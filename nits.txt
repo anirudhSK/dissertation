@@ -27,3 +27,5 @@
 * Be consistent with tenses everywhere
 * base station, with or without space between base and station?
 * ensure that the background is actually contrasted against the dissertation
+* using the vs. a vs. not using it at all
+* replace endpoints with end hosts

@@ -181,17 +181,13 @@ the link rate requirements are modest.
 %TODO: cite domain 2.0
 
 \subsection{Edge-based or end-host-based software-defined networking (2013 to now)}
-While OpenFlow provided a foot in the door, it soon became clear that the
-OpenFlow API was not expressive enough to capture all the needs of network
-operators. Extensions to the API included the ability to maintain simple state
-machines in the data plane~\cite{fast}, the ability to perform counter-based
-network measurements using sketches~\cite{opensketch}, and the ability to be
-independent of the actual protocol in the packet's headers~\cite{pof}.
-%We compare against fast in stateful packet processing a few subsections later
+It soon became clear that the OpenFlow API was not expressive enough to capture
+all the needs of network operators because it was designed as a common minimum
+denominator API for easy adoption. The lack of expressiveness in OpenFlow led
+to the edge-based approach to software-defined networking~\cite{fabric_sdn,
+nvp, openvswitch}.
 
-These difficulties with repeatedly extending OpenFlow led to the edge-based
-approach to software-defined networking~\cite{fabric_sdn, nvp, openvswitch}. In
-this approach, the network's routers were divided into two classes. The {\em
+In this approach, the network's routers were divided into two classes. The {\em
 edge routers} were located at the entrance or edge of a network and performed
 programmable packet manipulation. At the center of the network were the {\em
 core routers} that simply forwarded packets with little to no programmability.
@@ -201,32 +197,69 @@ overall aggregate traffic into and out of the network.
 
 As a result, the edge routers had far less demanding performance requirements
 relative to the core, which allowed them to be implemented on general-purpose
-CPUs.  Using a general-purpose CPU for programming the edge routers allowed
-them to be far more programmable than the restricted OpenFlow API for routers
-would have allowed. Open Virtual Switch~\cite{openvswitch} is one well-known
-example of an edge router; it runs within the hypervisor on an end host and
-connects together multiple virtual machines on a single end host to the
-network.  More recently, increasing performance requirements on the edge have
-led to moving the functionality of such virtual switches on to an
-FPGA~\cite{daniel_firestone_nsdi}.
+CPUs.  Using a general-purpose CPU for programming edge routers allowed them to
+be far more programmable than the restricted OpenFlow API for routers would
+have allowed. Open Virtual Switch~\cite{openvswitch} is one well-known example
+of an edge router; it runs within the hypervisor on an end host and connects
+together multiple virtual machines on a single end host to the network.  More
+recently, increasing performance requirements on the edge have led to
+implementing such virtual switches on an FPGA~\cite{daniel_firestone_nsdi}.
 
-Taken to its logical extreme, the edge router could be the
-end host itself. Hence, we include approaches that use the end host to achieve
-network flexibility within our discussion of edge-based approaches.
+Taken to its logical extreme, the edge router could be the end host itself.
+Hence, when discussing edge-based approaches, we also include several recent
+proposals that use the end hosts to achieve network flexibility. For instance,
+Eden~\cite{eden} provides a programmable data plane using commodity routers by
+programming end hosts alone.  Tiny Packet Programs (TPP)~\cite{tpp} allow end
+hosts to embed small programs in packet headers, which are then executed by the
+router in a style similar to capsule-based active networks. TPPs use a
+restricted instruction set to alleviate the performance and security concerns
+of capsule-based active networks. On the measurement and monitoring side, many
+systems monitor network performance from end hosts alone~\cite{netpoirot,
+minlan-snap, dapper-sosr, trumpet, azure-smartnic}.
 
+Edge-based or end-host-based solutions are necessary for application context
+that is not available within the network. For instance, knowledge of which
+application used the network, which may be useful in monitoring, is only
+available at the end hosts.  Similarly, many network security applications,
+such as filtering spam are best run on the end hosts because the information
+required to determine what is spam and what is not is best left on the end host
+for privacy reasons. Furthermore, quite a bit of programmable networking
+functionality can be carried out at the edge (\eg network virtualization,
+access control, security policies etc.) with no loss in correctness.
+% TODO: Other examples beside spam detection
 
-While quite a bit of programmable networking functionality can be carried out
-at the edge (\eg network virtualization, access control, security policies
-etc.), there is a benefit to moving some programmable networking functionality
-into the core for improving both network performance and visibility. As
-discussed earlier in Chapter~\ref{chap:intro}, network monitoring from end
-hosts (or the edge closest to the end hosts) is indirect and inaccurate
-relative to directly instrumenting routers, especially if the problem is buried
-deep inside the network. Further, many proposals for improving network
-performance rely on support from the core of the network~\cite{pFabric, pias,
-d3, rcp, xcp, detail, conga, letflow}. Thus, the absence of a programmable
-network core leaves significant performance on the table and complicates
-network debugging.
+However, the edge-based approach is inadequate for all network problems. For
+instance, there is a substantial improvement in performance from using network
+support for congestion control (\eg DCTCP~\cite{dctcp} that uses explicit
+congestion notification support from the routers and XCP~\cite{xcp} that uses
+explicit information on the extent of congestion from the routers). Many other
+recent proposals for improving network performance rely on support from the
+routers within the core of the network~\cite{pFabric, pias, d3, rcp, detail,
+conga, letflow}. There is also a considerable improvement in network visibility
+from direct in-network monitoring, in contrast to ``triangulating'' the root cause of a
+network problem from network measurements from different end host vantage
+points.  In summary, the absence of a programmable network core leaves
+significant performance on the table and complicates network debugging.
+
+One could argue for a hybrid network architecture that combines edge-based
+programmability with smarter, but fixed, core routers. Such an architecture
+still puts all the programmability at the edge but augments routers with a
+small set of fixed features to support programmability from the edge.  Examples
+of this approach include Universal Packet Scheduling~\cite{ups} and in-band
+network telemetry~\cite{int, int_paper}, which augment routers with a
+fine-grained priority queue and the ability to export queue size information
+into packets, but otherwise leave all the programmability to the edge.
+
+This hybrid approach would be future proof and general if there existed a small
+set of features that could then be deemed sufficient for a fixed-function
+router. If such a small set of fixed features did indeed exist, it would be
+preferable and simpler to build a fixed-function router rather than a
+programmable router. But the last few decades of increasing feature creep in a
+router suggest that such a feature set is quite unlikely. In such a setting,
+where features are constantly under churn, programmability within the network
+provides future proofness and peace of mind for the network operator: the
+ability to quickly add features to a router when required without lengthy
+hardware iteration cycles.
 
 \section{Concurrent research on network programmability (2013 to now)}
 \label{s:concurrent}
@@ -247,20 +280,22 @@ flexpipe, xpliant} embody this approach of building routers that are both fast
 and programmable. The P4 programming language~\cite{p4} has emerged as an
 industry effort towards a standard programming language for these chips.  P4
 compilers~\cite{lavanya_compiler} then compile these P4 programs to
-programmable data planes such as the RMT~\cite{rmt} and
+programmable router architectures such as the RMT~\cite{rmt} and
 FlexPipe~\cite{flexpipe} architectures.
 
 To the extent that we know from publicly available documents, these chips
 provide flexibility on only two counts: recognizing user-specific header
 formats and programmatically manipulating packet headers for functions such as
-forwarding, tunneling, and access control. In particular, they do not provide
-the programmability required to implement many of the grayed-out algorithms in
-Figure~\ref{fig:router_evolution}.  These algorithms require the ability to
-programmatically manipulate router state on every packet, the ability to
-program which packet a router link must schedule next, and the ability to
-program what per-flow statistics a router must measure for a large number of
-flows. We hope this dissertation suggests directions for the future evolution
-of such programmable router chips.
+forwarding, tunneling, and access control, \ie functions that do not modify
+router state.
+
+In particular, they do not provide the programmability required to implement
+many of the grayed-out algorithms in Figure~\ref{fig:router_evolution}.  These
+algorithms require the ability to programmatically manipulate router state on
+every packet, the ability to program which packet a router link must schedule
+next, and the ability to program what per-flow statistics a router must measure
+for a large number of flows. We hope this dissertation suggests directions for
+the future evolution of such programmable router chips.
 
 \subsection{Centralized data planes}
 Fastpass~\cite{fastpass} manages a datacenter network at fine time scales using
@@ -289,88 +324,41 @@ size, until the centralized arbiter becomes a bottleneck.  Microbenchmarks that
 stress the Flowtune arbiter alone show that an arbiter running on a 64-core
 server can manage a network with an aggregate capacity of 184
 Tbit/s~\cite{flowtune}. However, the largest network that a Fastpass-style
-approach has been benchmarked on is a network of 40 10-Gbit/s servers connected
-to a single top-of-rack router~\cite{flexplane}.
+approach has been benchmarked on (in the Flexplane paper~\cite{flexplane}) is a
+network of 40 10-Gbit/s servers connected to a single top-of-rack router.
 
 In summary, by leveraging a centralized data plane implemented on a commodity
 CPU, Fastpass provides far more flexibility than a restricted interface exposed
 by a programmable router chip---but at a significant scalability cost.
-%TODO: Mention somewhere earlier that it's a commodity server
-
-%% resume here
-%% TODO: The end-host part is very repetitive
-\subsection{End-host-based programmability}
-Several recent approaches to network programmability provide programmability
-from the end hosts. For instance, Eden~\cite{eden} provides a programmable data
-plane using commodity routers by programming end hosts alone.  Tiny Packet
-Programs (TPP)~\cite{tpp} allow end hosts to embed small programs in packet
-headers, which are then executed by the router in a style similar to
-capsule-based active networks. TPPs use a restricted instruction set to
-alleviate the performance and security concerns of active networks. On the
-measurement and monitoring front, many systems monitor network performance from
-end hosts alone~\cite{netpoirot, minlan-snap, dapper-sosr, trumpet,
-azure-smartnic}.
-
-End host solutions are necessary for application context that is not available
-within the network. For instance, knowledge of which application used the
-network, which may be useful in monitoring, is only available at the end hosts.
-Similarly, many network security applications, such as filtering spam are best
-run on the end hosts because the information required to determine what is spam
-and what is not is best left on the end host for privacy reasons.
-
-%TODO: Repeating for a third time. Remove something.
-However, end host solutions are inadequate for all network problems. For
-instance, there is a substantial improvement in performance from using network
-support for congestion control (\eg DCTCP that uses explicit congestion
-notification support from the routers and XCP that uses explicit information on
-the extent of congestion from the routers). There is also a considerable
-improvement in network visibility from in-network monitoring in contrast to
-``triangulating'' the root cause of a network problem from network measurements
-from different vantage points~\cite{pingmesh}.
-%TODO: XCP router support be very clear.
-
-%TODO: One possibility sounds off
-One possibility is a network architecture that still puts all the
-programmability in end hosts but augments routers with just the right set of
-features to support programmability from the end hosts. Examples of this
-approach include universal packet scheduling~\cite{ups} and in-band network
-telemetry~\cite{int}, which augment routers with a fine-grained priority queue
-and the ability to export queue size information into packets.
-
-This is an interesting approach that tacitly presupposes the existence of a
-small set of features that could then be deemed sufficient for a {\em
-fixed-function} router. If such a small set of fixed features did indeed exist,
-it would be certainly be preferable to a programmable router. But the last few
-decades of increasing feature creep in a router suggest that such a feature set
-may be unlikely. In such a setting, where features are constantly under churn,
-programmability provides the ability to quickly add features to a router
-without lengthy hardware iteration cycles.
 
 \subsection{Stateful packet-processing}
 SNAP~\cite{snap} programs stateful data-plane algorithms using a network
 transaction: an atomic block of code that treats the entire network as one
 router~\cite{onebigswitch}. It then uses a compiler to translate network
-transactions into rules on each router. SNAP needs a compiler to compile these
-router-local rules to a router's pipeline, and can use \pktlanguage for this
-purpose. FAST~\cite{fast} provides router support and software abstractions for
-state machines. As we will show in \S\ref{s:eval}, atoms support more general
-stateful processing beyond state machines that enable a much wider class of
-data-plane algorithms.
+transactions into rules on each router. SNAP needs a lower level compiler to
+compile these router-local rules to a router's pipeline and can use
+\pktlanguage for this purpose. In fact, we compile several examples from SNAP
+to study the generality of our atoms in Table~\ref{tab:atoms_generalize}.
+FAST~\cite{fast} provides router support and software abstractions for state
+machines. As \S\ref{s:eval} shows, atoms support more general stateful
+processing beyond state machines that enable a much wider class of data-plane
+algorithms.
 
 \subsection{Universal Packet Scheduling (UPS)} UPS~\cite{ups} shares our goal
-of flexible packet scheduling by seeking a single scheduling algorithm that is
-{\em universal} and can emulate any scheduling algorithm. Theoretically, UPS
-finds that the well-known LSTF scheduling discipline~\cite{lstf} is universal
-if packet departure times for the scheduling algorithm to be emulated are known
-up front. Practically, UPS shows that by appropriately initializing slacks,
-many different scheduling objectives can be emulated using LSTF. LSTF is
-programmable using PIFOs, but the set of schemes practically expressible with
-LSTF is limited. For example, LSTF cannot express:
+of flexible packet scheduling. UPS approaches this goal by seeking a single
+scheduling algorithm that is {\em universal} and can emulate any scheduling
+algorithm. Theoretically, UPS finds that the well-known LSTF scheduling
+discipline~\cite{lstf} is universal if packet departure times for the
+scheduling algorithm to be emulated are known up front. Practically, UPS shows
+that by appropriately initializing slacks, many different scheduling objectives
+can be emulated using LSTF. LSTF is programmable using PIFOs, but the set of
+schemes practically expressible using LSTF is limited. For example, LSTF cannot
+express:
 \begin{CompactEnumerate}
-\item Hierarchical scheduling algorithms such as HPFQ, because it
-  uses only one priority queue.
+\item Hierarchical scheduling algorithms such as HPFQ, because it uses only one
+priority queue.
 \item Non-work-conserving algorithms. For such algorithms LSTF must know the
-  departure time of each packet up-front, which is not practical.
+departure time of each packet up-front, which is not practical.
 \item Short-term bandwidth fairness in fair queueing, because LSTF maintains no
   router state except one priority queue. As shown earlier in
   Figure~\ref{fig:wfq_trans}, programming a fair queueing algorithm requires us
@@ -391,48 +379,46 @@ composing multiple PIFOs together, PIFOs express a wider class of scheduling
 algorithms.
 
 \subsection{Measurements using sketches.} Several systems for network
-measurements use summary data structures that lose some accuracy to fit
+measurement use summary data structures that give up some accuracy to fit
 measurement information within limited router memory~\cite{univmon, flowradar,
 counterbraids, dream, progme, opensketch}. These systems provide traffic volume
 statistics (\ie statistics derived from flow counts) using summary data
-structures that have an accuracy-memory tradeoff. Since counting is
-linear-in-state and can be scalably implemented in \TheSystem, \TheSystem does
-not suffer from this tradeoff. Instead, \TheSystem trades off memory size with
-cache eviction rate (\Sec{eval}).  \TheSystem also allows users to perform a
-broader set of aggregations (the linear-in-state class) beyond counters without
-losing accuracy.
+structures like sketches that tradeoff accuracy for low memory consumption.
+Since counting is linear-in-state and can be scalably implemented in
+\TheSystem, \TheSystem sidesteps this tradeoff. Instead, \TheSystem trades off
+memory size with cache eviction rate (\Sec{eval}).  \TheSystem also allows
+users to perform a broader set of aggregations (the linear-in-state class)
+beyond counters without losing accuracy.
 
 \subsection{Languages for network measurement} Prior network query
 languages~\cite{gigascope, frenetic, path_query, streaming-monitoring} allow
 users to ask questions primarily about traffic volumes, since their input data
 is collected using NetFlow and match-action rule counters~\cite{openflow}. In
 contrast, \TheSystem enables expressive {\em performance} questions on data
-collected with purpose-built router hardware.
-%%\TheSystem shares some language
-%%constructs with Gigascope~\cite{gigascope} and
-%%Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
-%%router.
+collected with purpose-built router hardware. \TheSystem shares some language
+constructs with Gigascope~\cite{gigascope} and
+Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
+router.
 
-\subsection{Router-based monitoring.} Traditionally, router-based monitoring has
-focused on per-flow counts, not performance measurement. For example,
-NetFlow~\cite{netflow} and sFlow~\cite{sflow} provide traffic summaries
-through flow and packet sampling. Packet-capture systems~\cite{cisco-span,
-niksun, netsight, everflow, pathdump, path_query} collect entire packets or
-digests. These approaches sample extensively to lower collection
-overheads, and are useful for posthoc traffic analysis. However, neither
-approach captures details of {\em performance} phenomena (\eg TCP incast) as
-specified by a flexible language like \TheSystem.
-%TODO: could shorten or remove.
+\subsection{Router-based monitoring.} Traditionally, router-based monitoring
+has focused on per-flow counts, not performance measurement. For example,
+NetFlow~\cite{netflow} and sFlow~\cite{sflow} provide traffic summaries through
+flow and packet sampling. Packet-capture systems~\cite{cisco-span, niksun,
+netsight, everflow, pathdump, path_query} collect entire packets or digests.
+These approaches sample extensively to lower collection overheads and are
+useful for posthoc traffic analysis. However, they do not capture details of
+{\em performance} phenomena (\eg TCP incast) as specified by a flexible
+language like \TheSystem.
 
 \subsection{Recent router support for measurement} In-band Network Telemetry
-(INT)~\cite{int, tpp} exposes queue lengths to endpoints by stamping it on the
-packet itself. \TheSystem builds on INT and provides flexible filters and
-aggregations {\em directly in routers}.  \TheSystem's data aggregation in
+(INT)~\cite{int, int_paper} exposes queue lengths to end hosts by stamping it
+on the packet itself. \TheSystem builds on INT and provides flexible filters
+and aggregations {\em directly in routers}.  \TheSystem's data aggregation in
 routers saves the bandwidth needed to collect INT data distributed over many
-endpoints. With INT alone, performance information may be lost, since packets
-carrying the INT data may be dropped on the way to endpoints. The Tetration
-chip provides flow-level telemetry, exposing a fixed set of metrics including
-latency, window and packet size variation, and a ``burst
+end hosts. Besides, with INT alone, performance information may be lost, since
+packets carrying the INT data may be dropped on the way to end hosts. The
+Tetration chip provides flow-level telemetry, exposing a fixed set of metrics
+including latency, window and packet size variation, and a ``burst
 measurement''~\cite{tetration-telemetry}. In contrast, \TheSystem provides
 programmable aggregation functions and flow definitions, \eg input/output port
 versus 5-tuple.
@@ -441,14 +427,15 @@ versus 5-tuple.
 This chapter summarized both the historic background that sets up the context
 for this dissertation and the related work that is concurrent with this
 dissertation. The main difference in approach between this dissertation and
-prior approaches to router programmability is the {\em joint design of both
-hardware and software}.
+prior approaches to router programmability is the joint design of both
+hardware and software.
 
 Jointly designing hardware and software provides us more leverage than treating
-either as unchangeable. Past approaches either propose hardware or software
-improvements, while treating the other as fixed. We briefly describe several
-examples of how this additional leverage helps the systems in this
-dissertations relative to prior work.
+either as unchangeable. In the process, it also allows us to obtain both
+programmability and performance for some classes of router functionality.  Past
+approaches either propose hardware or software improvements, while treating the
+other as fixed. We briefly describe 5 examples of how this additional leverage
+helps the systems in this dissertations relative to systems in prior work.
 
 \Para{Universal Packet Scheduling.} UPS adds a fine-grained priority queue to a
 {\em fixed} router, but otherwise treats the router hardware as unmodifiable,
@@ -458,25 +445,25 @@ we develop new programmable router hardware (atoms) to maintain and update
 state on the router.
 
 \Para{Flexplane.} Flexplane moves the data plane into slower commodity hardware
-to emulate AQM schemes like RED and scheduling schemes such as WFQ. By
-modifying router hardware to support atoms,  Domino allows such AQM schemes to
-be programmed directly without emulation on high-speed router hardware.
+to emulate algorithms like RED and WFQ. By modifying router hardware to support
+atoms,  Domino allows such AQM schemes to be programmed directly without
+emulation on high-speed router hardware.
 
-\Para{Hardware support for counters.} Many hardware designs optimize the fixed
-software requirement of per-flow counters~\cite{counter_shah}.
-\TheSystem devlops a programming language for measurements in software along
-with hardware support for this language. This allows \TheSystem to support a
-wider range of queries beyond just counters.
+\Para{Hardware support for counters.} Many router hardware designs optimize for
+the fixed software requirement of per-flow counters~\cite{counter_shah}.
+\TheSystem devlops an expressive programming language for measurements in
+software along with hardware support for this language. This allows \TheSystem
+to support a wider range of queries beyond counters.
 
 \Para{CONGA.} CONGA~\cite{conga} is a load-balancing algorithm that uses
 congestion-aware flowlet-based load balancing to respond better to asymmetry in
-the network topology. CONGA is implemented on a custom ASIC by developing new
-router hardware for the sole purpose of load balancing. In constrast,
-developing a programming model in software as part of Domino in addition to the
-atoms allows to reuse the same programmable atoms for many different algorithms
-including CONGA.
+the network topology. CONGA is implemented on a custom chip by developing new
+router hardware for the sole purpose of load balancing. In contrast, we
+developed a programming model in software as part of Domino in addition to the
+atom hardware. This allows us to reuse the same programmable atoms for many
+different algorithms including CONGA.
 
-\Para{SONATA.} SONATA~\cite{streaming-monitoring} is a measurement system that sources its
-measurements from statistics exported by OpenFlow. By designing new router
-hardware for programmable measurement, \TheSystem can express a wider range of
-measurements than what is supported by OpenFlow.
+\Para{SONATA.} SONATA~\cite{streaming-monitoring} is a measurement system that
+sources its measurements from statistics exported by OpenFlow. By designing new
+router hardware for programmable measurement, \TheSystem can express a wider
+range of measurements than what is supported by OpenFlow.
