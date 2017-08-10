@@ -21,3 +21,9 @@
 * fast vs. high-speed. Be consistent, I like the term fast.
 * some sentences are too long. break them up.
 * groupby with and without ct
+* 90s vs. '90s (contractions in general)
+* WiFi or Wi-Fi?
+* forwarding tables vs. routing tables
+* Be consistent with tenses everywhere
+* base station, with or without space between base and station?
+* ensure that the background is actually contrasted against the dissertation

@@ -1,6 +1,7 @@
 \chapter{Background and Related Work}
 \label{chap:related}
 
+%TODO: Check dates on all subsections
 As background for the rest of this dissertation, we first review several prior
 approaches to programmability in networks (\S\ref{s:bgnd_bgnd}). We then review
 work that is closely related to and concurrent with the work presented in this
@@ -81,59 +82,53 @@ various forms: software-defined networking and programmable router chips both
 provide network operators with different kinds of restricted router
 programmability.
 
-
-%% resume here.
 \subsection{Software routers (1999 to present)}
-One approach to programmability since the late 90s has been to use a
-general-purpose substrate for writing packet processing programs---in contrast
-to fixed-function router hardware that could not be programmed. The
+One approach to programmability since the late 1990s has been to use a
+general-purpose substrate for writing packet processing programs, in contrast
+to fixed-function router hardware that can not be programmed. The
 general-purpose substrate has varied over the years. For instance,
 Click~\cite{click} used a single-core CPU in 2000.  In the early 2000s, Intel
 introduced a line of processors tailored towards networking called network
-processors. The most well known network processors from Intel were the
-IXP1200~\cite{ixp1200} in 2000 and the IXP2800~\cite{ixp2800} in 2002.  The RouteBricks
-project used a multi-core processor~\cite{routebricks} in 2009, the
-PacketShader project used a graphics processor (GPU)~\cite{packetshader} in
-2010, and the NetFPGA-SUME project used an FPGA in 2014~\cite{netfpga}.
+processors, such as the IXP1200~\cite{ixp1200} in 2000 and the
+IXP2800~\cite{ixp2800} in 2002.  The RouteBricks project used a multi-core
+processor~\cite{routebricks} in 2009, the PacketShader project used a graphics
+processor (GPU)~\cite{packetshader} in 2010, and the NetFPGA-SUME project used
+an FPGA in 2014~\cite{netfpga}.
 
 Software routers have found adoption as a means of programming routers at the
 expense of performance. They have been especially beneficial in scenarios where
 the link speeds are lower, but the computational requirements are higher.  For
-instance, this approach has been used to implement MAC layer
-algorithms in WiFi~\cite{samplerate, roofnet, xor} and signal processing
-algorithms in the wireless physical layer~\cite{sora, cloudiq}.
-%TODO: Production use cases?
+instance, this approach has been used to implement MAC layer algorithms in
+WiFi~\cite{samplerate, roofnet, xor} and signal processing algorithms in the
+wireless physical layer~\cite{sora, cloudiq}.
 
 Many domain-specific languages (DSLs) for packet processing were developed in
 parallel with the development of software routers. For instance,
 Click~\cite{click} uses C++ for packet processing on software routers.
-packetC~\cite{packetc}, Intel's auto-partitioning C
-compiler~\cite{intel_uiuc_pldi}, and Microengine C~\cite{microenginec} target
-network processors. When designing the Domino DSL (Chapter~\ref{chap:domino},
-our syntax and semantics were inspired by these DSLs.  However, because Domino
+packetC~\cite{packetc} and Microengine C~\cite{microenginec} target network
+processors. When designing the Domino DSL (Chapter~\ref{chap:domino}, our
+syntax and semantics were inspired by these DSLs.  However, because Domino
 targets line-rate routers, it is more constrained. For instance, because
 compiled programs run at line rate, \pktlanguage forbids loops.
 
-%%This is because
-%%there is no  indefinitely while
-%%processing a particular packet, while still guaranteeing line-rate performance.
+%,TODO: cite somewhere: Intel's auto-partitioning C
+%compiler~\cite{intel_uiuc_pldi}, Maybe in related compiler techniques?
 
-%TODO: Check dates on all subsections
 \subsection{Software-defined networking (2004 to now)}
 Starting in the early 2000s, researchers argued for separating the router's
 control plane (\ie the part of the router that runs a distributed routing
 protocol to computes its routing tables) from the router's data plane (\ie the
 part of the router that actually forwards packets by looking them up in the
-routing table)~\cite{route_control, case_for, forces, fourd, ethane}. As an example, the
-implementation of a link-state routing protocol would be part of the control
-plane, while the implementation of a longest-prefix match table lookup would be
-part of the data plane.
+routing table)~\cite{route_control, case_for, forces, fourd, ethane}. As an
+example, the implementation of a link-state routing protocol would be part of
+the control plane, while the implementation of a longest-prefix-based table
+lookup would be part of the data plane.
 
 The idea behind this approach, which later came to be called software-defined
 networking (SDN)~\cite{sdn_coining}, was that much of the flexibility desired
 by network operators when managing large-scale networks (\eg traffic
 engineering, access control, creating virtual networks) had to do with the
-control plane, and not the data plane.  Furthermore, the control plane executed
+control plane, not the data plane.  Furthermore, the control plane executed
 relatively infrequently compared with the data plane: once every few
 milliseconds as opposed to once every few nanoseconds. Hence, while the data
 plane had to be implemented in hardware for performance, the relatively
@@ -145,79 +140,100 @@ SDN also introduced the idea of centralized control: the idea that by moving
 router control planes off the router and on to a general-purpose processor, the
 entire control plane for the network could be centralized at a few servers.
 This, in turn, allowed those few servers to compute routes for the entire
-network. Effectively, SDN replaced an error-prone distributed route computation
-protocol with a much simpler centralized graph computation (\eg shortest paths
-using Dijkstra's algorithm) to compute the routes.
+network with the benefit of global network visibility. Effectively, SDN
+replaced an error-prone distributed route computation protocol with a much
+simpler centralized graph computation (\eg shortest paths using Dijkstra's
+algorithm) to compute the routes.
 
-SDN also required a mechanism for the control plane to actually populate the
-contents of the routing tables once the routes for each router were known.
+SDN also required a mechanism for the control plane to populate the contents of
+the routing tables once the control plane had computed routes for each router.
 These tables would then be consulted by the data plane when forwarding packets.
 The most well-known of these mechanisms was the OpenFlow API~\cite{openflow},
-which exposed a minimal interface to the forwarding tables in router hardware.
+which exposed a minimal interface to the routing tables in router hardware.
 The goal of OpenFlow was to serve as a minimum common denominator across
-interfaces to different forwarding chips so that existing chips could
-immediately support the OpenFlow API.
+interfaces to routing tables in different forwarding chips. This was so that
+existing chips could immediately support the OpenFlow API.
 
 While the OpenFlow API made it possible to program the network's contol plane,
 it did not necessarily make it easy. Hence, the development of SDN also led to
 the development of many high-level programming languages to program a router's
 control plane~\cite{frenetic, pyretic}. While SDN saw a considerable amount of
-research work in programming and verifying rich control plane policies because
-the control plane could now be an arbitrary program, it saw much lesser work in
-enabling programmability in the data plane or the router chip itself.
+research work in programming and verifying rich control plane policies, it saw
+much lesser work in enabling programmability in the data plane or the router
+chip itself.
 
 \subsection{Network functions virtualization (2012 to now)}
-%TODO: Make sure everything in this chapter is past tense by default
 Network functions virtualization (NFV)~\cite{nfv_etsi_2012} sought to move
-richer non-forwarding packet processing functionality onto commodity processors
-and the cloud infrastructure~\cite{aplomb}. This packet processing
-functionality included deep-packet inspection, load balancing, intrusion
-detection, and WAN acceleration, colloquially unified under the umbrella term
-``middlebox.'' Several systems emerged to program both the
-data~\cite{netbricks} and control~\cite{opennf} plane of such middleboxes.
+richer packet processing functionality, beyond vanilla packet forwarding, onto
+commodity general-purpose processors and the cloud
+infrastructure~\cite{aplomb}. This packet processing functionality included
+deep-packet inspection, load balancing, intrusion detection, and WAN
+acceleration, colloquially unified under the umbrella term ``middlebox.''
+Several systems emerged to program both the data~\cite{netbricks} and
+control~\cite{opennf} plane of such middleboxes.
 
-One common use case for such middleboxes was at the edge of a network, where a
-host of packet-processing functionality runs on a cluster of
-processors~\cite{e2} to perform packet processing when a client accesses a
-network. NFV carries out its packet processing on a software platform
-(typically a cluster of x86 processors), and in a sense is a practical
-embodiment of software routers at the edge where the link rate requirements are
-not excessively high.
+One common use case for such middleboxes is at the edge of a network (\eg at a
+cellular base station), where a variety of packet-processing functions run on a
+cluster of processors~\cite{e2} every time a client accesses the Internet.
+Because NFV carries out its packet processing on a software platform, it can
+also be viewed as a practical use case for software routers at the edge where
+the link rate requirements are modest.
+%TODO: cite domain 2.0
 
 \subsection{Edge-based software-defined networking (2013 to now)}
 While OpenFlow provided a foot in the door, it soon became clear that the
 OpenFlow API was not expressive enough to capture all the needs of network
-operators. Extensions to the API included the ability to manipulate router
-state~\cite{fast}, the ability to perform network
-measurements~\cite{opensketch}, and the ability to be independent of the actual
-protocol of the packet~\cite{pof}.
+operators. Extensions to the API included the ability to maintain simple state
+machines in the data plane~\cite{fast}, the ability to perform counter-based
+network measurements using sketches~\cite{opensketch}, and the ability to be
+independent of the actual protocol in the packet's headers~\cite{pof}.
+%TODO: Compare against fast in Domino chapter?
 
 These difficulties with repeatedly extending OpenFlow led to the edge-based
 approach to software-defined networking~\cite{fabric_sdn, nvp, openvswitch}. In
-this approach, the network's routers were divided into two classes: the edge
-routers that performed programmable packet manipulation and the core routers
-that simply forwarded packets with little to no programmability. The edge
-routers had far less demanding performance requirements relative to the core
-allowing them to be implemented on general-purpose CPUs. Using a
-general-purpose CPU for programming the edge routers allowed them to be far
-more programmable than the restricted OpenFlow API for routers would have
-allowed. Open Virtual Switch~\cite{openvswitch} was probably the most well-known
-example of an edge router implemented on top of a CPU in the server's
-hypervisor. More recently, increasing performance requirements on the edge have
-led to moving the virtual router's functionality on to an
-FPGA~\cite{daniel_firestone_nsdi}. 
+this approach, the network's routers were divided into two classes. The {\em
+edge routers} were located at the entrance or edge of a network and performed
+programmable packet manipulation. At the center of the network were the {\em
+core routers} that simply forwarded packets with little to no programmability.
+Because the edge routers were spatially distributed to serve clients in
+different locations, each edge router had to only handle a small slice of the
+overall aggregate traffic into and out of the network.
 
-%https://www.sdxcentral.com/articles/news/scott-shenker-preaches-revised-sdn-sdnv2/2014/10/
+As a result, the edge routers had far less demanding performance requirements
+relative to the core, which allowed them to be implemented on general-purpose
+CPUs.  Using a general-purpose CPU for programming the edge routers allowed
+them to be far more programmable than the restricted OpenFlow API for routers
+would have allowed. Open Virtual Switch~\cite{openvswitch} was probably the
+most well-known example of an edge router. More recently, increasing
+performance requirements on the edge have led to moving the functionality of
+such virtual switches on to an FPGA~\cite{daniel_firestone_nsdi}.
+
+While quite a bit of programmable networking functionality can be carried out
+at the edge (\eg network virtualization, access control, security policies
+etc.), there is a benefit to moving some programmable networking functionality
+into the core for improving both network performance and visibility. As
+discussed earlier in Chapter~\ref{chap:intro}, network monitoring from end
+hosts (or the edge closest to the end hosts) is indirect and inaccurate
+relative to directly instrumenting routers, especially if the problem is buried
+deep inside the network. Further, many proposals for improving network
+performance rely on support from the core of the network~\cite{pFabric, pias,
+d3, rcp, xcp, detail, conga, letflow}. Thus, the absence of a programmable
+network core leaves significant performance on the table and complicates
+network debugging.
+
+\section{Concurrent research on network programmability (2013 to now)}
+\label{s:concurrent}
 
 \subsection{Programmable router chips (2013 to now)}
 \label{ss:prog_router_chips}
-Another response to the difficulty of extending OpenFlow to support an
-ever-changing list of protocol formats was to develop a minimal instruction set
-for a router. This would then permit a network operator to express forwarding
-rules for {\em any} new protocol format. This is in contrast to OpenFlow, which
-only support a restricted and fixed set of operations as part of the forwarding
-rules (drop, decrement TTL, forward, etc.) on a resticted and fixed set of
-packet headers (UDP, TCP, IP, etc.).
+Besides the edge-based approach to network programmability, another response to
+the difficulty of repeatedly extending OpenFlow was to develop a programmable
+router chip. This router chip would have a minimal instruction set that would
+permit a network operator to express OpenFlow-like forwarding rules for {\em
+any} new protocol format. This is in contrast to OpenFlow, which only supports
+a restricted and fixed set of actions as part of the forwarding rules (drop,
+decrement TTL, forward, etc.) on a resticted and fixed set of packet headers
+(UDP, TCP, IP, etc.).
 
 Recent academic work~\cite{rmt} and commercial router chips~\cite{tofino,
 flexpipe, xpliant} embody this approach of building routers that are both fast
@@ -234,26 +250,23 @@ forwarding, tunneling, and access control. In particular, they do not provide
 the programmability required to implement many of the grayed-out algorithms in
 Figure~\ref{fig:router_evolution}.  These algorithms require the ability to
 programmatically manipulate router state on every packet, the ability to
-program which packet a router link must transmit next, and the ability to
+program which packet a router link must schedule next, and the ability to
 program what per-flow statistics a router must measure for a large number of
 flows. We hope this dissertation suggests directions for the future evolution
-of programmable router chips.
-
-\section{Concurrent research on network programmability (2013 to now)}
-\label{s:concurrent}
+of such programmable router chips.
 
 \subsection{Centralized data planes}
 Fastpass~\cite{fastpass} manages a datacenter network at fine time scales using
-a logically centralized arbiter that regulates packet transmissions from all
+a logically centralized arbiter server that regulates packet transmissions from all
 end hosts within the network. A logically centralized arbiter provides the
 global visibility needed to perform resource management for the entire network.
-Put differently, Fastpass applies the idea of centralized control from SDN to
-the data plane instead of the control plane.
+Put differently, Fastpass adopts the idea of centralized control from SDN, but
+applies it to the data plane instead of the control plane.
 
 In Fastpass, when an application on an end host calls send() on a socket, the
 end host sends a message to the arbiter specifying its network demands. Upon
-receiving this message, the arbiter specifies the times at which the end
-host must transmit and the network path that the end host's packets must follow
+receiving this message, the arbiter specifies the times at which the end host
+must transmit and the network path that the end host's packets must follow
 during those times. 
 
 In subsequent work, Flexplane~\cite{flexplane} uses the arbiter as an emulator
@@ -265,37 +278,40 @@ flowlets, instead of packets.  This allows the centralized arbiter in Flowtune
 to handle larger networks than Fastpass.
 
 Fastpass, Flexplane, and Flowtune are all applicable to networks of a modest
-size, until the centralized arbiter becomes a bottleneck.
-Microbenchmarks that stress the Flowtune arbiter alone show that an arbiter running on a
-64-core server can manage a network with an aggregate capacity of 184
-Tbit/s~\cite{flowtune}. However, the largest network that a
-Fastpass-style approach has been benchmarked on is a network of 40 10-Gbit/s
-servers connected to a single top-of-rack router~\cite{flexplane}.
+size, until the centralized arbiter becomes a bottleneck.  Microbenchmarks that
+stress the Flowtune arbiter alone show that an arbiter running on a 64-core
+server can manage a network with an aggregate capacity of 184
+Tbit/s~\cite{flowtune}. However, the largest network that a Fastpass-style
+approach has been benchmarked on is a network of 40 10-Gbit/s servers connected
+to a single top-of-rack router~\cite{flexplane}.
 
 In summary, by leveraging a centralized data plane implemented on a commodity
 CPU, Fastpass provides far more flexibility than a restricted interface exposed
-by a programmable router chip---but at a significant cost to scalability.
+by a programmable router chip---but at a significant scalability cost.
+%TODO: Mention somewhere earlier that it's a commodity server
 
+%% resume here
+%% TODO: The end-host part is very repetitive
 \subsection{End-host-based programmability}
-Several approaches to network programmability provide programmability from the
-end-host or edge alone because these components are implemented on
-general-purpose CPU platforms. For instance, Eden~\cite{eden} provides a
-programmable data plane using commodity routers by programming end hosts alone.
-Tiny Packet Programs (TPP)~\cite{tpp} allow end hosts to embed small programs
-in packet headers, which are then executed by the router in a style similar to
+Several recent approaches to network programmability provide programmability
+from the end hosts. For instance, Eden~\cite{eden} provides a programmable data
+plane using commodity routers by programming end hosts alone.  Tiny Packet
+Programs (TPP)~\cite{tpp} allow end hosts to embed small programs in packet
+headers, which are then executed by the router in a style similar to
 capsule-based active networks. TPPs use a restricted instruction set to
 alleviate the performance and security concerns of active networks. On the
 measurement and monitoring front, many systems monitor network performance from
-endpoints alone~\cite{netpoirot, minlan-snap, dapper-sosr, trumpet,
+end hosts alone~\cite{netpoirot, minlan-snap, dapper-sosr, trumpet,
 azure-smartnic}.
 
-Endpoint solutions are necessary for application context that is not available
+End host solutions are necessary for application context that is not available
 within the network. For instance, knowledge of which application used the
 network, which may be useful in monitoring, is only available at the end hosts.
 Similarly, many network security applications, such as filtering spam are best
 run on the end hosts because the information required to determine what is spam
 and what is not is best left on the end host for privacy reasons.
 
+%TODO: Repeating for a third time. Remove something.
 However, end host solutions are inadequate for all network problems. For
 instance, there is a substantial improvement in performance from using network
 support for congestion control (\eg DCTCP that uses explicit congestion
