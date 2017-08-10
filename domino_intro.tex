@@ -4,76 +4,72 @@ and transform packets, reading and writing state in the router. Examples
 include active queue management~\cite{red,avq,codel}, congestion control with
 router feedback~\cite{xcp, rcp}, network measurement~\cite{opensketch,
 bitmap_george}, and data-plane traffic engineering~\cite{conga, flowlets}.
+Hence, the central question of this chapter is: {\em how do we enable
+programmable stateful packet processing on a high-speed router?} Concretely,
+what is the right instruction set for programmable state modification, what is
+the the right programming model for stateful algorithms, and how do we compile
+from the programming model to the instruction set?
 
-As explained earlier (\S\ref{s:intro_background} and
-Figure~\ref{fig:router_algos}), such algorithms are either not available on
-high-end routers or are hardwired into fixed-function routers where they cannot
-be modified. In other words, there is no way to program a new algorithm or
-modify the algorithmic logic of an old one on a high-speed router. While
-high-speed programmable router chips~\cite{flexpipe, xpliant} are available,
-their programmability is largely restricted to {\em stateless} tasks such as
-packet forwarding (\S\ref{ss:prog_router_chips}). By contrast to packet
-forwarding, which doesn't modify state in the data plane, many data-plane
-algorithms create and modify {\em algorithmic state} in the router as part of
-packet processing.
+In answering these questions, this chapter makes three new contributions.  Our
+first contribution is {\em \absmachine}, a machine model for programmable
+high-speed routers~(\S\ref{s:absmachine}).  \absmachine is inspired by existing
+programmable router chips, which provide programmable, but stateless packet
+transformations. \absmachine extends such chips with functionality required for
+high-speed and programmable state modifications.  Specifically, \absmachine
+models two important constraints (\S\ref{s:atomConstraints}) for stateful
+operations at the router's line rate: the inability to share state between
+different packet-processing units and the requirement that any router state
+modifications be visible to the next packet entering the router. Based on these
+constraints, we introduce {\em atoms} to represent a programmable router's
+packet-processing units.
 
-The central question of this chapter is: {\em how do we enable programmable
-stateful processing on a high-speed router?} In more detail, what is the right
-programming model for stateful algorithms, what is the underlying instruction
-set, and how do we compile from the programming model to the instruction set?
-
-In answering these questions, this chapter makes three new contributions.
-First, {\em \absmachine}, a machine model for programmable line-rate
-routers~(\S\ref{s:absmachine}).  \absmachine is inspired by existing
-programmable router chips, but extends them with functionality required for
-state modifications in the router's ASIC.  Specifically, \absmachine models two
-important constraints (\S\ref{s:atomConstraints}) for stateful line-rate
-operations: the inability to share state between different packet-processing
-units, and the requirement that any router state modifications be visible to
-the next packet entering the router. Based on these constraints, we introduce
-{\em atoms} to represent a programmable router's packet-processing units.
-
-Second, a new abstraction to program and implement data-plane algorithms: a
-{\em packet transaction} (\S\ref{s:transactions}). A packet transaction is a
-sequential code block that is atomic and isolated from other such code blocks.
-Packet transactions provide programmers with the illusion that the
-transaction's body executes serially from start to finish on each packet, with
-no overlap in packet processing across packets---akin to an infinitely fast
-single-threaded processor carrying out packet processing on each packet. The
-code within a packet transaction is written in {\em \pktlanguage{}}, a new
-imperative domain-specific language (DSL) for (\S\ref{s:transactions}).
-\pktlanguage is  to our knowledge the first to offer such a high-level
-programming abstraction for line-rate routers.
+Our second contribution is a new abstraction to program data-plane algorithms
+called {\em packet transactions} (\S\ref{s:transactions}). A packet transaction
+is a sequential code block that is atomic and isolated from other such code
+blocks.  Packet transactions provide programmers with the illusion that the
+transaction's body executes serially from start to finish on each packet in the
+order in which packets arrive at the router's ingress or egress pipeline.
+Conceptually, when programming with packet transactions, there is no overlap in
+packet processing across packets---akin to an infinitely fast single-threaded
+processor carrying out packet processing on each packet. The code within a
+packet transaction is written in {\em \pktlanguage{}}, a new imperative
+domain-specific language (DSL). To our knowledge, \pktlanguage is the first to
+offer such a high-level programming abstraction for high-speed routers.
 
 Packet transactions let the programmer focus on the operations needed for each
 packet without worrying about other concurrent packets. Packet transactions
 have an \textit{all-or-nothing} guarantee: all packet transactions accepted by
-the packet transactions compiler will run at line rate, or be rejected.  There
-is no ``slippery slope'' of running network algorithms at lower speeds as with
-network processors or software routers: when compiled, a packet transaction
-runs at the router's line rate, or not at all.  Performance is not just
-predictable, but guaranteed.
+the packet transactions compiler will run at the router's line rate, or be
+rejected.  There is no ``slippery slope'' of running network algorithms at
+lower speeds as with network processors or software routers: when compiled, a
+packet transaction runs at the router's line rate, or not at all.  Performance
+is not just predictable, but guaranteed.
 
-Third, {\em a compiler from \pktlanguage packet transactions to a \absmachine
-target}~(\S\ref{s:compiler}). The \pktlanguage compiler extracts {\em codelets}
-from  transactions: code fragments, which if executed atomically, guarantee a
-packet transaction's semantics. It then uses program
+Our third contribution is a compiler from \pktlanguage packet transactions to a
+\absmachine target~(\S\ref{s:compiler}). The \pktlanguage compiler extracts
+{\em codelets} from  transactions: code fragments, which if executed
+atomically, guarantee a packet transaction's semantics. It then uses program
 synthesis~\cite{sketch_asplos} to map codelets to atoms, rejecting the
 transaction if the atom cannot execute the codelet.
 
 We evaluate \pktlanguage's expressiveness by programming a variety of
-data-plane algorithms (Table~\ref{tab:algorithms}) in \pktlanguage and compare with
-P4. We find that \pktlanguage provides a more concise and natural programming
-model for stateful data-plane algorithms.  Next, we design a set of small set
-of atoms that can express these algorithms (\S\ref{ss:targets}).  We show that
-compiler targets with these atoms are feasible in a 32-nm standard-cell library
-with $< 2\%$ cost in area relative to a 200 \si{\milli\metre\squared} baseline
-router chip~\cite{gibb_parsing}.  Finally, we compile data-plane algorithms
-written in \pktlanguage to these targets (\S\ref{domino_ss:compiler}) to show
-how a target's atoms determine the algorithms it can support (Table~\ref{tab:algo_atoms}). We also distill
-with several lessons for programmable router design (\S\ref{ss:lessons}) based
-on our experience with \pktlanguage.
-%TODO: Tone down comparison with P4 here. That's not the point here.
+data-plane algorithms (Table~\ref{tab:algorithms}) in \pktlanguage. We find
+that \pktlanguage provides a concise and natural programming model for stateful
+data-plane algorithms.  Next, we design a set of small set of atoms that can
+express these algorithms (\S\ref{ss:targets}).  We show that compiler targets
+with these atoms are feasible at a 1 GHz clock rate in a 32-nm standard-cell
+library with $< 2\%$ cost in area relative to a 200 \si{\milli\metre\squared}
+baseline router chip~\cite{gibb_parsing}.
+
+We compile data-plane algorithms written in \pktlanguage to these targets
+(\S\ref{domino_ss:compiler}) to show how a target's atoms determine the
+algorithms it can support (Table~\ref{tab:algo_atoms}). To study the generality
+of our atoms, we froze the design of our atoms and compiled a new set of
+\pktlanguage algorithms to our atoms. As Table~\ref{tab:atoms_generalize}
+shows, our atoms were able to generalize to new and unanticipated use cases,
+providing empirical evidence of their programmability. Based on our experiences
+with \pktlanguage, we distill several lessons for programmable router design
+(\S\ref{ss:lessons}).
 
 Code for the \pktlanguage compiler, the \absmachine machine model, and the code
 examples listed in Table~\ref{tab:algorithms} is available at
