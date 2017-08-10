@@ -1,6 +1,4 @@
-%TODO: Replace machine model with hardware architecture?
-%TODO: Include the word state in the section title?
-\section{A machine model for line-rate routers}
+\section{A machine model for programmable high-speed routers}
 \label{s:absmachine}
 \begin{figure}[!t]
   \includegraphics[width=\textwidth]{domino_banzai.pdf}
@@ -11,53 +9,56 @@
   \label{domino_fig:router}
 \end{figure}
 
-\absmachine is a machine model for programmable line-rate routers that serves
+\absmachine is a machine model for programmable high-speed routers that serves
 as the compiler target for \pktlanguage.  \absmachine is inspired by recent
 programmable router architectures such as Barefoot Networks'
 Tofino~\cite{tofino}, Intel's FlexPipe~\cite{flexpipe}, and Cavium's XPliant
 Packet Architecture~\cite{xpliant}. \absmachine abstracts these architectures
 and extends them with stateful processing units to implement data-plane
 algorithms.  These processing units, called {\em atoms}, model atomic
-operations that are supported by a programmable line-rate router and serve as
-the instruction set of the router.
+operations that are supported by a programmable high-speed router. In other
+words, atoms serve as the instruction set of the router.
 
-%TODO: The paragraph below could be cleaned up.
-% We keep mixing up line-rate and high-speed.
-Recall from Chapter~\ref{chap:arch} that high-speed routers (both programmable
-and fixed-function) are architected in hardware as a pipeline where each
-pipeline stage processes a new packet every clock cycle of 1 ns.  Having to
-process a packet every clock cycle in each stage constrains the operations that
-can be performed on each packet. In particular, any packet operation that
-modifies state visible to the next packet {\em must} finish execution in a
-single clock cycle (\S\ref{ss:atoms} shows why). Because of this restriction,
-any programmable router chip will have to provide a small set of processing
-units or primitives for manipulating packets and state in a stage, unlike a
-software router. These primitives determine which algorithms can run on the
-router at line rate. We now describe this concept of time-constrained
-computation in greater detail.
+Recall from Chapter~\ref{chap:arch} that high-speed routers are architected in
+hardware as a pipeline where each pipeline stage processes a new packet every
+clock cycle of 1 ns.  Having to process a packet every clock cycle in each
+stage constrains the operations that can be performed on each packet. In
+particular, any packet operation that modifies state visible to the next packet
+is constrained to finish execution in a single clock cycle (\S\ref{ss:atoms}
+shows why). Any programmable router chip will provide a small set of processing
+units or primitives that respect these constraints. These primitives could be
+used for manipulating packets and/or state in a stage and determine which
+algorithms can or cannot run on the router. We now describe this concept of
+constrained computation in greater detail.
 
 \subsection{The \absmachine machine model}
 
 A programmable router that provides programmability in parsing and match-action
-processing~\cite{rmt, xpliant, flexpipe, tofino} has the architecture shown in the top half of
-Figure~\ref{domino_fig:router}: a programmable parser, followed by an ingress
-pipeline, followed by a scheduler, followed by an egress pipeline.  \absmachine
-(the bottom half of Figure~\ref{domino_fig:router}) models the ingress or
-egress router pipeline.  It models the computation within a match-action table
-in a stage (\ie the action half of the match-action table), but not how packets
-are matched (\eg direct or ternary). \absmachine does not model packet parsing
-and assumes that packets arriving to \absmachine are already parsed.
-%We discuss how to embed \absmachine in a standard match-action
-%pipeline in \S\ref{ss:guards}.  
+processing~\cite{rmt, xpliant, flexpipe, tofino} has the architecture shown in
+the top half of Figure~\ref{domino_fig:router}: a programmable parser, followed
+by an ingress pipeline, followed by a scheduler, followed by an egress
+pipeline.  \absmachine (the bottom half of Figure~\ref{domino_fig:router})
+models the ingress or egress router pipeline.  It models the computation within
+a match-action table in a stage (\ie the action half of the match-action
+table), but not how packets are matched (\eg exact match or wildcard match).
+\absmachine does not model packet parsing and assumes that packets arriving to
+\absmachine are already parsed.
 
- Concretely, \absmachine is a feed-forward pipeline\footnote{It is hard to
-physically route backward-flowing wires that would be required for feedback.}
-consisting of a number of stages executing synchronously on every clock cycle.
-Each stage processes one packet every clock cycle and hands it off to the next.
+ Concretely, \absmachine is a feed-forward pipeline because it is hard to
+physically route backward-flowing wires that would be required for feedback.
+\absmachine consists of a number of stages executing synchronously on every
+clock cycle.  Each stage processes one packet every clock cycle and hands off
+one packet to the next stage every clock cycle. Note that while the throughput
+of a stage is one packet per clock cycle, the latency of a packet through a
+stage can be multiple clock cycles (to extract headers for a match, perform the
+match, and then perform the action). This is handled by internally pipelining
+each \absmachine stage (\S\ref{ss:internal_pipeline_stage}).
+
 Unlike a CPU pipeline, which occasionally experiences pipeline stalls,
-\absmachine's pipeline is deterministic, never stalls, and always sustains line
-rate. However, relative to a CPU pipeline, \absmachine is restricted in the
-operations it supports (\S\ref{s:atomConstraints}).
+\absmachine's pipeline is deterministic, never stalls, and always sustains the
+router's line rate even at the smallest packet size---and hence the highest
+packet processing rate. However, relative to a CPU pipeline, \absmachine is
+restricted in the operations it supports (\S\ref{s:atomConstraints}).
 
 \subsection{Atoms: \absmachine's processing units}
 \label{ss:atoms}
@@ -67,18 +68,18 @@ instruction set. Each pipeline stage in \absmachine contains a vector of atoms.
 Atoms in this vector modify mutually exclusive sections of the same packet
 header in parallel in every clock cycle, and process a new packet header every
 clock cycle.
-%TODO: Clear up latency vs. throughput distinction here.
 
 In addition to packet headers, atoms may modify persistent state on the router
 to implement stateful data-plane algorithms. To support such algorithms at
-line-rate, the atoms for a \absmachine machine need to be substantially richer
-(Table~\ref{tab:templates}) than the simple RISC-like stateless instruction
-sets for programmable routers~\cite{rmt}. We explain why below.
+router's line-rate, the atoms for a \absmachine machine need to be
+substantially richer (Table~\ref{tab:templates}) than the simple RISC-like
+stateless instruction sets for programmable routers~\cite{rmt}. We explain why
+below.
 
 Suppose we need to atomically increment a router counter to count packets. One
 approach is hardware support for three simple RISC-like single-cycle
 operations: (1) \textit{read} the counter from memory in the first clock cycle,
-(2) \textit{add} one in the next, and (3) \textit{write} it to memory in the
+(2) \textit{add} 1 in the next, and (3) \textit{write} it to memory in the
 third.  This approach, however, does not provide atomicity. To see why, suppose
 packet $A$ increments the counter from 0 to 1 by executing its read, add, and
 write at clock cycles 1, 2, and 3 respectively.  If packet $B$ issues its read
@@ -90,27 +91,30 @@ causes packet $B$ to wait during packet $A$'s increment, and the router no
 longer sustains the line rate of one packet every clock cycle. CPUs employ
 micro-architectural techniques such as operand forwarding for this problem. But
 these techniques still suffer pipeline stalls, which prevents line-rate
-performance from being achieved. Instead, \absmachine's approach to resolving
-this problem is to provide a small set of atomic operations and reject programs
-that require anything else because line-rate performance cannot be guaranteed
-for them.
+performance from being achieved under worst-case conditions. Instead,
+\absmachine's approach to resolving this problem is to provide a small set of
+atomic operations that complete within a clock cycle. Programs that require
+multi-cycle atomic operations are rejected because line-rate performance cannot
+be guaranteed for them under worst-case conditions.
 
 For instance, in the case of the counter, \absmachine provides an atomic
 increment operation at line rate with an {\em atom} to read a counter,
 increment it, and write it back in a single stage within one clock cycle. It
-uses the same approach of reading, modifying, and writing back to implement
-other stateful atomic operations at line rate.
+uses the same approach of reading, modifying, and writing back to implement a
+limited set of other stateful atomic operations at line rate
+(Table~\ref{tab:templates} provides one representative set of atoms.).
 
 Unlike stateful atomic operations, stateless atomic operations are easier to
-support with simple packet-field arithmetic.  Consider, for instance, the
-operation {\tt pkt.f1 = pkt.f2 + pkt.f3 - pkt.f4}.  This operation does not
-modify any persistent router state and only accesses packet fields. It can be
-implemented atomically by using two atoms: one atom to add fields f2 and f3 in
-one pipeline stage, and another to subtract f4 from the result in the next. An
-instruction set designer can provide {\em simple} stateless instructions
-operating on a pair of packet fields. These instructions can then be composed
-into larger stateless operations, without designing atoms specifically for each
-stateless operation.
+support with simple instructions for binary operations on a pair of packet
+fields.  Consider, for instance, the operation {\tt pkt.f1 = pkt.f2 + pkt.f3 -
+pkt.f4}.  This operation does not modify any persistent router state and only
+accesses packet fields. It can be implemented atomically by using 2 atoms in a
+2-stage pipeline. In the first stage, an atom adds fields f2 and f3 and writes
+the result to a temporary. In the second stage, another atom subtracts f4 from
+the temporary. Generalizing from this example, an instruction set designer can
+provide {\em simple} stateless instructions operating on a pair of packet
+fields. These instructions can then be composed into larger stateless
+operations, without designing atoms specifically for each stateless operation.
 
 \Para{Representing atoms.}
 An atom is represented by a body of sequential code that captures the atom's
@@ -121,10 +125,10 @@ programmable router would develop these atoms, and expose them to a router
 compiler as the programmable router's instruction set, \eg
 Table~\ref{tab:templates}.
 
-Using this representation, a router counter that wraps around at a
-value of 100 can be written as the atom:\footnote{We use {\tt p.x} to
-  represent field {\tt x} within a packet {\tt p} and {\tt x} to
-  represent a state variable {\tt x} that persists across packets.}
+Using this representation, a router counter that wraps around at a value of 100
+can be written as the atom:\footnote{We use {\tt p.x} to represent field {\tt
+x} within a packet {\tt p} and a bare {\tt x} to represent a state variable
+{\tt x} that persists across packets.}
 \begin{lstlisting}[style=customc, numbers=none, frame=none]
 if (counter < 99)
   counter++;
@@ -141,34 +145,35 @@ value can be written as the atom:
 \subsection{Constraints for line-rate operation}
 \label{s:atomConstraints}
 
-\Para{Memory limits.} State in \absmachine is local to each atom.  It can
+\Para{Memory limitations.} State in \absmachine is local to each atom.  It can
 neither be shared by atoms within a stage, nor by atoms across stages. This is
 because building multi-ported memories (to store the state) accessible to
 multiple atoms is technically challenging and consumes additional chip area.
 However, state can be read into a packet header in one stage, for subsequent
-use by a downstream stage\footnote{Figure~\ref{fig:flowlet_pipeline} shows an
-example. {\tt last\_time} is read into {\tt pkt.last\_time} in stage 2, for
-subsequent use by stage 3.}.  But, the \absmachine pipeline is feed-forward, so
-state can only be carried forward, not backward.
+use by a downstream stage. Figure~\ref{fig:flowlet_pipeline} shows an example:
+{\tt last\_time} is read into {\tt pkt.last\_time} in stage 2, for subsequent
+use by stage 3.  But, the \absmachine pipeline is feed-forward, so state can
+only be carried forward, not backward.
 
-\Para{Computational limits.} Atoms need to execute atomically from one packet
-to the next, so any state internal to the atom must be updated before the next
-packet arrives.  Because packets may be separated by as little as one clock
-cycle, we mandate that atom bodies finish execution within one clock cycle, and
-constrain atom bodies to do so.
+\Para{Computational limitations.} Atoms need to execute atomically from one
+packet to the next, so any state internal to the atom must be updated before
+the next packet arrives.  Because packets may be separated by as little as one
+clock cycle, we mandate that atom bodies finish execution within one clock
+cycle, and constrain atom bodies to do so.
 
 We constrain atom bodies by defining {\it atom templates}
 (\S\ref{ss:code_gen}).  An atom template is a program with configurable
 parameters that terminates within a clock cycle and specifies the atom's
-behavior.  An example is an ALU with a restricted set of primitive operations
-(Figure~\ref{fig:alu_diag}).
+behavior.  Termination within a clock cycle is enforced by ensuring that the
+atom's digital circuit meets timing at a given clock rate (\S\ref{ss:targets}).
+An example is an ALU with a restricted set of primitive operations
+(Figure~\ref{fig:alu_diag}). Atom templates allow us to create and experiment
+with \absmachine machines with different atoms. As programmable routers evolve,
+we expect that atoms will evolve as well, but constrained by the clock-cycle
+requirement.
 
-% Atom templates allow us to create
-%and experiment with \absmachine machines with different atoms.
-
-%As programmable
-%routers evolve, we expect that atoms will evolve as well, but constrained by
-%the clock-cycle requirement.
+%TODO: We talk about how to represent atoms and then again talk about constraining
+% them using atom templates. They both represent atoms, so it's a bit confusing.
 
 \begin{figure}[h]
   \begin{subfigure}{0.5\columnwidth}
@@ -189,31 +194,36 @@ behavior.  An example is an ALU with a restricted set of primitive operations
   }
   \end{lstlisting}
   \hspace{0.1\columnwidth}
-  \caption{Atom template}
-  %Each ``??(n)'' represents a hole that can be filled in with values in $[0, 2^n -1]$.}
+  \caption{Atom template. Each ``??'' represents a configuration parameter that
+  must be instantiated so that the atom implements some computation. For
+  instance, setting choice to 1 and constant to 1 allows us to implement x=x+1
+  using this atom.}
   \label{fig:alu_in_sketch}
   \end{subfigure}
-  \caption{An atom and its template. The atom above can add or subtract a constant from a state
-  variable {\tt x} based on two configurable parameters, {\tt constant} and {\tt choice}.}
+  \caption{An atom and its template. The atom above can add or subtract a
+  constant from a state variable {\tt x} based on two configurable parameters,
+  {\tt constant} and {\tt choice}.}
   \label{fig:atom}
 \end{figure}
+%TODO: Ensure the subfigures line up in the above figure.
 
 \Para{Resource limits.} We also limit the number of atoms in each stage
 (\textit{pipeline width}) and the number of stages in the pipeline
 (\textit{pipeline depth}). This is similar to limits on the number of stages,
 tables per stage, and memory per stage in programmable router
-architectures~\cite{lavanya_compiler}.
+architectures~\cite{lavanya_compiler, rmt}.
 
-\subsection{What can \absmachine not do?}
+\subsection{Limitations of \absmachine}
 \label{domino_ss:limitations}
 
 \absmachine is a good fit for data-plane algorithms that modify a small set of
 packet headers and carry out small amounts of computation per packet.
 Data-plane algorithms like deep packet inspection and WAN optimization require
-a router to parse and process the packet payload as well---effectively parsing
-a large ``header'' consisting of each byte in the payload. This is challenging
-at line rates of 1 GHz, and such algorithms are best left to CPUs~\cite{e2}.
-Some algorithms require complex computations, but not on every packet, \eg a
+a router to parse and process the packet payload as well, effectively parsing a
+large ``header'' consisting of each byte in the payload. This is challenging at
+line rates of 1 GHz, and such algorithms are best left to CPUs~\cite{e2}.  Some
+algorithms require complex computations, but not on every packet, \eg a
 measurement algorithm that periodically scans a large table to perform garbage
 collection.  \absmachine's atoms model small operations that occur on every
-packet, and are unsuitable for such operations that span many clock cycles.
+packet, and are unsuitable for such complex operations that span many clock
+cycles.

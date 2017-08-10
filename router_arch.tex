@@ -164,7 +164,9 @@ physical pipeline to improve utilization~\cite{rmt}.}
 \label{fig:detailed_pipeline}
 \end{figure}
 
-\subsection{The internals of a single pipeline stage} Each pipeline stage
+\subsection{The internals of a single pipeline stage}
+\label{ss:internal_pipeline_stage}
+Each pipeline stage
 implements the match-action model at high speed. Packets are received at a
 pipeline stage at the clock rate of the pipeline (\textasciitilde1 GHz).
 Within a pipeline stage, the match unit extracts the relevant packet headers

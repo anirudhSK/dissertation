@@ -32,3 +32,4 @@
 * queueing vs. queuing
 * define high speed formally somewhere?
 * high-speed vs. fast vs. line rate. Be consistent.
+* \em vs. \it for emphasis
