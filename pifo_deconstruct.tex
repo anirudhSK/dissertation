@@ -1,33 +1,33 @@
 \section{Deconstructing scheduling}
 \label{s:deconstruct}
-
+%TODO: Is order and time an observation or a fact?
 We observe that any scheduling algorithm makes two basic decisions: in  {\em
 what order} and {\em when} should packets leave the router.  Scheduling
 algorithms only differ in how the order and departure time are computed.
 Further, in many cases, the order or departure time can be determined when the
 packet is enqueued.  To see why, we look at three popular packet-scheduling
 algorithms: pFabric~\cite{pFabric}, Weighted Fair Queuing (WFQ)~\cite{wfq}, and
-traffic shaping~\cite{tbf}. We then comment on similarities between them to
-provide intuition for a programming model for packet scheduling.
+traffic shaping~\cite{tbf}. We then extract similarities between these three
+algorithms to provide intuition for a programming model for packet scheduling.
 
 \subsection{pFabric}
-pFabric is a recent datacenter transport design that attempts
-to minimize average flow completion times by scheduling packets according to
-their remaining flow size at each router, \ie it implements the SRPT scheduling
-algorithm.\footnote{There are two variants of pFabric~\cite{pFabric}, with and
-without starvation prevention.  We consider the one without starvation
-prevention.} For each packet, end hosts insert the remaining flow size as a
-packet field. At each router, packets are dequeued in ascending order of
-remaining flow size.
+pFabric~\cite{pFabric} is a recent datacenter transport design that attempts to
+minimize average flow completion time by scheduling packets according to their
+remaining flow size at each router, \ie it implements the SRPT scheduling
+algorithm at each router~\cite{srpt}.\footnote{There are two variants of
+pFabric~\cite{pFabric}, with and without starvation prevention.  We consider
+the one without starvation prevention.} For each packet, end hosts insert the
+remaining flow size as a packet field. At each router, packets are dequeued in
+increasing order of their remaining flow size.
 
 \subsection{Weighted Fair Queuing}
 \label{ss:decon_wfq}
-Weighted Fair Queuing (WFQ) provides weighted
-max-min bandwidth allocation across flows sharing a link. Numerous
-implementations of WFQ exist, including Start-Time Fair Queuing~\cite{stfq} and
-Deficit Round Robin~\cite{drr}. For concreteness, we consider Start-Time Fair
-Queuing (STFQ) .\footnote{The original WFQ implementation~\cite{wfq} is similar
-to STFQ, but uses a more complex virtual time calculation.}
+Weighted Fair Queuing (WFQ) provides weighted max-min bandwidth allocation
+across flows sharing a link. Numerous implementations of WFQ exist, including
+Start-Time Fair Queuing (STFQ)~\cite{stfq} and Deficit Round Robin~\cite{drr}.
+For concreteness, we consider STFQ.\footnote{The original WFQ
+implementation~\cite{wfq} is similar to STFQ, but uses a more complex virtual
+time calculation.}
 
 STFQ computes a {\em virtual start time} ({\tt p.start}) for each packet using
 the algorithm below. 
@@ -46,19 +46,20 @@ virtual_time = p.start
 \end{lstlisting}
 
 Here, {\tt last\_finish} is a state variable maintained for each flow in table
-{\tt T} that tracks the virtual finish time of its latest packet, while {\tt
+{\tt T} that tracks the virtual finish time of its latest packet. {\tt
 virtual\_time} is a queue-wide state variable updated on each dequeue.  Packets
-are scheduled in order of their virtual start time ({\tt p.start}).
+are scheduled in increasing order of their virtual start time ({\tt p.start}).
 
 \subsection{Traffic shaping}
-Besides packet order, some scheduling algorithms determine the time at which
-packets depart from a queue. Traffic shaping is a canonical example and is used
-to limit flows to a desired rate. A shaper has two parameters: a shaping rate,
-$r$, and a burst allowance, $B$. The standard implementation uses a {\em token
-bucket}~\cite{tbf}, which is incremented at rate $r$, subject to a cap
-of $B$ tokens. A packet is transmitted immediately if the bucket has enough
-tokens when it is enqueued; otherwise, it has to wait until sufficient tokens
-accumulate. Transmitted packets decrement the token bucket by the packet size.
+Besides packet order, some non-work-conserving scheduling algorithms determine
+the time at which packets depart from a queue. Traffic shaping is a canonical
+example and is used to limit flows to a desired rate. A shaper has two
+parameters: a shaping rate, $r$, and a burst allowance, $B$. The standard
+implementation uses a {\em token bucket}~\cite{tbf}, which is incremented at a
+rate $r$, subject to a cap of $B$ tokens. A packet is transmitted immediately
+if the bucket has enough tokens when it is enqueued; otherwise, it has to wait
+until sufficient tokens accumulate. Transmitted packets decrement the token
+bucket by the packet size.
 
 Alternatively, the transmission time of each packet can be calculated
 on enqueue as follows: 
@@ -76,12 +77,17 @@ Here, {\tt tokens} and {\tt last\_arrival} are two state variables, initialized
 to $B$ and an initial time respectively.  While a standard token bucket has
 only positive token counts, {\tt tokens} can fall below zero in the algorithm
 above.  It is easy to show that the transmission times calculated are still
-identical to those of the standard token bucket.
+identical to those of the standard token bucket. With this alternative
+algorithm shown above, packets shaped by a token bucket are transmitted in
+increasing order of their transmission times ({\tt p.send\_time}).
 
 \subsection{Summary}
-The above algorithms determine the order or time of departure of a packet using
-a single number computed at enqueue time. For pFabric, this number is inserted
-by an end host. For WFQ, it is the virtual start time computed by the router.
-For token bucket shaping, it is the wall-clock departure time. This ability to
-determine scheduling order or time at enqueue is at the core of our programming
-model.
+The schedulers presented above (pFabric, WFQ, and traffic shaping) determine
+the order or time of departure of a packet using a single number computed at
+enqueue time.  For pFabric, this number is the remaining flow size and is
+inserted by an end host tracking the number of remaining bytes for each flow.
+For WFQ, it is the virtual start time computed by the router.  For token bucket
+shaping, it is the wall-clock departure time computed by the router.  This
+ability to determine scheduling order or time at enqueue unifies a variety of
+diverse scheduling algorithms, and it is at the heart of our programming model
+for packet scheduling.
