@@ -33,9 +33,9 @@ enqueued. This observation suggests a natural hardware primitive for packet
 scheduling: a {\em push-in first-out queue (PIFO)}~\cite{pifo}. A PIFO is a
 priority queue that allows elements to be pushed into an arbitrary position
 based on an element's {\em rank} (the scheduling order or
-time),\footnote{\an{When the rank denotes the scheduling time, the PIFO
+time),\footnote{When the rank denotes the scheduling time, the PIFO
 implements a calendar queue; we distinguish between PIFOs and priority queues
-for this reason.}} but always dequeues elements from the head.
+for this reason.} but always dequeues elements from the head.
 
 We then develop a programming model for scheduling (\S\ref{s:pifo}) based on
 PIFOs with two key ideas. First, we allow an operator programming the scheduler

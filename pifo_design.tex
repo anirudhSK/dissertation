@@ -170,10 +170,10 @@ and any arguments the operation needs.
 \subsection{Compiling from a scheduling tree to a PIFO mesh}
 \label{pifo_ss:compiler}
 
-\an{A programmer should not have to manually configure a PIFO mesh. Instead, a
+A programmer should not have to manually configure a PIFO mesh. Instead, a
 compiler translates from a scheduling tree to a PIFO mesh configuration implementing that tree.  While we haven't prototyped
 this compiler, we illustrate how it would work using HPFQ (Figure~\ref{fig:hpfq})
-and Hierarchies with Shaping (Figure~\ref{fig:hshaping}).}
+and Hierarchies with Shaping (Figure~\ref{fig:hshaping}).
 
 The compiler first converts the scheduling tree to a logical PIFO tree that
 specifies the enqueue and dequeue operations on each PIFO.
@@ -186,8 +186,8 @@ Figure~\ref{fig:hpfq}, while Figure~\ref{fig:hshaping_mesh} shows the PIFO mesh
 for Figure~\ref{fig:hshaping}.
 
 If a particular level of the tree has more than one enqueue or dequeue from
-another level, which \an{arises in the presence of shaping transactions
-(\S\ref{ss:shape_challenge})}, we allocate new PIFO blocks to respect the
+another level, which arises in the presence of shaping transactions
+(\S\ref{ss:shape_challenge}), we allocate new PIFO blocks to respect the
 constraint that any PIFO block provides only one enqueue and dequeue operation per
 clock cycle, \eg Figure~\ref{fig:hshaping_mesh} has an additional PIFO block
 containing TBF\_Right alone. Finally, we use the Domino compiler to compile

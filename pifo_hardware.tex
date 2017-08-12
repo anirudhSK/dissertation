@@ -10,7 +10,7 @@ incurred by our design (\S\ref{ss:feasibility}).
 \subsection{Performance requirements}
 \label{ss:performance}
 
-\an{Our goal is a programmable scheduler competitive with common shared-memory
+Our goal is a programmable scheduler competitive with common shared-memory
 routers, such as the Broadcom Trident II~\cite{trident2}, used in many
 datacenters today.  Based on the
 Trident II, we target 1000 flows that can be flexibly allocated across logical
@@ -18,7 +18,7 @@ PIFOs and a 12 MByte packet buffer size~\cite{bcom_buffer} with a cell
 size\footnote{Packets in a shared-memory router are allocated in small units
 called cells.} of 200 bytes.  In the worst case, every packet is a single cell.
 Hence, up to 60K packets/elements per PIFO block can be spread out over
-multiple logical PIFOs.}
+multiple logical PIFOs.
 
  Based on these requirements, our baseline design targets a PIFO block that
 supports 64K packets and 1024 flows that can be shared across 256 logical
@@ -81,8 +81,8 @@ LIFO by creating a new flow for every packet, so long as there are fewer than
 This motivates a design with two parts (Figure~\ref{fig:pifo_impl}):
 \begin{CompactEnumerate}
 \item A {\em flow scheduler} that picks the next element to dequeue based on
-the ranks of the {\em head} (earliest) elements of all flows. \an{The flow
-scheduler is effectively a PIFO consisting of the head elements of all flows.}
+the ranks of the {\em head} (earliest) elements of all flows. The flow
+scheduler is effectively a PIFO consisting of the head elements of all flows.
 \item A {\em rank store}, a FIFO bank that stores the ranks of elements beyond
 the head for each flow in FIFO order.
 \end{CompactEnumerate}
@@ -302,10 +302,10 @@ flows. The flow scheduler meets timing until 2048 flows.}
 \Para{Varying the flow scheduler's parameters from the baseline.}
 The flow scheduler has four parameters: rank width, metadata width, number of
 logical PIFOs, and number of flows. Among these, increasing the number of flows
-has the most impact on whether the flow scheduler meets timing at 1 GHz.  \an{This
+has the most impact on whether the flow scheduler meets timing at 1 GHz.  This
 is because the flow scheduler uses a priority encoder, whose size is
 the number of flows and whose critical path delay increases with the number of
-flows.} With other parameters set to their baseline values, we vary the number
+flows. With other parameters set to their baseline values, we vary the number
 of flows to determine the eventual limits of a flow scheduler with today's
 transistor technology (Table~\ref{tab:num_flows}), and find that we can scale
 to 2048 flows while still meeting timing at 1 GHz.
@@ -330,7 +330,7 @@ increasing the metadata width to 64 bits increases it to 0.317
 \label{ss:add_impl}
 
 \Para{Coordination between enqueue and dequeue.}
-\an{ When computing packet ranks on enqueue, some scheduling algorithms access
+When computing packet ranks on enqueue, some scheduling algorithms access
 state modified on packet dequeues. An example is STFQ (\S\ref{ss:wfq}) that
 accesses the \texttt{virtual\_time} variable when computing a packet's virtual
 start time. This enqueue-dequeue coordination can be implemented in two ways.
@@ -338,7 +338,7 @@ One is shared state that can be accessed on both enqueue and dequeue, similar
 to queue occupancy counters. Another is to periodically synchronize the enqueue
 and dequeue views of the same state: for STFQ, the degree of short-term
 fairness is directly correlated with how up-to-date the \texttt{virtual\_time}
-information on the enqueue side is.  }
+information on the enqueue side is.
 
 \Para{Buffer management.}
 Our design focuses on programmable scheduling and does not manage the

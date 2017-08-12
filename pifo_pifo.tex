@@ -101,9 +101,9 @@ future packets.
 WFQ, described earlier (\S\ref{ss:decon_wfq}), is one example. It achieves
 weighted max-min allocation of link capacity across flows\footnote{We define a
 flow to be any set of packets sharing common values for specific packet
-fields.} sharing a link.  Approximations to WFQ\footnote{\an{An approximation
+fields.} sharing a link.  Approximations to WFQ\footnote{An approximation
 is required because the original WFQ algorithm~\cite{wfq} has a complex virtual
-time calculation.}} include Deficit Round Robin (DRR)~\cite{drr}, Stochastic
+time calculation.} include Deficit Round Robin (DRR)~\cite{drr}, Stochastic
 Fairness Queueing (SFQ)~\cite{sfq}, and Start-Time Fair Queueing
 (STFQ)~\cite{stfq}. We consider STFQ here, and show how to program it using the
 scheduling transaction in Figure~\ref{fig:sched_trans}.
@@ -111,10 +111,6 @@ scheduling transaction in Figure~\ref{fig:sched_trans}.
 %\footnote {STFQ is identical to the
 %  original WFQ algorithm~\cite{wfq}, but has a more practical virtual
 %  time calculation.}
-
-%Getting rid of the footnote on WFQ.
-%%\footnote {\an{An approximation is required because the original
-%%WFQ algorithm~\cite{wfq} has a complex virtual time calculation.}}
 
 Before a packet is enqueued, STFQ computes a {\em virtual start time}
 for that packet (\texttt{p.start} in Figure~\ref{fig:sched_trans}) as
