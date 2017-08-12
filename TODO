@@ -2,6 +2,8 @@ High:
 ==========
 3. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
 
+1. e2e pass on figures, tables, etc. Everything that's not visible from the .tex files
+
 Medium:
 ==========
 4. Proof and explanation of fixed-point algorithm in Marple. Explain compiler

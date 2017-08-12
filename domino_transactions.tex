@@ -59,9 +59,9 @@ compiler then compiles this transaction to an atom pipeline for a \absmachine
 machine (Figure~\ref{fig:flowlet_pipeline}). We first describe packet
 transactions in greater detail by walking through the example shown in
 Figure~\ref{fig:flowlet_code} (\S\ref{ss:flowlet}). Next, we discuss language
-constraints in \pktlanguage (\S\ref{ss:constraints}) informed by line-rate
-routers.  We then discuss how the execution of packet transactions is triggered
-(\S\ref{ss:guards}) and how we handle multiple transactions
+constraints in \pktlanguage (\S\ref{ss:constraints}) informed by the domain of
+high-speed routers.  We then discuss how the execution of packet transactions
+is triggered (\S\ref{ss:guards}) and how we handle multiple transactions
 (\S\ref{ss:multiple}).
 
 \subsection{\pktlanguage by example}
@@ -69,12 +69,13 @@ routers.  We then discuss how the execution of packet transactions is triggered
 
 We use flowlet switching~\cite{flowlets} as our running example. Flowlet
 switching is a load-balancing algorithm that sends bursts of packets, called
-flowlets, from a TCP flow on a randomly chosen next hop, provided the bursts
-are separated by a large enough time interval to ensure packets do not arrive
-out of order at a TCP receiver. For ease of exposition, we use only the source
-and destination ports in the hash function that randomly computes the next hop
-for flowlet switching.
-%it is easy to extend it to the full 5-tuple.
+flowlets, from a TCP flow on a randomly chosen next hop. These bursts are
+chosen such that two consecutive bursts are separated by a large time interval
+of quiescence between them.  This ensures that packets do not arrive out of
+order at a TCP receiver---even if packets in different bursts are reordered
+because they experience different delays along different load-balanced paths.
+For ease of exposition, we use only the source and destination ports in the
+hash function that randomly computes the next hop for flowlet switching.
 
 Figure~\ref{fig:flowlet_code} shows flowlet switching in \pktlanguage and
 demonstrates its core language constructs. All packet processing happens in the
@@ -88,42 +89,42 @@ can also modify persistent router state using global variables (\eg
 The function body may use \textit{intrinsics} such as \texttt{hash2} on line 23
 to directly access hardware accelerators on the router such as hash generators.
 The \pktlanguage compiler uses an intrinsic's signature to analyze read/write
-dependencies (\S\ref{ss:pipelining}), but otherwise considers it a blackbox,
-and directly passes it to the underlying router chip for execution, much like
-intrinsics in GCC~\cite{intrinsics}.
+dependencies (\S\ref{ss:pipelining}), but otherwise considers an intrinsic a
+blackbox. The compiler directly passes intrinsics to the underlying router chip
+for execution, similar to intrinsics in GCC~\cite{intrinsics}.
+% TODO: Define metadata somewhere?
 
 \Para{Packet transaction semantics.}
 Semantically, the programmer views the router as invoking the packet
-transaction serially in the order in which packets arrive, with no concurrent
-packet processing.  Put differently, the packet transaction modifies the
-passed-in packet argument and runs to completion, before starting on the next
-packet.  These semantics allow the programmer to program under the illusion
-that a single, extremely fast, processor is serially executing the packet
-processing code for all packets. The programmer doesn't worry about
-parallelizing the code within and across pipeline stages to run at the router's
-line rate.
+transaction serially from start to finish on each packet in the order in which
+packets arrive, with no concurrent packet processing.  Put differently, the
+packet transaction modifies the passed-in packet argument and runs to
+completion, before starting on the next packet.  These semantics allow the
+programmer to program under the illusion that a single, extremely fast,
+processor is serially executing the packet processing code for all packets. The
+programmer does not have to worry about parallelizing the code within and
+across pipeline stages to run on a high-speed router pipeline.
 
 \subsection{The \pktlanguage language}
 \label{ss:constraints}
 \pktlanguage's syntax (Figure~\ref{fig:grammar}) is similar to an imperative
-language such as C, but with several constraints (Table~\ref{tab:restrict}).
-These constraints are required for deterministic performance.  Memory
-allocation, unbounded iteration counts, and unstructured control flow cause
-variable performance, which may prevent an algorithm from achieving the
-router's line rate.  Additionally, within a \pktlanguage transaction, each
-array can only be accessed using a single packet field, and repeated accesses
-to the same array are allowed only if that packet field is unmodified between
-accesses.
-%array modifications by mandating that a single execution of a transaction (the
-%execution of a transaction for a single packet) can access only one entry in an
-%array.
+language, but with several constraints (Table~\ref{tab:restrict}).  These
+constraints are required so that the compiler can provide deterministic
+performance guarantees for \pktlanguage programs.  Memory allocation, unbounded
+iteration counts, and unstructured control flow cause variable performance,
+which may prevent an algorithm from achieving the router's line rate. Hence,
+\pktlanguage forbids all three.
 
-For example, all read and write accesses to \texttt{last\_time} use the index
+Additionally, within a \pktlanguage transaction, each array can only be
+accessed using a single packet field. Repeated accesses to the same array are
+allowed only if that packet field is unmodified between accesses. For example,
+all read and write accesses to \texttt{last\_time} use the index
 \texttt{pkt.id}. \texttt{pkt.id} is not modified during the course of a single
 transaction execution (single packet); it only changes between executions
 (packets).  This restriction on arrays mirrors restrictions on the stateful
-memories attached to atoms (\S\ref{s:atomConstraints}), which require multiple
-ports to support distinct read and write addresses every clock cycle.
+memories attached to atoms (\S\ref{s:atomConstraints}), which are single ported
+and hence only allow a single memory address to be read/written every clock
+cycle.
 
 \begin{table}
   \begin{tabular}{p{0.95\columnwidth}}
@@ -137,6 +138,7 @@ ports to support distinct read and write addresses every clock cycle.
   \label{tab:restrict}
 \end{table}
 
+%TODO: Read this grammar figure in the pdf and check correctness
 \begin{figure}
 \newcommand{\sep}{~|~}
 \begin{small}
@@ -164,22 +166,24 @@ p \in \text{\pktlanguage programs} &::=& \{ d ; sv; t \}
 \label{fig:grammar}
 \end{figure}
 
-%TODO: The below two subsections are quite weak
 \subsection{Triggering the execution of packet transactions}
 \label{ss:guards}
 Packet transactions specify \textit{how} to process packet headers and state.
 To specify {\em when} to execute packet transactions, programmers use {\em
 guards}: predicates on packet fields that trigger a transaction if a packet
-matches the guard. For example, {\tt (pkt.tcp\_dst\_port == 80)} would trigger
-heavy-hitter detection~\cite{opensketch} on packets with TCP destination port
-80.
+matches the guard. For example, the guard {\tt (pkt.tcp\_dst\_port == 80)}
+could trigger heavy-hitter detection~\cite{opensketch} on packets with TCP
+destination port 80.
 
-Guards can be realized using an exact match in a match-action table, with the
+Guards can be realized using the match unit in a match-action table, with the
 actions being the atoms compiled from a packet transaction. Guards can take
 various forms, \eg exact, ternary, longest-prefix, and range-based matches,
-depending on the matches supported by the match-action pipeline. Because guards
-map straightforwardly to the match key in a match-action table, we focus only
-on compiling packet transactions.
+depending on the matches supported by the match units in the match-action
+pipeline. In this chapter, we focus only on compiling packet transactions, \ie
+generating the actions for the match-action tables. We assume that the
+programmer specifies a reasonable guard that can be supported using the match
+unit.
+%TODO: Maybe talk above about compiling to guards etc.
 
 \subsection{Handling multiple transactions}
 \label{ss:multiple}
@@ -187,12 +191,13 @@ So far, we have discussed a single packet transaction corresponding to a single
 data-plane algorithm. In practice, a router would run multiple data-plane
 algorithms, each processing its own subset of packets. To address this, we
 envision a policy language that specifies pairs of guards and transactions.
-Realizing a policy is straightforward when all guards are disjoint. When guards
-overlap, multiple transactions need to execute on the same subset of packets,
-requiring a mechanism to compose transactions.
+Realizing a policy is straightforward when all guards are disjoint: each
+guard-transaction pair can be compiled independently. When guards overlap,
+multiple transactions need to execute on the same subset of packets, requiring
+a mechanism to compose transactions.
 
 One composition semantics is to run the two transactions one after another
 sequentially in a user-specified order. This can be achieved by concatenating
 the two transaction bodies to create a larger transaction.  We leave a detailed
-exploration of multiple transactions to future work, and focus only on
-compiling a single packet transaction here.
+exploration of alternative composition semantics to future work.  We focus only
+on compiling a single packet transaction here.
