@@ -302,7 +302,7 @@ if (p.now - last_update > FREEZE_TIME) {
 Unfortunately, in the above form, the BLUE algorithm cannot be compiled to the
 PRAW atom. The conditional check in the PRAW atom only allows a piece of state
 to be compared to another packet field or constant, \ie only checks of the form
-$A >/</==/!= B$. The conditional check above is the of the form $A - B
+$A \ \{>/</==/!=\} \ B$. The conditional check above is the of the form $A - B
 > C$, which is beyond the PRAW atom. However, we can manually rewrite the
 algorithm to precompute p.now - FREEZE\_TIME in a previous stage:
 
