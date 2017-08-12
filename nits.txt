@@ -33,3 +33,6 @@
 * define high speed formally somewhere?
 * high-speed vs. fast vs. line rate. Be consistent.
 * \em vs. \it for emphasis
+* users vs. programmers vs. operators
+* consider replacing head packet with earliest packet
+* make sure all references are to Trident2, not Trident
