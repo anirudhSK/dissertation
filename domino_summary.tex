@@ -1,12 +1,27 @@
 \section{Summary}
 \label{s:domino_summary}
 
-This chapter focused on \pktlanguage, an imperative domain-specific language
-that allows programmers to write packet-processing code using packet
-transactions, which are sequential code blocks that are atomic and isolated
-from other such code blocks. The \pktlanguage compiler compiles packet
-transactions to hardware configurations for \absmachine, which is a machine
-model based on programmable line-rate router architectures~\cite{flexpipe,
-xpliant, tofino}. Our results suggest that it is possible to have both the
-convenience of a familiar programming model and the performance of a line-rate
-router, provided that the algorithm can indeed run at line rate.
+This chapter focused on the hardware and software techniques required for the
+problem of programming stateful algorithms on a high-speed router. Our solution
+to this problem resulted in three new contributions. Our first contribution was
+\pktlanguage, an imperative domain-specific language that allows programmers to
+write packet-processing code using packet transactions, which are sequential
+code blocks that are atomic and isolated from other such code blocks.  Our
+second contribution was \absmachine, which is a machine model based on
+programmable line-rate router architectures~\cite{flexpipe, xpliant, tofino}.
+\absmachine models the essential computational elements of a programmable
+router and extends them with the ability to perform programmable high-speed
+state manipulation. Our third contribution was the \pktlanguage compiler, which
+compiles packet transactions to hardware configurations for \absmachine
+targets.
+
+As part of our evaluation (\S\ref{s:eval}), we showed that \pktlanguage offers
+a concise and natural model to program stateful algorithms
+(Table~\ref{tab:algorithms}). We designed a set of 7 atoms
+(Table~\ref{tab:templates}) and showed that they can be used to express a
+variety of stateful algorithms (Table~\ref{tab:algo_atoms}). Furthermore, these
+atoms generalized to new and unanticipated use cases that were programmed after
+the design of these atoms was frozen (Table~\ref{tab:atoms_generalize}). These
+results suggest that it possible to program a wide variety of stateful
+algorithms at high speeds using the right combination of hardware (atoms) and
+programming models (packet transactions).
