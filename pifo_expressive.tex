@@ -2,7 +2,7 @@
 \label{s:expressive}
 
 In addition to the three examples from \S\ref{s:pifo}, we now provide several
-more examples of scheduling algorithms that can be expressed using our
+more examples of scheduling algorithms that can be programmed using our
 programming model (\S\ref{ss:lstf} through \S\ref{ss:other}) and also describe
 the limitations of our programming model (\S\ref{pifo_ss:limitations}).
 
@@ -19,8 +19,9 @@ LSTF using a simple scheduling transaction:
 \end{lstlisting}
 
 The addition of the packet's arrival time to the slack already carried in the
-packet ensures that packets are dequeued in order of their slack at the time of
-dequeue, not enqueue. Then, after packets are dequeued, we subtract the time at
+packet ensures that packets are dequeued in order of what their slack {\em
+would be} at the time of dequeue, not what their slack time {\em is} at the
+time of enqueue. Then, after packets are dequeued, we subtract the time at
 which the packet is dequeued from the packet's slack, which has the effect of
 decrementing the slack by the wait time at the router's queue. This subtraction
 can be achieved by programming the egress pipeline to decrement one header
@@ -97,16 +98,15 @@ min\_rate}.
 \end{figure}
 
 Note that a single PIFO node with the scheduling transaction in
-Figure~\ref{fig:min_rate} is not sufficient. It causes packet
-reordering within a flow: an arriving packet can cause a flow to move
-from a lower to a higher priority and, in the process, leave before
-low priority packets from the same flow that arrived earlier. The
-two-level tree solves this problem by attaching priorities to
-transmission opportunities for a specific flow, not specific
-packets. Now if an arriving packet causes a flow to move from low to
-high priority, the next packet scheduled from this flow is the
-earliest packet of that flow chosen in FIFO order, not the arriving
-packet.
+Figure~\ref{fig:min_rate} is not sufficient. It causes packet reordering within
+a flow: an arriving packet can cause a flow to move from a lower to a higher
+priority and, in the process, leave before low priority packets from the same
+flow that arrived earlier. The two-level tree solves this problem by attaching
+priorities to transmission opportunities for a specific flow instead of
+attaching priorities to specific packets. Now, if an arriving packet causes a
+flow to move from low to high priority, the next packet scheduled from this
+flow is the earliest packet of that flow chosen in FIFO order, not the packet
+that just arrived.
 
 \subsection{Other examples}
 \label{ss:other}
@@ -115,15 +115,13 @@ We now briefly describe several more scheduling algorithms that can be
 programmed using PIFOs.
 
 \begin{CompactEnumerate}
-\item \textbf{Fine-grained priority scheduling.} Many algorithms
-  schedule the packet with the lowest value of a field initialized by
-  the end host. These algorithms can be programmed by setting the
-  packet's rank to the appropriate field. Examples of such algorithms
-  and the fields they use are strict priority scheduling (IP TOS
-  field), Shortest Flow First (flow size), Shortest Remaining
-  Processing Time (remaining flow size), Least Attained Service (bytes
-  received for a flow), and Earliest Deadline First (time until a
-  deadline).
+\item \textbf{Fine-grained priority scheduling.} Many algorithms schedule the
+packet with the lowest value of a field initialized by the end host. These
+algorithms can be programmed by setting the packet's rank to the appropriate
+field. Examples of such algorithms and the fields they use are: strict priority
+scheduling (IP TOS field), Shortest Flow First (flow size), Shortest Remaining
+Processing Time (remaining flow size), Least Attained Service (bytes received
+for a flow), and Earliest Deadline First (time until a deadline).
 \item \textbf{Service-Curve Earliest Deadline First
     (SC-EDF)~\cite{sced}} schedules packets in increasing order of a
   deadline computed from a flow's service curve, which specifies the
@@ -132,20 +130,22 @@ programmed using PIFOs.
   rank to the deadline computed by the SC-EDF algorithm.
 \item \textbf{Rate-Controlled Service Disciplines (RCSD)~\cite{rcsd}}
   such as Jitter-EDD~\cite{jitteredd} and Hierarchical Round
-  Robin~\cite{hrr} are a class of non-work-conserving schedulers
-  that can be implemented using a combination of a rate
+  Robin~\cite{hrr} are a class of non-work-conserving schedulers. This
+  class of schedulers can be implemented using a combination of a rate
   regulator to shape traffic and a packet scheduler to schedule the
   shaped traffic. An RCSD algorithm can be programmed using PIFOs by
   programming the rate regulator using a shaping transaction and the
   packet scheduler using a scheduling transaction.
   
-\item \textbf{Incremental deployment.}
+\item \textbf{Incremental deployment of programmable scheduling.}
   Operators may wish to use programmable scheduling only for a
   subset of their traffic. This can be programmed as a hierarchical
   scheduling algorithm, with one FIFO class dedicated to legacy
   traffic and another to experimental traffic. Within the experimental
   class, an operator could program any scheduling tree, \eg WFQ, LSTF, HPFQ.
 \end{CompactEnumerate}
+
+%resume ...
 
 \subsection{Limitations of our programming model}
 \label{pifo_ss:limitations}
