@@ -127,6 +127,8 @@ different processors.
 \end{figure}
 
 \section{A pipeline architecture for high-speed routers}
+\label{s:router_pipeline_arch}
+
 To avoid having to use multi-ported memories, high-speed routers are typically
 architected as a shared-nothing {\em pipeline}. Each pipeline stage is
 dedicated to a fixed functionality, such as destination address lookup,
@@ -238,6 +240,8 @@ contributions is developing a machine model for programmable routers that
 supports programmable state modification in the data plane of the router. 
 
 \section{Using multiple pipelines to scale to higher speeds}
+\label{s:router_multi_pipeline_arch}
+
 Both the ingress and egress pipelines are shared across a number of router
 ports.  They handle aggregate traffic belonging to all these ports, regardless
 of packet sizes. When the aggregate traffic requirement is small enough, a
