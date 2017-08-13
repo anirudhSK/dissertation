@@ -102,7 +102,7 @@ Figure~\ref{fig:min_rate} is not sufficient. It causes packet reordering within
 a flow: an arriving packet can cause a flow to move from a lower to a higher
 priority and, in the process, leave before low priority packets from the same
 flow that arrived earlier. The two-level tree solves this problem by attaching
-priorities to transmission opportunities for a specific flow instead of
+priorities to transmission opportunities for a specific flow, instead of
 attaching priorities to specific packets. Now, if an arriving packet causes a
 flow to move from low to high priority, the next packet scheduled from this
 flow is the earliest packet of that flow chosen in FIFO order, not the packet
