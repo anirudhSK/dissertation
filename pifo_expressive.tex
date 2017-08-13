@@ -145,26 +145,24 @@ for a flow), and Earliest Deadline First (time until a deadline).
   class, an operator could program any scheduling tree, \eg WFQ, LSTF, HPFQ.
 \end{CompactEnumerate}
 
-%resume ...
-
 \subsection{Limitations of our programming model}
 \label{pifo_ss:limitations}
 
 \Para{Changing the scheduling order of all packets of a flow.} 
-Although a tree of PIFOs can enable algorithms where the relative scheduling order
-of buffered packets changes in response to new packet arrivals (\S\ref{ss:hpfq}), it
-does not permit arbitrary changes to the scheduling order of buffered
-packets. In particular, it does not support changing the scheduling
-order for {\em all} buffered packets of a flow when a new packet from
-that flow arrives.
+A tree of PIFOs can enable some algorithms (\eg HPFQ in \S\ref{ss:hpfq}) where
+the relative scheduling order of buffered packets changes in response to new
+packet arrivals. However, it does not permit arbitrary changes to the
+scheduling order of buffered packets. In particular, it does not support
+changing the scheduling order for {\em all} buffered packets of a flow when a
+new packet from that flow arrives.
 
 An example of an algorithm that needs this capability is
-pFabric~\cite{pFabric}, which introduces ``starvation prevention'' to
-schedule the packets of the flow with the shortest remaining size in
-FIFO order, in order to prevent packet reordering. To see why this is beyond
-the capabilities of PIFOs, consider the sequence of arrivals below,
-where pi(j) represents a packet from flow i with remaining size j,
-where the remaining size is the number of unacknowledged bytes in a flow.
+pFabric~\cite{pFabric}. pFabric introduces ``starvation prevention'' to
+schedule the packets of the flow with the shortest remaining size in FIFO
+order, to prevent packet reordering within a flow. To see why this is beyond
+the capabilities of PIFOs, consider the sequence of arrivals below, where pi(j)
+represents a packet from flow i with remaining size j. The remaining size
+is the number of unacknowledged bytes in a flow.
 \begin{CompactEnumerate}
 \item Enqueue p0(7).
 \item Enqueue p1(9), p1(8).
@@ -173,40 +171,39 @@ where the remaining size is the number of unacknowledged bytes in a flow.
 \item The new order is: p1(9), p1(8), p1(6), p0(7).
 \end{CompactEnumerate}
 
-Specifying these semantics are beyond the capabilities of the PIFO
-abstractions we have developed.\footnote{This is ironic because we
-  started this project to implement pFabric in a programmable manner, and
-  have ended up being able to do almost everything but that!} For
-instance, adding a level of hierarchy with a PIFO tree does not
-help. Suppose we programmed a PIFO tree implementing FIFO at the
-leaves and picking among flows at the root based on the remaining flow
-size. This would result in the scheduling order p1(9), p0(7), p1(8),
-p1(6), after enqueuing p1(6). The problem is that there is no way to
-change the scheduling order for {\em multiple} references to flow 1 in the
-root PIFO by enqueuing only one reference to flow 1.
+Specifying these semantics are beyond the capabilities of PIFOs.\footnote{This
+is ironic because we started this project to program pFabric on a high-speed
+router, but have ended up being able to do almost everything but that!} For
+instance, adding a level of hierarchy with a PIFO tree does not help. Suppose
+we programmed a PIFO tree implementing FIFO at the leaves and picking among
+flows at the root based on the remaining flow size. This would result in the
+scheduling order p1(9), p0(7), p1(8), p1(6), after enqueuing p1(6). The problem
+is that there is no way to change the scheduling order for {\em multiple}
+references to flow 1 in the root PIFO by enqueuing only one reference to flow
+1.
 %% Mohammad: The above might still be too confusing; I know we don't
 %% have much room, but a figure would really help with this. Let's run
 %% this specifically by Jeff and Hari and see if it is comprehensible.
 %% TODO: Yes, it's still a bit confusing. We could draw a figure.
 %% Maybe we could remove CBQ to make room for this figure?
 
-A single PIFO {\em can}, however, implement pFabric without starvation prevention,
-which is identical to the Shortest Remaining Processing Time (SRPT) discipline
-(\S\ref{ss:other}).  It can also implement the Shortest Flow First (SFF)
-discipline (\S\ref{ss:other}), which performs almost as well as
+A single PIFO {\em can}, however, implement pFabric without starvation
+prevention, which is identical to the Shortest Remaining Processing Time (SRPT)
+discipline (\S\ref{ss:other}).  It can also implement the Shortest Flow First
+(SFF) discipline (\S\ref{ss:other}), which performs almost as well as
 pFabric~\cite{pFabric}.
 
 \Para{Traffic shaping across multiple nodes in a scheduling tree.}  Our
-programming model attaches a single shaping and scheduling transaction
-to a tree node. This lets us enforce rate limits on a single node, but not
-across multiple nodes.
+programming model attaches a single shaping and scheduling transaction to a
+tree node. This lets us enforce rate limits on a single node, but not across
+multiple nodes.
 
 As an example, PIFOs cannot express the following policy: WFQ on a set of flows
-A, B, and C, with the additional constraint that the aggregate throughput of
-A+B does not exceed 10 Mbit/s. One work around is to implement this as HPFQ
-across two classes C1 and C2, with C1 containing A and B, and C2 containing C
-alone. Then, we enforce the rate limit of 10 Mbit/s on C1 as in
-Figure~\ref{fig:hshaping}. However, this is not equivalent to our desired
+A, B, and C, with the additional constraint that the aggregate throughput of A
+and B combined does not exceed 10 Mbit/s. One work around is to implement this
+as HPFQ across two classes C1 and C2, with C1 containing A and B, and C2
+containing C alone. Then, we can enforce the rate limit of 10 Mbit/s on C1 as
+in Figure~\ref{fig:hshaping}. However, this is not equivalent to our desired
 policy. More generally, our programming model for programmable scheduling
 establishes a one-to-one relationship between the scheduling and shaping
 transactions, which excludes some scheduling algorithms.
@@ -218,19 +215,17 @@ rate limiting on the {\em input} side, \ie before elements are enqueued. An
 alternate form of rate limiting is on the {\em output}, \ie by limiting the
 rate at which elements are scheduled.
 
-To illustrate the difference, consider a scheduling algorithm with two
-priority queues, \texttt{LO} and \texttt{HI}, where \texttt{LO} is to
-be rate limited to 10 Mbit/s. To program this using input side rate
-limiting, we would use a shaping transaction to impose a 10 Mbit/s
-rate limit on \texttt{LO} and a scheduling transaction to implement
-strict priority scheduling between \texttt{LO} and \texttt{HI}. Now,
-assume packets from \texttt{HI} starve \texttt{LO} for a long
-period of time. During this time, packets from \texttt{LO}, after
-leaving the shaping PIFO, accumulate in the PIFO shared with
-\texttt{HI}. Now, if there are suddenly no more \texttt{HI} packets,
-all packets from \texttt{LO} are transmitted at line rate, and are no
-longer rate limited to 10 Mbit/s for a transient period of time,
-\ie until all instances of \texttt{LO} are drained out of the PIFO
-shared with \texttt{HI}. Input rate limiting still provides long-term
-rate guarantees, while output rate limiting provides short-term
-guarantees as well.
+To illustrate the difference between input and output rate limiting, consider a
+scheduling algorithm with two priority queues, \texttt{LO} and \texttt{HI},
+where \texttt{LO} is to be rate limited to 10 Mbit/s. To program this using
+input rate limiting, we would use a shaping transaction to impose a 10 Mbit/s
+rate limit on \texttt{LO} and a scheduling transaction to implement strict
+priority scheduling between \texttt{LO} and \texttt{HI}. Now, assume packets
+from \texttt{HI} starve \texttt{LO} for a long period of time. During this
+time, packets from \texttt{LO}, after leaving the shaping PIFO, accumulate in
+the PIFO shared with \texttt{HI}. Now, if there are suddenly no more
+\texttt{HI} packets, all packets from \texttt{LO} are transmitted at the
+router's line rate, and are no longer rate limited to 10 Mbit/s until all
+instances of \texttt{LO} are drained out of the PIFO shared with \texttt{HI}.
+Input rate limiting still provides long-term rate guarantees, while output rate
+limiting provides short-term guarantees as well.
