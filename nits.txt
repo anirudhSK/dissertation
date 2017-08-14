@@ -37,3 +37,5 @@
 * consider replacing head packet with earliest packet
 * make sure all references are to Trident2, not Trident
 * Should be bring up work conserving vs. non work conserving when introducing scheduling order and/or time?
+* Maybe remove the phrase shared-memory router from pifo_design.tex?
+* uniform names for section and subsection labels
