@@ -39,3 +39,7 @@
 * Should be bring up work conserving vs. non work conserving when introducing scheduling order and/or time?
 * Maybe remove the phrase shared-memory router from pifo_design.tex?
 * uniform names for section and subsection labels
+* mention shared-memory routers once in pifo*, and then don't use the term again. (This is just for someone who is familiar with the term shared-memory router. Technically what we show is a design for a single-pipeline shared-memory router, not a general shared-memory router, where the memory alone can be shared across multiple pipelines.)
+* Also, make a note of terminology (input queued, output queued, shared memory, distributed shared memory etc.)
+* Use numerals instead of spelling them out. This violates S&W, but is much more likely to grab the reader's attention.
+* Do we ever define FIFO?
