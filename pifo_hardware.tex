@@ -107,10 +107,10 @@ operation. During dequeues, we dequeue the element with the earliest rank among
 the head elements of all flows in the flow scheduler.  We then insert the next
 element after the head for the flow that was just dequeued.
 
-The FIFO bank needed for the rank store is a well-understood hardware design.
-Such FIFO banks are used to buffer packet payloads in routers and much
-engineering effort has gone into optimizing them.  As a result, we focus our
-discussion here on the flow scheduler alone.
+The FIFO bank needed for the rank store is a well understood hardware design.
+Such FIFO banks are used to buffer packet payloads in router queues and
+substantial engineering effort has gone into optimizing them.  As a result, we
+focus our discussion here on the flow scheduler alone.
 
 \Para{The flow scheduler.}
 The flow scheduler sorts an array of flows using the ranks of the head elements
@@ -120,52 +120,51 @@ the flow scheduler every clock cycle.
 \begin{CompactEnumerate}
   \item Enqueue operation: Inserting a flow into the flow scheduler 
   when the flow goes from empty to non-empty.
-\item Dequeue operation: Removing a flow from the flow scheduuler that
-  empties once it is scheduled, (or) removing and reinserting a flow into
-  the flow scheduler with the rank of the
-  next element if the flow is still backlogged.
+\item Dequeue operation: Removing a flow from the flow scheduler that empties
+once it is scheduled, (or) removing and reinserting a flow into the flow
+scheduler with the rank of the next element if the flow is still backlogged.
 \end{CompactEnumerate}
 
-%% resume here.
-
-The operations above require the flow scheduler to internally support two
-primitives every clock cycle.
+The operations above require the flow scheduler to internally support two kinds
+of operations every clock cycle.
 \begin{CompactEnumerate}
 \item {\em Push} up to two elements into the flow scheduler: one each for an
   enqueue's insert and a dequeue's reinsert.
-\item {\em Pop} one element: for the remove from a dequeue.
+\item {\em Pop} one element: for the removal of a flow because of a dequeue.
 \end{CompactEnumerate}
-These primitives access all of the flow scheduler's elements in parallel. To
-facilitate this, we implement the flow scheduler in flip flops, unlike the rank
-store, which is in SRAM.
+These internal operations access all of the flow scheduler's elements in
+parallel. To facilitate this, we implement the flow scheduler in flip flops,
+unlike the rank store, which is in SRAM.
 
 The flow scheduler is organized in hardware as a sorted array, where a push is
 implemented by executing the three steps below
 (Figure~\ref{fig:flow_scheduler}).
 \begin{CompactEnumerate}
-\item Compare the incoming rank against all ranks in the array in parallel, using a comparator.
+\item Compare the incoming rank against all ranks in the array in parallel using a comparator.
   This produces a bit mask of comparison results indicating if the incoming rank
-  is greater/lesser than an array element's rank.
-\item Find the first 0-1 transition in this bit mask, using a priority encoder,
-  to determine the index to push into.
+  is greater/less than an array element's rank.
+\item Find the first 0-to-1 transition in this bit mask, using a priority encoder. The location of this transition determines the index to push into.
 \item Push the element into this index, by shifting the array.
 \end{CompactEnumerate}
 A pop is implemented by shifting the head element out of the sorted array.
 
 So far, we have focused on a flow scheduler implementation handling a single
-logical PIFO. To handle multiple logical PIFOs, we keep elements sorted by
-rank, regardless of the logical PIFO they belong to; hence, the push logic
-does not change.  To pop from a specific logical PIFO, we compare against all
-elements to find elements with that logical PIFO ID. Among these, we find the
-first using a priority encoder, and remove this element by shifting the array.
-The rank store implementation does not change when introducing logical PIFOs;
-however, we do require that a flow belong to exactly one logical PIFO.
+logical PIFO. We can extend this to handle multiple logical PIFOs backed by the
+same underlying physical hardware. To do so, we keep elements sorted by rank,
+regardless of the logical PIFO they belong to; hence, the push logic does not
+change.  To pop from a specific logical PIFO, we compare the dequeue's logical
+PIFO ID against all elements to find elements with that logical PIFO ID alone.
+Among these elements, we find the first using a priority encoder, and remove
+this element by shifting the array.  The rank store implementation does not
+change when introducing logical PIFOs; however, we do require that a flow
+belong to exactly one logical PIFO.
 
-%parallel and pipelined
-To concurrently issue 2 pushes and 1 pop every clock cycle, we provision three
-parallel digital circuits (Figure~\ref{fig:flow_scheduler}). Both the
-push and pop require 2 clock cycles to complete and need to be pipelined
- to maintain the required throughput (Figure~\ref{fig:2stage}). For pushes, the first stage of the pipeline executes
+Recall that to support one enqueue and one dequeue every cycle, the flow
+scheduler needs to support 2 pushes and 1 pop every cycle. To concurrently
+issue 2 pushes and 1 pop every cycle, we provision 3 parallel digital circuits
+(Figure~\ref{fig:flow_scheduler}). Both the push and pop require 2 cycles to
+complete and need to be pipelined to maintain the required throughput
+(Figure~\ref{fig:2stage}). For pushes, the first stage of the pipeline executes
 the parallel comparison and priority encoder steps to determine an index; the
 second stage pushes the element into the array using the index.  Similarly, for
 pops, the first stage executes the equality check (for logical PIFO IDs) and
@@ -173,17 +172,17 @@ priority encoder steps to compute an index; the second stage pops the head
 element out of the array using the index.
 
 Our implementation meets timing at 1 GHz and supports up to one enqueue/dequeue
-operation on a logical PIFO within a PIFO block every clock cycle. Because a
-reinsert operation requires a pop, followed by an access to the rank store for
-the next element, followed by a push, our implementation supports a dequeue
-from the same logical PIFO only once every 4 cycles. This is because if a dequeue is initiated
-in clock cycle 1, the pop for the dequeue completes in 2, the rank store is accessed in 3, and
-the push is initiated in 4, making cycle 5 the earliest time to reissue a dequeue.
-This restriction is inconsequential in practice.  A dequeue every 4 cycles from
-a logical PIFO is sufficient to service the highest link speed today, 100
-Gbit/s, which requires a dequeue at most once every 5 clock cycles for a
-minimum packet size of 64 bytes. Dequeues to distinct logical PIFO IDs are
-still permitted every cycle.
+operation on a logical PIFO within a PIFO block every cycle. Because a reinsert
+operation requires a pop, followed by an access to the rank store for the next
+element, followed by a push, our implementation supports a dequeue from the
+same logical PIFO only once every 4 cycles. This is because if a dequeue is
+initiated in clock cycle 1, the pop for the dequeue completes in 2, the rank
+store is accessed in 3, and the push is initiated in 4. This makes cycle 5 the
+earliest time to reissue a dequeue.  This restriction is inconsequential in
+practice.  A dequeue every 4 cycles from a logical PIFO is sufficient to
+service the highest link speed today, 100 Gbit/s, which requires a dequeue at
+most once every 5 clock cycles for a minimum packet size of 64 bytes. Dequeues
+to distinct logical PIFO IDs are still permitted every cycle.
 
 \begin{figure}[!t]
   \centering
@@ -211,41 +210,43 @@ design, this requires 5*4 = 20 sets of wires between PIFO blocks. Each set
 carries all the inputs required for specifying an enqueue and dequeue operation
 on a PIFO block.
 
-For our baseline design (\S\ref{ss:performance}), for an enqueue, we require a
-logical PIFO ID (8 bits), the element's rank (16 bits), the element meta data
-(32 bits), and the flow ID (10 bits). For a dequeue, we need a logical PIFO ID
-(8 bits) and wires to store the dequeued element's metadata field (32 bits).
-This adds up to 106 bits per set of wires, or 2120 bits for the mesh. This is a
-small number of wires for an entire chip.  For example, RMT's match-action pipeline
-uses 4000 1-bit wires between a {\em a pair of pipeline stages} to move its 4K
-packet header vector between stages~\cite{rmt}. 
+We now calculate the size of the inputs required to specify enqueue and dequeue
+operations.  For our baseline design (\S\ref{ss:performance}), for an enqueue,
+we require a logical PIFO ID (8 bits), the element's rank (16 bits), the
+element meta data (32 bits), and the flow ID (10 bits). For a dequeue, we need
+a logical PIFO ID (8 bits) and wires to store the dequeued element's metadata
+field (32 bits).  Combining both enqueue and dequeue, this adds up to 106 bits
+per set of wires, or 2120 bits for the mesh. This is a small number of wires
+for an entire chip.  For example, RMT's match-action pipeline uses 4000 1-bit
+wires between a {\em a pair of pipeline stages} to move its 4K packet header
+vector between stages~\cite{rmt}. 
 
 \subsection{Area overhead}
 \label{ss:feasibility}
 
-Because we target a shared-memory router, the scheduling logic is shared
-across ports and a single PIFO mesh services an entire router. Therefore, to
-estimate the area overhead of a programmable scheduler, we estimate the area
+Because we target a single-pipeline router, the scheduling logic is shared
+across all ports and a single PIFO mesh services an entire router.  Therefore,
+to estimate the area overhead of a programmable scheduler, we estimate the area
 overhead of a single PIFO mesh. Our overhead does not have to be multiplied by
-the number of ports and is the same for two shared-memory routers with equal
+the number of ports and is the same for two single-pipeline routers with equal
 aggregate packet rates, \eg a 6-port 100G router and a 60-port 10G router.
 
-%TODO: Why are next-hop tables small?
 To determine the area of a PIFO mesh, we compute the area of a single PIFO
 block and multiply it by the number of blocks because the area of the
-interconnect itself is negligible.  For a single block's area, we separately
-estimate areas for the rank store, atom pipelines, and flow scheduler, and
-ignore the area of the small next-hop lookup tables.  We estimate the rank
-store's area by using SRAM estimates~\cite{sram_estimate}, the atom pipeline's
-area using the individual atom area numbers from Table~\ref{tab:templates}, and
-the flow scheduler's area by implementing it in Verilog~\cite{system_verilog}
-and synthesizing it to gate-level netlist in a 16-nm standard cell library
-using the Cadence Encounter RTL Compiler~\cite{cadence_rc}. The RTL Compiler
-also verifies that the flow scheduler meets timing at 1 GHz.
+interconnect itself is negligible (\S\ref{ss:interconnect}).  For a single
+block's area, we separately estimate areas for the rank store, atom pipelines,
+and flow scheduler. We ignore the area of the small next-hop lookup tables.  We
+estimate the rank store's area by using SRAM estimates~\cite{sram_estimate} and
+the atom pipeline's area using the individual atom area numbers from
+Table~\ref{tab:templates}. We estimate the flow scheduler's area by
+implementing it in Verilog~\cite{system_verilog} and synthesizing it to a
+gate-level netlist in a 16-nm standard cell library using the Cadence Encounter
+RTL Compiler~\cite{cadence_rc}. The RTL Compiler also verifies that the flow
+scheduler meets timing at 1 GHz.
 
 Overall, our baseline design consumes about 7.35 \si{\milli\metre\squared} of
 chip area (Table~\ref{tab:area_overheads}). This is about 3.7\% of the chip
-area of a typical router chip, using the minimum chip area estimate of 200
+area of a router chip, using the minimum chip area estimate of 200
 \si{\milli\metre\squared} provided by Gibb et al.~\cite{glen_parsing}. In
 return for this 3.7\%, we get a significantly more flexible packet scheduler
 than current routers, which provide {\em fixed} two or three-level hierarchical
@@ -345,15 +346,16 @@ increasing the metadata width to 64 bits increases it to 0.317
 \label{ss:add_impl}
 
 \Para{Coordination between enqueue and dequeue.}
-When computing packet ranks on enqueue, some scheduling algorithms access
-state modified on packet dequeues. An example is STFQ (\S\ref{ss:wfq}) that
-accesses the \texttt{virtual\_time} variable when computing a packet's virtual
-start time. This enqueue-dequeue coordination can be implemented in two ways.
-One is shared state that can be accessed on both enqueue and dequeue, similar
-to queue occupancy counters. Another is to periodically synchronize the enqueue
-and dequeue views of the same state: for STFQ, the degree of short-term
-fairness is directly correlated with how up-to-date the \texttt{virtual\_time}
-information on the enqueue side is.
+When computing packet ranks on enqueue, some scheduling algorithms access state
+modified on packet dequeues. An example is STFQ (\S\ref{ss:wfq}) that accesses
+the \texttt{virtual\_time} variable when computing a packet's virtual start
+time. This enqueue-dequeue coordination can be implemented in two ways.  One is
+shared state that can be accessed on both enqueue and dequeue, similar to queue
+occupancy counters. Another is to periodically synchronize the enqueue and
+dequeue views of the same state, potentially by creating and recirculating a
+packet carrying this information from the dequeue to the enqueue pipeline.  For
+STFQ, the degree of short-term fairness is directly correlated with how
+up-to-date the \texttt{virtual\_time} information on the enqueue side is.
 
 \Para{Buffer management.}
 Our design focuses on programmable scheduling and does not manage the
@@ -361,17 +363,19 @@ allocation of a router's data buffer across flows.  Buffer management can use
 static buffer limits for each flow. The limits can also be dynamic, \eg
 RED~\cite{red} and dynamic buffer sizing~\cite{broadcom_dynamic}.
 
-In a shared-memory router, buffer management is orthogonal to scheduling,
-and is implemented using counters that track flow occupancy in a shared
-buffer. Before a packet is enqueued into the scheduler, if any counter
- exceeds a static or dynamic threshold, the packet is dropped. A similar
-design for buffer management could be used with a PIFO-based scheduler as well.
+In a single-pipeline shared-memory router, buffer management is orthogonal to
+scheduling, and is implemented using counters that track flow occupancy in a
+shared buffer. Before a packet is enqueued into the scheduler, if any counter
+exceeds a static or dynamic threshold, the packet is dropped. A similar design
+for buffer management could be used with a PIFO-based scheduler as well.
 
 \Para{Priority Flow Control.}
 Priority Flow Control (PFC)~\cite{pfc} is a standard that allows a router to
 send a {\em pause} message to an upstream router requesting it to cease
 transmission of packets belonging to particular flows. PFC can be integrated
-into our hardware design by masking out certain flows in the flow scheduler
+into our hardware design by excluding certain flows in the flow scheduler
 during the dequeue operation if they have been paused because of a PFC pause
-message, and unmasking them when a PFC {\em resume} message is received.
-%TODO: Amy's comment. Maybe explain the masking/unmasking process.
+message. These flows can be included again when a PFC {\em resume} message is
+received.  This exclusion-inclusion process can be accomplished by using a
+bitmask to indicate which flows are currently excluded or included and ANDing
+with this bitmask when dequeueing from the flow scheduler.

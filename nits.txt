@@ -43,3 +43,8 @@
 * Also, make a note of terminology (input queued, output queued, shared memory, distributed shared memory etc.)
 * Use numerals instead of spelling them out. This violates S&W, but is much more likely to grab the reader's attention.
 * Do we ever define FIFO?
+* clock cycles vs. cycles
+* single pipeline => shared memory,
+but not the other way around I think
+(multiple pipeline shared memory switches like Trident II).
+We should just stick with single pipeline throughout and make the shared memory point clear as a matter of clarification.
