@@ -13,6 +13,8 @@ in Marple more clearly.
 
 2. Marple: Be more precise about English text around the theorems.
 
+3. Marple: Maybe call it language-hardware codesign, instead of language-directed hardware design.
+
 Low:
 ==========
 Everything: Future proofness of these designs (or) will the ideas hold in ten years?
