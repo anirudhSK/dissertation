@@ -1,22 +1,24 @@
 High:
 ==========
-3. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
+1. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
 
-1. e2e pass on figures, tables, etc. Everything that's not visible from the .tex files
+2. e2e pass on figures, tables, etc. Everything that's not visible from the .tex files
+
+3. PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
 
 Medium:
 ==========
-4. Proof and explanation of fixed-point algorithm in Marple. Explain compiler
+1. Marple: Proof and explanation of fixed-point algorithm in Marple. Explain compiler
 in Marple more clearly.
 
-11. Be more precise about English text around the theorems.
+2. Marple: Be more precise about English text around the theorems.
 
-Others:
+Low:
 ==========
-Future proofness of these designs (or) will the ideas hold in ten years?
+Everything: Future proofness of these designs (or) will the ideas hold in ten years?
 
-Distinguish computational capabilities of a pipeline from information not
+Domino: Distinguish computational capabilities of a pipeline from information not
 being available. For instance, RED needs queue depth that is not available, but
 the EWMA operation itself is rather straightforward.
 
-Try and express the other PIFO scheduling transactions as Domino programs as well
+PIFO: Try and express the other PIFO scheduling transactions as Domino programs as well
