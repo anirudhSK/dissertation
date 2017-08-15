@@ -1,21 +1,27 @@
 \section{Summary}
 \label{s:pifo_summary}
-
+%TODO: First paragraph could be made to flow better with the remaining two
 Existing research into programmable and fast routers has looked at programming
 the router's parser~\cite{glen_parsing} and its match-action
-pipeline~\cite{rmt}. But, so far, it has been considered
-off-limits to program the packet scheduler---in part because the desired
-algorithms are so varied, and because the scheduler sits at the heart of the
-shared packet buffer where timing requirements are tightest.  It has been
-widely assumed too hard to find a useful abstraction that can also be
-implemented in fast hardware. PIFOs appear to be a very promising abstraction:
-they include a variety of existing algorithms, and allow us to express new
-ones. Further, they can be implemented at line rate with modest chip area
-overhead.
+pipeline~\cite{rmt}. But, so far, it has been considered off-limits to program
+the packet scheduler---in part because the desired algorithms are so varied,
+and because the scheduler sits at the heart of the shared packet buffer where
+timing requirements are tightest.  It has been widely assumed too hard to find
+a useful abstraction that can also be implemented in fast hardware.
 
-We believe the most exciting consequence of PIFOs will be the creation of many
-new schedulers, invented by network operators, iterated and refined, then
-deployed for their own needs. No longer will research experiments be limited to
-simulation and progress constrained by a vendor's choice of scheduling
-algorithms. Those needing a new algorithm could create their own, or even
-download one from an open-source repository.
+The results in this chapter suggest a promising abstraction for programmable
+packet scheduling.  Our abstraction exploits the fact that in many practical
+schedulers, the relative order of packets that are already buffered does not
+change in response to new packet arrivals.  Put differently, when a packet
+arrives, it can be pushed into the right location based on a packet priority
+(push in), but packets are always dequeued from the head (first out).  This
+observation suggests a natural primitive for programmable scheduling called a
+push-in first-out queue (PIFO). A PIFO is a priority queue where packets are
+pushed in based on a rank field, and the next packet to be dequeued is the
+packet with the earliest rank.
+
+A single PIFO expresses many schedulers, \eg token bucket shaping, weighted
+fair queueing, and strict priority scheduling.  Further,  PIFOs  can  be
+combined  to  express  hierarchical  schedulers.   Finally, PIFOs  are
+feasible  in hardware:   a hardware design for a programmable 5-level
+hierarchical scheduler costs less than 4\% additional chip area.
