@@ -176,5 +176,4 @@ fields from the last $k$ packets seen so far.  After the counter $c$ crosses
 the packet history bound $k$, we update $S_A$ to $A \cdot S_A$ each time $S$ is
 updated.\footnote{This stateful update itself can be implemented through a
 multiply-accumulate atom.} When the key is evicted, we send $S_A$ along with
-the entry and exit logs to the backing store for merging (details are in our
-technical report~\cite{theory-tr}).
+the entry and exit logs to the backing store for merging (see Appendix~\ref{app:merge}).
