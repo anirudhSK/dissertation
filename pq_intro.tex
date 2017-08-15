@@ -67,7 +67,7 @@ routers stream results out to collection servers, where the operator can
 retrieve query results. We now briefly describe the three components of our
 system: the query language, the router hardware, and the query compiler.
 
-\Para{Performance query language.} \TheSystem uses familiar functional
+\Para{Performance query language (\S\ref{sec:language}).} \TheSystem uses familiar functional
 constructs like {\ct map}, {\ct filter}, {\ct groupby}, and {\ct zip} for
 performance monitoring.  \TheSystem provides the abstraction of a stream that
 contains performance information for {\em every packet at every queue} in the
@@ -80,7 +80,7 @@ timestamp into an epoch), and detect simultaneous performance conditions using
 {\ct zip} (\eg when the queue depth is large and the number of connections in
 the queue is high).
 
-\Para{Hardware design for performance queries.} 
+\Para{Hardware design for performance queries (\S\ref{sec:aggregation}).} 
 A naive implementation of \TheSystem might stream every packet's metadata from
 the network to a central location and run streaming queries against it. Modern
 scale-out data-processing systems support \textasciitilde100K--1M operations
@@ -130,7 +130,7 @@ design a router instruction to support linear-in-state functions, finding that
 it easily meets timing at 1 GHz, while occupying modest silicon area.
 %TODO: Theorem reference for why it is not always possible.
 
-\Para{Query compiler.} We implement a compiler that takes \TheSystem queries
+\Para{Query compiler (\S\ref{sec:compiler}).} We implement a compiler that takes \TheSystem queries
 and compiles them into router configurations for two targets (\Sec{compiler}):
 (1) the P4 behavioral model~\cite{p4-bmv2}, an open source programmable
 software router that can be used for end-to-end evaluations of \TheSystem on
@@ -142,7 +142,7 @@ router instruction that we add to Banzai.
 
 %TODO: 4 and 11 might be selling us short. We should try and make it clear
 % that the number of atoms per stage is not too high.
-\Para{Evaluation.} We show that \TheSystem can express a variety of useful
+\Para{Evaluation (\S\ref{sec:eval}).} We show that \TheSystem can express a variety of useful
 performance monitoring examples, like detecting and localizing TCP incast and
 measuring the prevalence of out-of-order TCP packets. \TheSystem queries
 require between 4 and 11 pipeline stages, which is modest for a 32-stage router
