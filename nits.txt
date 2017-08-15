@@ -48,3 +48,8 @@
 but not the other way around I think
 (multiple pipeline shared memory switches like Trident II).
 We should just stick with single pipeline throughout and make the shared memory point clear as a matter of clarification.
+* Should we call it measuring or monitoring?
+* I overhyphenate compound adjectives
+* Don't use Fig. use Figure and Table everywhere.
+* check that \Sec does the right thing, i.e., is equivalent to \S
+* make sure tildes render properly
