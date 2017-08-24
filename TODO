@@ -11,8 +11,6 @@ Medium:
 1. Marple: Proof and explanation of fixed-point algorithm in Marple. Explain compiler
 in Marple more clearly.
 
-2. Marple: Be more precise about English text around the theorems.
-
 3. Marple: Maybe call it language-hardware codesign, instead of language-directed hardware design.
 
 4. Try and weave in a reference to the HotNets 2013 paper.
