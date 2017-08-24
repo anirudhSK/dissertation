@@ -210,39 +210,41 @@ stop data collection.  Fourth, if the number of keys is small enough to fit in
 the cache (\eg if the key is an application type), the system can provide
 accurate results without evicting any keys.
 
-%resume
 \subsection{A unified condition for mergeability}
 \label{sec:unifies}
-We present a general condition that separates mergeable functions from
-non-mergeable ones.
-Informally, mergeable aggregation functions are those that maintain auxiliary state
-linear in the size
-of the function's state itself.
-This characterization also has the benefit of unifying the associative and
-linear-in-state conditions.
-We now formalize
-our results in the form of several theorems.
-
-First, we introduce some formal notation (\S\ref{ss:notation} and \S\ref{ss:closure})
-before presenting the theorems (\S\ref{ss:proofs}).
+We now present a unified condition that separates mergeable functions from
+non-mergeable ones.  Informally, mergeable aggregation functions are those that
+maintain auxiliary state linear in the size of the function's
+programmer-supplied state. This characterization also has the benefit of
+unifying the associative and linear-in-state conditions.  We introduce some
+notation (\S\ref{ss:notation} and \S\ref{ss:closure}) before presenting our
+formal results (\S\ref{ss:proofs}).
 
 \subsubsection{Notation}
 \label{ss:notation}
 
-A programmer supplies an aggregation function $f$. $f$ takes as inputs an n-bit \emph{state}
-vector and a p-bit \emph{packet header} vector and returns an updated $n$-bit
-\emph{state} vector. $f$ captures incremental computations over packet streams,
-such as a count of packets or an exponentially weighted moving average of
+A programmer supplies an aggregation function $f$. $f$ takes as inputs an
+$n$-bit \emph{state} vector and a $p$-bit \emph{packet header} vector and
+returns an updated $n$-bit \emph{state} vector. $f$ captures incremental
+computations over packet streams, such as a count of packets or an EWMA of
 packet latencies. $f$ can only represent incremental computations where the
-size of state is fixed and doesn't grow with the length of the packet stream.
-For example, $f$ can't represent a median over the packet stream.
+size of state is fixed and does not grow with the length of the packet stream.
+For example, $f$ can not represent a median over the packet stream, which
+requires the aggregation function to maintain a log of all packets seen so far.
 
-Given $f$, we want two implementation functions: an incremental function implementation $g$
- and merge function implementation $m$ that can merge results from
-running $f$ over separate packet streams. Specifically, can we merge
-two results from running $f$ on two packet streams into one result,
-equivalent to running $f$ on the concatenated stream? Formally, we suppose that the state used by
-the implementation is $n' \geq n$ bits.
+Given $f$, we want two implementation functions.
+\begin{CompactEnumerate}
+\item An incremental implementation function $g$, which stores and updates both
+the state of $f$ and any auxiliary state required to carry out the merge.
+Suppose that the state used by $g$ is $n' \geq n$ bits. $n'-n$ is the
+auxiliary state.
+\item A merge implementation function $m$ that can merge results from running
+$g$ over separate packet streams.
+\end{CompactEnumerate}
+
+We are interested in the question: can we merge two results from running $g$ on
+two packet streams into one result, so that it is equivalent to running $f$ on
+the concatenated stream, while keeping the size of the auxiliary state small?
 
 \begin{align}
 f : \{0, 1\}^n \times \{0, 1\}^p & \rightarrow \{0, 1\}^n \mbox{(programmer's incremental computation)} \nonumber \\
@@ -261,11 +263,14 @@ h(g(g(g(s'_0, P_1), P_2), \dots, P_{i+j})) & =h( m(g(g(g(s'_0, P_1), P_2), \dots
 \forall i, j \in \mathbb{N} & \ \  P_1, P_2, \dots, P_{i+j} \in \{0, 1\}^p \label{eqn:merge_condition}
 \end{align}
 
-%TODO: What does efficiently computable mean? Be precise.
-Here $f, g, m,$ and $h$ are assumed to be efficiently computable functions. We use the notation $f(s, \{p_1, \ldots p_k\})$ to denote the composition of $f$ over a sequence
-of packets, similar to a fold function. Additionally, we say that a merge function successfully merges an aggregation function if Equation~\ref{eqn:merge_condition} holds. 
+We use the notation $f(s, \{p_1, \ldots p_k\})$ to denote the composition of
+$f$ over a sequence of packets. Additionally, we say that a merge function
+successfully merges an aggregation function if
+Equation~\ref{eqn:merge_condition} holds. 
 
 %TODO: DO we need to mention this new made-up notation for composition of $f$ over a sequence of packets?
+
+% resume
 
 \subsubsection{The closure graph}
 \label{ss:closure}
