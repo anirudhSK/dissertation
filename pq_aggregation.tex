@@ -217,8 +217,9 @@ non-mergeable ones.  Informally, mergeable aggregation functions are those that
 maintain auxiliary state linear in the size of the function's
 programmer-supplied state. This characterization also has the benefit of
 unifying the associative and linear-in-state conditions.  We introduce some
-notation (\S\ref{ss:notation} and \S\ref{ss:closure}) before presenting our
-formal results (\S\ref{ss:proofs}).
+notation (\S\ref{ss:notation}, \S\ref{ss:closure}, and
+Figure~\ref{fig:formal}) before presenting our formal results
+(\S\ref{ss:proofs}).
 
 \subsubsection{Notation}
 \label{ss:notation}
@@ -237,7 +238,7 @@ Given $f$, we want two implementation functions.
 \item An incremental implementation function $g$, which stores and updates both
 the state of $f$ and any auxiliary state required to carry out the merge.
 Suppose that the state used by $g$ is $n' \geq n$ bits. $n'-n$ is the
-auxiliary state.
+size of auxiliary state.
 \item A merge implementation function $m$ that can merge results from running
 $g$ over separate packet streams.
 \end{CompactEnumerate}
@@ -246,6 +247,7 @@ We are interested in the question: can we merge two results from running $g$ on
 two packet streams into one result, so that it is equivalent to running $f$ on
 the concatenated stream, while keeping the size of the auxiliary state small?
 
+\begin{figure}[!t]
 \begin{align}
 f : \{0, 1\}^n \times \{0, 1\}^p & \rightarrow \{0, 1\}^n \mbox{(programmer's incremental computation)} \nonumber \\
 g : \{0, 1\}^{n'} \times \{0, 1\}^p  & \rightarrow \{0, 1\}^{n'} \mbox{(implementation's incremental computation)} \nonumber \\
@@ -255,37 +257,80 @@ h : \{0, 1\}^{n'}               & \rightarrow \{0, 1\}^n  \mbox{(transform
 s_0  & \in \{0, 1\}^n \mbox{(programmer's start state)} \nonumber \\
 s'_0 & \in \{0, 1\}^{n'} \mbox{(implementation's start state)} \nonumber \\
 m(s'_0, s') & = s' \ \ \forall s \in \{0, 1\}^{n} \mbox{($s'_0$ is an identity for $m$)} \nonumber \\
-(g, m, h, s'_0) & \mbox { merges } (f, s_0) \mbox{ if} \nonumber \\
-s_0 & = h(s'_0) \mbox{(implementation's start matches with programmer's start)} \label{eqn:start_condition} \\
+(g, m, h, s'_0) & \mbox { merges } (f, s_0) \mbox{ if the 3 conditions below hold } \nonumber \\
+s_0 & = h(s'_0) \mbox{(implementation's start equals programmer's start)} \label{eqn:start_condition} \\
 f(f(f(s_0, P_1), P_2), \dots, P_n) & = h(g(g(g(s'_0, P_1), P_2), \dots, P_n)) \ \forall n \in \mathbb{N} \ \ P_1, P_2, \dots, P_n \in \{0, 1\}^p \label{eqn:projection_condition} \\
 h(g(g(g(s'_0, P_1), P_2), \dots, P_{i+j})) & =h( m(g(g(g(s'_0, P_1), P_2), \dots, P_{i}), \nonumber \\
 &\ \ \ \ g(g(g(s'_0, P_{i+1}), P_{i+2}), \dots, P_{i+j}))) \nonumber \\
 \forall i, j \in \mathbb{N} & \ \  P_1, P_2, \dots, P_{i+j} \in \{0, 1\}^p \label{eqn:merge_condition}
 \end{align}
+\caption{Formal notation for understanding mergeability}
+\label{fig:formal}
+\end{figure}
 
-We use the notation $f(s, \{p_1, \ldots p_k\})$ to denote the composition of
-$f$ over a sequence of packets. Additionally, we say that a merge function
-successfully merges an aggregation function if
-Equation~\ref{eqn:merge_condition} holds. 
-
-%TODO: DO we need to mention this new made-up notation for composition of $f$ over a sequence of packets?
-
-% resume
+We say that a merge function successfully merges an aggregation function if
+Equations~\ref{eqn:start_condition}, \ref{eqn:projection_condition}, and
+\ref{eqn:merge_condition} hold. We use the notation $f(s, \{p_1, \ldots p_k\})$
+to denote the composition of $f$ over a sequence of packets. 
 
 \subsubsection{The closure graph}
 \label{ss:closure}
 
-Before proceeding with the proofs, we introduce the directed \emph{closure graph} of $f$, denoted $G(f)$. Suppose that at some point during the aggregation, 
-the programmer specified state is $s$. After running through some additional packets, that state is updated to $s'$. If $s$ is known, then computing
-$s'$ is straightforward: simply execute the aggregation $f$ on all the packets seen in the interim. However, if $s$ is \emph{not} known, we can instead
-use the packets seen to compute a function that tells us how to get from \emph{a symbolic} state $s$ to the final desired state $s'$. That is, given a sequence of packets $\{p_k\}$,
-we can compute an \emph{iterated} function $f_i \in \{0,1\}^n \rightarrow \{0,1\}^n$, such that for any state $s$, $f_i(s) = f(s, \{p_k\})$. For an empty sequence, the corresponding iterated function is the identity.
-Our goal is to store some compact representation of the iterated function in the on-chip cache as part of the auxiliary state. Conceptually,  this iterated function is updated with each new packet that is seen, so that when a key is evicted from the on-chip cache,
-an identifier for the updated iterated function is sent to the backing store. The backing store then applies this iterated function to the state $s_{backing}$ stored from a previous eviction to get the new value.
+We introduce the directed \emph{closure graph} of $f$, denoted $G(f)$. Suppose
+that at some point during the aggregation, the programmer specified state is
+$s$. After running through some additional packets, that state is updated to
+$s'$. If $s$ is known, then computing $s'$ is straightforward: simply execute
+the aggregation $f$ on all the packets seen in the interim. However, if $s$ is
+\emph{not} known, we can instead use the packets seen to compute a {\em function}
+that tells us how to get from \emph{a symbolic} state $s$ to the final desired
+state $s'$. That is, given a sequence of packets $\{p_k\}$, we can compute an
+\emph{iterated} function $f_i \in \{0,1\}^n \rightarrow \{0,1\}^n$, such that
+for any state $s$, $f_i(s) = f(s, \{p_k\})$.
 
-How does one update the iterated function stored on the router? The vertices of the closure graph of $f$ are iterated functions $f_i$, and we let $|G(f)|$ indicate the number of vertices. Since there are a finite number of functions $\{0, 1\}^n \rightarrow \{0, 1\}^n$, the size of the graph is bounded.
-Each vertex has an outgoing edge corresponding to every possible packet. For a given packet $p$, the iterated function $f_i$ has an edge to the function $f_j$ satisfying $f(f_i(s), p) = f_j(s)$ for all $s$.
-The closure graph thus has the following property: given a sequence of packets $\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th step, follow the edge corresponding to each packet $p_i$. The ending vertex of this process is the iterated function that captures the effect of this packet sequence on any starting state. We say that this ending vertex is the result of \emph{updating the iterated function} by the given sequence of packets. To update the iterated function stored on the router given a new packet, simply follow the edge labeled with that packet.
+For an empty sequence, the corresponding iterated function is the identity
+function.  Our goal is to store some compact representation of the iterated
+function in the on-chip key-value store as part of the auxiliary state.
+Conceptually, this iterated function is updated with each new packet that is
+seen, so that when a key is evicted from the on-chip key-value store, an
+identifier for the updated iterated function is sent to the backing store.  The
+backing store then applies this iterated function to the state $s_{backing}$
+stored from a previous eviction to get the new value.
+
+%TODO: f_i looks like the ith function. Could use better notation?
+How does one update the iterated function stored on the router? The vertices of
+the closure graph of $f$ are iterated functions $f_i$, and we let $|G(f)|$
+indicate the number of vertices. Since there are a finite number of functions
+$\{0, 1\}^n \rightarrow \{0, 1\}^n$, the size of the graph is bounded.  Each
+vertex has an outgoing edge corresponding to every possible packet. For a given
+packet $p$, the iterated function $f_i$ has an edge to the function $f_j$
+satisfying $f(f_i(s), p) = f_j(s)$ for all $s$.
+
+The closure graph thus has the following property: given a sequence of packets
+$\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th packet
+in the sequence, follow the edge corresponding to packet $p_i$. The ending
+vertex of this process is the iterated function that captures the effect of
+this packet sequence on any starting state. We say that this ending vertex is
+the result of \emph{updating the iterated function} by the given sequence of
+packets. Conceptually, to update the iterated function stored on the router
+given a new packet, we simply follow the edge labeled with that packet.
+
+The size of the closure graph (\ie the number of vertices) indicates the number
+of bits of auxiliary state that are needed for a merge. For efficiently
+mergeable functions, the size of the closure graph is small. This is because
+the router needs to tell the backing store what update to perform on the value
+it currently has. Each iterated function in the closure graph is a possible
+update, so the router needs to convey at least $\log |G(f)|$ auxiliary bits for
+the merge to be possible.
+
+As an example, consider a simple counter, where $f(s, p) = s + 1$ and $s_0 =
+0$. If the counter has $n$ bits, the closure graph is a ring of size $2^n$,
+where the $i$th vertex represents the iterated function $f_i(s) = s + i$. Note
+that all edges from the $i$th vertex point to the $i+1$st vertex. For every
+observed packet, the router walks one step further around the ring. This is
+implemented efficiently via adding 1 to an $n$-bit counter. After $K$ packets,
+the iterated function on the router is $s + k$, where $k = K \mod 2^n$. Upon
+merging, this is sent to the backing store, which then knows to add $k$ to the
+existing backing store value.
 
 \subsubsection{Proofs of theorems}
 \label{ss:proofs}
@@ -295,14 +340,17 @@ A merge function exists to successfully merge an aggregation function $f$,
 provided it can use up to $n2^n$ auxiliary bits.
 \end{theorem}
 \begin{proof}
-We can represent each iterated function $f_i$ in $n2^n$ bits, using a list of $2^n$ $n-$bit numbers. This list enumerates the output of the iterated function on every possible input, \ie the $k$th item in the list is $f_i(k)$. The router stores this representation. For each new packet $p$, the router computes the update to each number in the list: $f_i(k) \rightarrow f(f_i(k), p)$. Upon a merge, the router sends this representation to the backing store, which can then evaluate $f_i(s_{backing})$, where $s_{backing}$ is the value stored in the backing store.
+We can represent each iterated function $f_i$ in $n2^n$ bits, using a list of
+$2^n$ $n-$bit numbers. This list enumerates the output of the iterated function
+on every possible input, \ie the $k$th item in the list is $f_i(k)$. The router
+stores this representation. For each new packet $p$, the router computes the
+update to each item $k$ in the list: $f_i(k) \rightarrow f(f_i(k), p)$. Upon a
+merge, the router sends this representation to the backing store, which can
+then evaluate $f_i(s_{backing})$, where $s_{backing}$ is the value stored in
+the backing store.
 \end{proof}
 
-Note that the router needs to tell the backing store what update to perform on the value it currently has. Each iterated function in the closure graph is a possible update, so the router needs to convey at least $\log |G(f)|$ auxiliary bits for the merge to be possible.
-
-As an example, consider a simple counter, where $f(s, p) = s + 1$ and $s_0 = 0$. If the counter has $n$ bits, the closure graph is a ring of size $2^n$, where the $i$th vertex represents the iterated function $f_i(s) = s + i$. Note that all edges from the $i$th vertex point to the $i+1$st vertex. For every observed packet, the router walks one step further around the ring. This is implemented efficiently via adding 1 to an $n$-bit counter. After $K$ packets, the iterated function on the router is $f_{k}$, where $k = K \mod 2^n$. Upon merging, this is sent to the backing store, which then knows to add $k$ to the existing backing store value.
-
-In general, requiring $n2^n$ bits is typically infeasible for even moderate values of $n$. This is where the linear-in-state and associative conditions come in. We show that either of these conditions is enough to require only $O(n)$ auxiliary bits of space.
+In general, requiring $n2^n$ bits is typically infeasible for even moderate values of $n$. This is where the linear-in-state and associative conditions come in. We show that either of these conditions requires only $O(n)$ auxiliary bits of space.
 
 \begin{theorem}
  Aggregation functions that are either linear-in-state or associative have a
@@ -312,13 +360,21 @@ merge function that uses only $O(n)$ auxiliary bits.
 The associative condition is trivial: by definition, no auxiliary bits are required because the merge function simply applies the original aggregation function on the values in the cache and the backing store. Hence, we focus on the linear-in-state condition.
 Suppose $f$ is an aggregation function that is linear-in-state, \ie $f(\mathbf{S}, p) = \mathbf{A}(p) \cdot \mathbf{S} + \mathbf{B}(p)$, where $\mathbf{S}$ is a state vector, and $\mathbf{A,B}$ are matrices depending only on the incoming packet. Then:
 \[ f(\mathbf{S}_0, \{p_1, \ldots, p_k\}) = \mathbf{A}(p_k)\ldots \mathbf{A}(p_1) \cdot \mathbf{S}_0 + \mathbf{C}(p_1, p_2, \ldots, p_k) \equiv \mathbf{A'} \cdot \mathbf{S}_0 + \mathbf{C}(p_1, \ldots, p_k)\]
-where $\mathbf{C}$ is some function of only the packets and $\mathbf{A'}$ is a composition of the $\mathbf{A}$ matrices for the observed packets. The router keeps track of $\mathbf{A'}$ and $\mathbf{C}$, which requires $O(nd^2)$ space where $d$ is the number of pieces of state, each of which we assume has size $n$. These matrices are sent to the backing store upon eviction, at which point the merge operation computes the new backing store value:
-\[ \mathbf{S}_d \leftarrow \mathbf{C}(p_1, \ldots, p_k) + \mathbf{A'} \cdot \mathbf{S}_d \]
-It's easy to verify that this is the proper merge procedure.
+
+Here, $\mathbf{C}$ is some function of only the packets $p_1$ through $p_k$.
+$\mathbf{A'}$ is a composition of the $\mathbf{A}$ matrices for the observed
+packets. The router keeps track of $\mathbf{A'}$ and $\mathbf{C}$, which
+requires $O(nd^2)$ space, where $d$ is the dimension of the state vector, and
+each dimension requires $n$ bits of storage. These matrices are sent to the
+backing store upon eviction, at which point the merge operation computes the
+new backing store value: \[ \mathbf{S}_d \leftarrow \mathbf{C}(p_1, \ldots,
+p_k) + \mathbf{A'} \cdot \mathbf{S}_d \] It's easy to verify that this is the
+proper merge procedure.
 \end{proof}
 %TODO: extensions to bounded packet history
 
-However, there are some functions that are not mergeable with so few auxiliary bits. Take the following TCP-non-monotonic function:
+However, there are some functions that are not mergeable with so few auxiliary
+bits.  One example is the TCP-non-monotonic aggregation function:
 \begin{verbatim}
 def nonmt(maxseq, count, tcpseq):
   if maxseq > tcpseq:
@@ -334,7 +390,8 @@ The TCP-non-monotonic function requires at least $n2^n$ auxiliary bits to merge.
 \begin{proof}
 Two pieces of state must be stored: the max sequence number and the count. For
 simplicity, we assume each piece of state requires $n$ bits.
-We present a family of packet sequences, such that there is an injection between the sequences and vertices in the closure graph of $f$. In other words, starting from the identity, updating the identity iterated function by each sequence in this family will result in a distinct iterated function. 
+We present a family of packet sequences, such that there is an injection from the packet
+ sequences to the vertices in the closure graph of $f$. In other words, starting from the identity, updating the identity iterated function by each sequence in this family will result in a distinct iterated function. 
 
 Consider a family of packet sequences parameterized by a tuple $(a_0, a_1, \ldots a_{2^n-1})$: the sequence consists of $a_i$ packets with sequence number $i$, in increasing order of $i$. For each such tuple, performing an update $U$ of the identity iterated function by the sequence for that tuple results in the following final iterated function:
 \[ U(a_0, \ldots, a_{2^n-1}) = f\quad\quad \text{such that} \quad\quad f(x,y) = \left(2^n - 1, (y + \sum_{i=0}^{x-1} a_i) \mod 2^n\right) \]
@@ -343,30 +400,39 @@ where $x$ and $y$ are the max sequence number and count, respectively. To see wh
 $U$ is an injection.
 \end{lemma}
 \begin{proof}
-If $(a_0, \ldots, a_{2^n-1}) \neq (a_0', \ldots, a_{2^n-1}')$, then there is some $k$ such that $a_k \neq a_k'$ but $a_j = a_j'$ for all $j < k$. Note: $k= 0$ may satisfy this condition. Let $U(a_0, \ldots, a_{2^n-1}) = f$ and $U(a_0', \ldots, a_{2^n-1}') = f'$. Then, for any $y$:
-\[ f(k+1, y) - f'(k+1,y) = \left(0, \sum_{i = 0}^k a_i - \sum_{i = 0}^k a_i'\right) = (0, a_k - a_k') \neq (0, 0) \]
-so $f \neq f'$, making $U$ an injection.
+If $(a_0, \ldots, a_{2^n-1}) \neq (a_0', \ldots, a_{2^n-1}')$, then there is
+some $k$ (including $k=0$) such that $a_k \neq a_k'$ but $a_j = a_j'$ for all
+$j < k$. Let $U(a_0, \ldots, a_{2^n-1}) = f$ and $U(a_0', \ldots, a_{2^n-1}') =
+f'$. Then, for any $y$: \[ f(k+1, y) - f'(k+1,y) = \left(0, \sum_{i = 0}^k a_i
+- \sum_{i = 0}^k a_i'\right) = (0, a_k - a_k') \neq (0, 0) \] Hence, $f \neq f'$,
+making $U$ an injection.
 \end{proof}
-There are $2^{n2^n}$ such packet sequences, meaning that the closure graph has at least $2^{n2^n}$ distinct vertices, and thus number of auxiliary bits needed is at least $\log 2^{n2^n} = n2^n$. 
+There are $2^{n2^n}$ such packet sequences because each packet sequence is
+represented by a $2^n$ element tuple, where each element is $n$ bits. This
+means that the closure graph has at least $2^{n2^n}$ distinct vertices, and
+thus the number of auxiliary bits needed is at least $\log 2^{n2^n} = n2^n$. 
 \end{proof}
 
-Now we turn to the question: given an aggregation function, how easy is it to compute a merge function that uses the minimal number of auxiliary bits?
-Since we know that the minimal number of bits is $\log |G(f)|$, we can construct $G(f)$. This approach is extremely inefficient, but it works. 
+Now we turn to the question: given an aggregation function, how easy is it to
+compute a merge function that uses the smallest number of auxiliary bits?
+Since we know that the smallest number of bits is $\log |G(f)|$, we can
+construct $G(f)$. Constructing $G(f)$ is extremely inefficient, but is
+possible.
 
 \begin{theorem}
-Given an aggregation function $f$, we can demonstrate a algorithm to compute a merge function using the minimal number of auxiliary bits.
+Given an aggregation function $f$, we can demonstrate a algorithm to compute a merge function using the smallest number of auxiliary bits.
 \end{theorem}
 \begin{proof}
 To construct the closure graph, we start with a single node representing the
-identity function. Starting at this node $f_0$, we enumerate all $p$-bit values for a
-single packet $P$, and compute the updated iterated function $f_P$ satisfying $f_P(s) = f(f_0(s), P)$ for all $s$.
-If this iterated function has not been seen yet, we create a new node for it.
-We join two nodes by an edge labeled
-with the packet value that causes the transition between those two nodes and
-repeat this process from each newly created node until all edges out of a node
-lead back to existing nodes\footnote{We need a way to check node equality,
-i.e., function equality. We do this by a brute force check on all inputs to
-both nodes/functions.}.
+identity function. Starting at this node $f_0$, we enumerate all $p$-bit values
+for a single packet $P$, and compute the updated iterated function $f_P$
+satisfying $f_P(s) = f(f_0(s), P)$ for all $s$.  If this iterated function has
+not been seen yet, we create a new node for it.  We join two nodes by an edge
+labeled with the packet value that causes the transition between those two
+nodes and repeat this process from each newly created node until all edges out
+of a node lead back to existing nodes\footnote{We need a way to check node
+equality, \ie function equality. We do this by a brute force check on all
+inputs to both nodes/functions.}.
 
 There are $2^{n2^n}$ possible iterated functions. We assume that given an iterated function,
 it is possible to find that function in the existing partial closure graph in time $O(n2^n)$,
@@ -375,18 +441,21 @@ Then, since we must enumerate every possible $p$-bit packet the total runtime is
 \[ O(\text{\# iters} \cdot \text{\# packets} \cdot \text{\# time to test if function has been seen}) =  O\left(2^{n2^n} \cdot 2^p \cdot n2^n\right) \]
 \end{proof}
 
-This algorithm is intractable in practice. However, a polynomial time algorithm is also likely intractable.
-We demonstrate this hardness result by considering a decision version of this problem:
-given an aggregation function $f$ and merge function $m$, does $m$ successfully merge $f$ for all possible packet inputs?
-This problem supplies a candidate merge function $m$ as an input, instead of asking for a merge function to be found.
-Yet, even this problem turns out to be co-NP-hard.
+This algorithm is hopeless in practice. However, a polynomial time algorithm is
+unlikely.  We demonstrate a hardness result by considering a decision version
+of this problem: given an aggregation function $f$ and merge function $m$, does
+$m$ successfully merge $f$ for all possible packet inputs?  This problem is
+probably simpler than finding a merge function with the smallest number of
+auxiliary bits because it supplies a candidate merge function $m$ as an input,
+instead of searching for the best merge function.  Yet, even this problem turns
+out to be co-NP-hard.
 
 Before we launch into the hardness proof, we must limit the scope of the problem. ``All possible packet inputs'' includes
 packet sequences of arbitrary length. However, we can restrict ourselves to sequences up to $2^n$ packets.
 
 \begin{theorem}
-To determine whether $m$ merges $f$ on every packet sequence, it is sufficient to consider packet sequence up to
-length $2^n$.
+To determine whether $m$ merges $f$ on every packet sequence, it is sufficient
+to consider packet sequences up to length $2^{max(n, n')}$.
 \end{theorem}
 \begin{proof}
 We show it is sufficient to check equation~\ref{eqn:projection_condition} on
@@ -406,25 +475,29 @@ before $P_{2}$, creating a shorter stream that still
 falsifies~\ref{eqn:projection_condition}.  This process can be repeated until
 the stream length is less than or equal to $M$. This will eventually happen
 because there will always be a repeated state value by the pigeon-hole
-principle because the number of packets in a stream is greater than the number
-of distinct states.
+principle because the number of packets in a sequence of length $M$ is greater
+than the number of distinct states.
 \end{proof}
 
-Now we know that checking whether $m$ successfully merges $f$ is actually possible.
-However, it is likely intractable. We'll show this by showing that it is hard to perform the
- simple action of \emph{verifying}
-that a \emph{given} merge function successfully merges a given aggregation function.
+Now we know that checking whether $m$ successfully merges $f$ is decidable
+because we can check packet sequences up to length $M$, instead of the infinite
+set of all possible packet sequences.  However, it is intractable unless
+$P=NP$.
 
 \begin{theorem}
-Given a merge function $m$ and aggregation function $f$, verifying that $m$ successfully
-merges $f$ is co-NP hard.\footnote{co-NP is made up of problems
+Given a merge function $m$ and aggregation function $f$, verifying that $m$
+successfully merges $f$ is co-NP hard.\footnote{co-NP is made up of problems
 that are complements of problems in NP.}
 \end{theorem}
 \begin{proof}
-We'll show that $MERGE$ is co-NP-hard by reducing $TAUTOLOGY$ (a known
-co-NP-complete problem) to $MERGE$.
+Given $(f, s_0)$ and $(g, m, h, s'_0)$, we define the decision problem
+$MERGE(f, s_0, g, m, h, s'_0)$, which outputs whether $(g, m, h, s'_0)$ merges
+$(f, s_0)$. Recall that $(g, m, h, s'_0)$ merges $(f, s_0)$ if
+Equations~\ref{eqn:start_condition}, \ref{eqn:projection_condition}, and
+\ref{eqn:merge_condition} are satisfied. We'll show that $MERGE$ is co-NP-hard
+by reducing $TAUTOLOGY$ (a known co-NP-complete decision problem) to $MERGE$.
 
-An instance of $TAUTOLOGY$ is a function $t$. The output is 1 when $t$ is a
+An instance of $TAUTOLOGY$ is a boolean function $t$. The output is 1 when $t$ is a
 tautology, 0 otherwise. $TAUTOLOGY(t)$ can be reduced to\footnote{This is a
 polynomial many-to-one reduction or a Karp reduction.} $MERGE(s \oplus t', 0, s
 \oplus t', OR, I, 0)$,\footnote{t'(P) = (NOT t(P))}where
@@ -459,17 +532,16 @@ variables that falsifies statement~\ref{eqn:merge}.
 \vspace{\baselineskip}
 \end{proof}
 
-It is straightforward to see how $TAUTOLOGY(t(P))$
-reduces to $MERGE(s \oplus t', 0, s \oplus t', OR, I, 0)$, showing that $MERGE$
-is co-NP-hard.
+It is straightforward to see how $TAUTOLOGY(t(P))$ reduces to $MERGE(s \oplus
+t', 0, s \oplus t', OR, I, 0)$, showing that $MERGE$ is co-NP-hard.
 \end{proof}
 
 The practical implication of this result is that there is unlikely to be a
-general and efficient procedure to check if an arbitrary aggregation function
-can be merged using a small amount of auxiliary state. Thus, identifying
-specific classes of functions (\eg linear-in-state and associative) and
-checking if an aggregation function belongs to these classes is the best we can
-hope to do.
+general and efficient procedure to find a merge function that can merge an
+arbitrary aggregation function using the smallest amount of auxiliary state.
+Thus, identifying specific classes of functions (\eg linear-in-state and
+associative) and checking if an aggregation function belongs to these classes
+is probably the best that we can hope to do.
 
 \subsection{Related work on distributed aggregations} Our linear-in-state
 characterization is related to {\em distributed aggregation} in large-scale
@@ -480,19 +552,20 @@ aggregation, different portions of the list are aggregated independently and
 the partial results are combined together, potentially improving performance
 relative to serial aggregation.
 
-The connection to distributed aggregation is as follows: the merge procedure
-can be seen as combining the results of two independent aggregations on two
-halves of a list.  Further, this merge procedure can be performed recursively
-by computing the aggregation on each half of the list in a distributed fashion,
- \ie using a merge function that combines results from partial aggregations on
-quarters of the list.
+The connection between distributed aggregation and the linear-in-state
+characterization is as follows: the merge procedure can be seen as combining
+the results of two independent aggregations on two halves of a list.  Further,
+this merge procedure can be performed recursively by computing the aggregation
+on each half of the list in a distributed fashion, \ie using a merge function
+that combines results from partial aggregations on quarters of the list.
 
-The simplest class of aggregations that permit distributed aggregation are
-those that are both commutative and associative~\cite{distagg}. The associative
-condition is consistent with the associative class of merge functions above. In
-addition, the commutative condition is required for distributed aggregation
-because there is no guarantee on the order in which the two halves of the list
-will be processed.
+The simplest class of aggregations that permit efficient distributed
+aggregation are those that are both commutative and associative~\cite{distagg}.
+The associative condition is consistent with the associative class of merge
+functions above. In addition, the commutative condition is required for
+distributed aggregation because there is no guarantee on the order in which the
+two halves of the list will be processed, unlike our merge procedure, which
+still requires the packet sequence to be processed serially.
 
 The SYMPLE system~\cite{symple} extends distributed aggregation to include
 functions that are neither commutative nor associative.  SYMPLE works by
@@ -508,27 +581,28 @@ aggregations on the second and subsequent lists {\em symbolically}.  The result
 of this is a concrete aggregated state value for the first segment, and a set
 of symbolic expressions/functions for the remaining segments.  These symbolic
 expressions/functions are conceptually identical to the iterated functions used
-in our proof constructs.  They map an unknown initial state at the beginning of
-the segment to the final state at the end of the segment, given the concrete
-list values seen in that segment.
+in our proof constructs.  They map an unknown and symbolic initial state at the
+beginning of the segment to the final state at the end of the segment, given
+the concrete list values seen in that segment.
 
 To facilitate symbolic computation, SYMPLE restricts the set of operations that
 can be carried out in distributed aggregation. For instance, SYMPLE allows a
 state variable to be multiplied by a constant, but not another state variable.
 SYMPLE also does not allow division operations on state variables. We observe
-that these restrictions are consistent with the restrictions on a
-linear-in-state aggregation function. However, we leave a precise
-characterization of the similarities and differences between the expressiveness
-of SYMPLE and linear-in-state aggregations to future work.
+that these restrictions on operations on state variables are consistent with
+the restrictions on state variables in a linear-in-state aggregation function.
+However, we leave a precise characterization of the similarities and
+differences between the expressiveness of SYMPLE and linear-in-state
+aggregations to future work.
 
 \subsection{Hardware feasibility}
 \label{sec:hardware-feasibility}
 We optimize our stateful hardware design for linear-in-state queries and break
 it down into five components.  Each component is well-known; our main
-contribution is putting them together to implement stateful queries.
-One important design choice for a router designer is how much memory to
-provision for the on-chip cache, which we evaluate in \Sec{eval}.
-We now discuss each component in detail.
+contribution is putting them together to implement stateful queries.  One
+important design choice for a router designer is how much memory to provision
+for the on-chip cache, which we evaluate in \S\ref{sec:eval}.  We now discuss
+each component in detail.
 
 \textbf{The on-chip cache} is a hash table where each row in the hash table
 stores keys and values for a certain number of flows. If a packet from a new
@@ -536,26 +610,25 @@ flow hashes into a row that is full, the least recently used flow within that
 row is evicted. Each row has 8 flows and each flow stores both its key and
 value.\footnote{The LRU policy is actually implemented across 3-bit pointers
 that point to the keys and values in a separate memory. So we shuffle only the
-3-bit pointers for the LRU, not the entire key and value.} Our choice of 8
-flows is based on 8-way L1 caches, which are very common in
+3-bit pointers to implement the LRU policy, not the entire key and value.} Our
+choice of 8 flows is based on 8-way L1 caches, which are very common in
 processors~\cite{intel_opt_manual}. This cache eviction policy is close to an
 ideal but impractical policy that evicts the least recently used (LRU) flow
 across the whole table (\Sec{eval}).
 
 Within a router pipeline stage, the on-chip cache has a logical interface
-similar to an on-chip hash table used for counters:
-each packet matches entries in the table using a key
-extracted from the packet header, and the corresponding action (\ie increment)
-is executed by the router.
-%
-An on-chip hash table may be used as a path to incrementally deploying a router
-cache for specific aggregations (\eg increments), on the way to supporting
-more general actions and cache eviction logic in the future.
+similar to an on-chip hash table used for counters: each packet matches entries
+in the table using a key extracted from the packet header, and the
+corresponding action (\ie increment) is executed by the router. An on-chip hash
+table may be used as a path to incrementally deploying a router cache for
+specific aggregations (\eg increments), on the way to supporting more general
+actions and cache eviction logic in the future.
 
 \textbf{The off-chip backing store} is a scale-out key-value store such as
-Redis~\cite{redis} running on dedicated collection servers within the network. As \Sec{eval}
-shows, the number of measurement servers required to support typical eviction
-rates from the router's on-chip cache is small, even for a \hundredgrouter router.
+Redis~\cite{redis} running on dedicated collection servers within the network.
+As \S\ref{sec:eval} shows, the number of measurement servers required to
+support typical eviction rates from the router's on-chip cache is small, even
+for a \hundredgrouter router.
 
 \textbf{Maintaining packet history.} Before a packet reaches the pipeline stage
 with the on-chip cache, we use the preceding stages to precompute
@@ -563,26 +636,30 @@ $\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ (the functions of 
 in the state-update operation $\boldsymbol{S} =\boldsymbol{A}(\mathbf{p}) \cdot
 \boldsymbol{S} + \boldsymbol{B}(\mathbf{p})$.
 Our current design only handles the case
-where $\boldsymbol{S}$, $\boldsymbol{A}(\mathbf{p})$, and $\boldsymbol{B}(\mathbf{p})$ are scalars. Say
-$\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ depend on packet fields from the last $k$
-packets. Then, these preceding pipeline stages act like a shift register and
-store fields from the last $k$ packets. Each stage contains a read/write
-register, which is read by a packet arriving at that stage, carried
-by the packet as a header, and written into the next stage's register. Once values from the last
-$k$ packets have been read into packet fields, $\boldsymbol{A}(\mathbf{p})$ and
-$\boldsymbol{B}(\mathbf{p})$ can be computed with stateless instructions provided by
-programmable router architectures~\cite{rmt, domino_sigcomm}.
+where $\boldsymbol{S}$, $\boldsymbol{A}(\mathbf{p})$, and $\boldsymbol{B}(\mathbf{p})$ are scalars.
 
-\textbf{Carrying out the linear-in-state operation.} Once $\boldsymbol{A}(\mathbf{p})$ and
-$\boldsymbol{B}(\mathbf{p})$ are known, we use a multiply-accumulate (MAC)
-instruction~\cite{mac} to compute $\boldsymbol{A}(\mathbf{p}) \cdot \boldsymbol{S} +
-\boldsymbol{B}(\mathbf{p})$. This instruction is very cheap to implement: our circuit
-synthesis experiments show that a MAC instruction meets timing at 1 GHz and
-occupies about 2000 \si{\micro\metre\squared} in a recent 32 nm transistor
-library. A router chip with an area of a few hundred
-\si{\milli\meter\squared} can easily support a few hundred MAC instructions.
+Say $\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ depend on
+packet fields from the last $k$ packets. Then, these preceding pipeline stages
+act like a shift register and store fields from the last $k$ packets. Each
+stage contains a read/write register, which is read by a packet arriving at
+that stage, carried by the packet as a header, and written into the next
+stage's register. Once values from the last $k$ packets have been read into
+packet fields, $\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$
+can be computed with stateless instructions provided by programmable router
+architectures~\cite{rmt, domino_sigcomm}.
+
+\textbf{Carrying out the linear-in-state operation.} Once
+$\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ are known, we use
+a multiply-accumulate (MAC) instruction~\cite{mac} to compute
+$\boldsymbol{A}(\mathbf{p}) \cdot \boldsymbol{S} + \boldsymbol{B}(\mathbf{p})$.
+This instruction is very cheap to implement: our circuit synthesis experiments
+show that a MAC instruction meets timing at 1 GHz and occupies about 2000
+\si{\micro\metre\squared} in a recent 32 nm transistor library. A router chip
+with an area of a few hundred \si{\milli\meter\squared}~\cite{glen_parsing} can
+easily support a few hundred MAC instructions.
 
 \textbf{Queries that are not linear-in-state.} We use the set of stateful
-instructions developed in Domino~\cite{domino_sigcomm} for queries that are not
-linear-in-state. Our evaluations show that these instructions are sufficient
-for our example queries that are not linear-in-state.
+instructions developed in Domino (Table~\ref{tab:templates}) for queries that
+are not linear-in-state. Our evaluations show that these instructions are
+sufficient for our example queries that are not linear-in-state
+(Table~\ref{tab:example-perf-queries}).
