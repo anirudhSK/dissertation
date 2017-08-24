@@ -98,7 +98,6 @@ $\scache$ are the value in the backing store and the value just evicted from
 the cache, respectively. The associative condition allows us to merge
 aggregation functions like addition, max, min, set union, and set intersection.
 
-% resume at assoc condition
 \subsection{The linear-in-state condition}
 \label{sec:linear-in-state-description}
 
@@ -109,114 +108,109 @@ function updates the EWMA $s$ as follows:
 We initialize $s$ to $s_0$. Suppose a flow $F$
 is evicted from the on-chip cache for the first time and written to the backing
 store with an EWMA of $s_{backing}$.\footnote{When a flow is first evicted, it does
-not need to be merged.} The first packet from $F$ after $F$'s eviction is
-processed like a packet from a new flow in the on-chip cache, starting with the
-state $s_0$. Assume that $N$ packets from $F$ then hit the on-chip cache,
-resulting in the EWMA going from $s_0$ to $\scache$.
-Then, the correct EWMA $s_{correct}$ (\ie for all packets seen up to this point) satisfies:
+not need to be merged.}
+
+The first packet from $F$ after $F$'s first eviction is processed like a packet
+from a new flow in the on-chip cache, starting with the state $s_0$. Assume
+that $N$ packets from $F$ then hit the on-chip cache, resulting in the EWMA
+going from $s_0$ to $\scache$.  Then, the correct EWMA $s_{correct}$ (\ie for
+all packets seen up to this point) satisfies:
 \begin{align*}
 s_{correct} - (1-\alpha)^N s_{backing} &= \scache - (1-\alpha)^N s_0 \\
 s_{correct} &= \scache + (1-\alpha)^N(s_{backing} - s_0)
 \end{align*}
-So, the correct EWMA can be obtained by: (1) having the on-chip cache store
-$(1-\alpha)^N$ as auxiliary state for each flow after each update, and
+Therefore, the correct EWMA can be obtained by: (1) having the on-chip cache
+store $(1-\alpha)^N$ as auxiliary state for each flow after each update, and
 (2) adding $(1-\alpha)^N(s_{backing} - s_0)$ to $\scache$ when merging
 $\scache$ with $s_{backing}$.
 
-We can generalize this example. Let $\mathbf{p}$ be a
-vector with the headers and performance metadata from the last $k$
-packets of a flow, where $k$ is an integer determined at query
-compile time (\S\ref{sec:linear-in-state-compilation}).
-We can merge any aggregation function with state updates of the form
-$\boldsymbol{S} = \boldsymbol{A}(\mathbf{p}) \cdot
-\boldsymbol{S} + \boldsymbol{B}(\mathbf{p})$, where
-$\boldsymbol{S}$ is the state, and
-$\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ are
-functions of the last $k$ packets. We call this condition the
-{\em linear-in-state} condition and say that $\boldsymbol{A}(\mathbf{p})$
-and $\boldsymbol{B}(\mathbf{p})$ are functions of {\em
-bounded packet history.}
+We can generalize this example. Let $\mathbf{p}$ be a vector with the headers
+and performance metadata from the last $k$ packets of a flow, where $k$ is an
+integer determined at query compile time
+(\S\ref{sec:linear-in-state-compilation}).  We can merge any aggregation
+function with state updates of the form $\boldsymbol{S} =
+\boldsymbol{A}(\mathbf{p}) \cdot \boldsymbol{S} + \boldsymbol{B}(\mathbf{p})$,
+where $\boldsymbol{S}$ is the state, and $\boldsymbol{A}(\mathbf{p})$ and
+$\boldsymbol{B}(\mathbf{p})$ are functions of the last $k$ packets. We call
+this condition the {\em linear-in-state} condition and say that
+$\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ are functions of
+{\em bounded packet history.}
 
-The requirement of bounded packet history is important.
-Consider the TCP non-monotonic query from \Fig{example-perf-queries}, which
-counts the number of packets with sequence numbers smaller than the maximum
-sequence number seen so far. The aggregation can be expressed as
-\begin{lstlisting}
-count = count + (maxseq > tcpseq) ? 1 : 0
-\end{lstlisting}
-While the update superficially resembles $\boldsymbol{A}(\mathbf{p}) \cdot \boldsymbol{S} +
-\boldsymbol{B}(\mathbf{p})$, the coefficient $\boldsymbol{B}(\mathbf{p})$ is a function of {\ct
-maxseq}, the maximum sequence number so far, which could be arbitrarily far
-back in the stream.
-%
-Intuitively, since $\boldsymbol{B}(\mathbf{p})$ is not a function of bounded packet history,
-the auxiliary state required to merge {\ct count} is large.
-\Sec{unifies} formalizes this intuition.
+ We say that an aggregation function is linear-in-state if, for every variable
+in the function, the state update satisfies the linear-in-state condition. A
+query is linear-in-state if all its aggregation functions are linear-in-state.
+Merging queries that are linear-in-state requires the router to store the first
+$k$ and most recent $k$ packets for the key since it (re)appeared in the
+key-value store; Appendix~\ref{app:merge} describes the merge procedure for
+such queries in detail.
 
-In contrast, the slightly modified TCP out-of-sequence query from \Fig{example-perf-queries} {\em is}
-linear-in-state because it can be written as
-\begin{lstlisting}
-count = count + (lastseq > tcpseq) ? 1 : 0
-\end{lstlisting}
-where {\ct lastseq}, the previous packet's sequence number, depends only on the last 2 packets: the current and the previous packet. Here,
-$\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ are functions of bounded packet history,
-with $k = 2$.
-%  This is in contrast to {\ct maxseq}, which depends on all packets seen so far.
+We now explain why the requirement of bounded packet history is important using
+real queries.  Consider the TCP non-monotonic query from
+Figure~\ref{fig:example-perf-queries}, which counts the number of packets with
+sequence numbers smaller than the maximum sequence number seen so far. The
+aggregation can be expressed as \begin{lstlisting} count = count + (maxseq >
+tcpseq) ? 1 : 0 \end{lstlisting} While the update superficially resembles
+$\boldsymbol{A}(\mathbf{p}) \cdot \boldsymbol{S} + \boldsymbol{B}(\mathbf{p})$,
+the coefficient $\boldsymbol{B}(\mathbf{p})$ is a function of {\ct maxseq}, the
+maximum sequence number so far. This could be arbitrarily far back in the
+stream, and hence $\boldsymbol{B}$ here is not a function of bounded packet
+history. Intuitively, since $\boldsymbol{B}(\mathbf{p})$ is not a function of
+bounded packet history, the auxiliary state required to merge {\ct count} is
+large. We formalize this intuition in \S\ref{sec:unifies}.
 
-Merging queries that are linear-in-state requires the router to store
-the first $k$ and most recent $k$ packets
-for the key since it (re)appeared in the key-value store; details are
-available in the appendix (Appendix~\ref{app:merge}).
-
-An aggregation function is linear-in-state
-if, for every variable in the function, the state update
-satisfies the linear-in-state condition. A query is linear-in-state
-if all its aggregation functions are linear-in-state.
+In contrast, the slightly modified TCP out-of-sequence query from
+Figure~\ref{fig:example-perf-queries} {\em is} linear-in-state because it can
+be written as \begin{lstlisting} count = count + (lastseq > tcpseq) ? 1 : 0
+\end{lstlisting} where {\ct lastseq}, the previous packet's sequence number,
+depends only on the last 2 packets: the current and the previous packet. Here,
+$\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ are functions of
+bounded packet history, with $k = 2$. This is in contrast to {\ct maxseq},
+which depends on all packets seen so far.
 
 \subsection{Scalable aggregation functions}
 \label{sec:scalable}
-A {\ct groupby} with no {\ct emit()} and a linear-in-state (or associative) aggregation function
-can be implemented scalably without losing accuracy. Examples of such
-aggregations (from \Fig{example-perf-queries}) include tracking successive
-packets within a TCP connection that are out-of-sequence and counting the
-number of TCP timeouts per connection.
-%
+A {\ct groupby} with no {\ct emit()} and a linear-in-state (or associative)
+aggregation function can be implemented scalably without losing accuracy.
+Examples of such aggregations from Figure~\ref{fig:example-perf-queries}
+include tracking successive packets within a TCP connection that are
+out-of-sequence and counting the number of TCP timeouts per connection.
 
- If a
-{\ct groupby} uses an {\ct emit()} to pass tuples to another query, it cannot be
-implemented scalably even if its aggregation function is linear-in-state or associative. An {\ct emit()} outputs the current state of the
-aggregation function, which assumes the current state is always available in
-the router's on-chip cache. This is only possible if flows are never evicted,
-effectively shrinking the key-value store to its on-chip cache alone.
+ If a {\ct groupby} uses an {\ct emit()} to pass tuples to another query, it
+cannot be implemented scalably even if its aggregation function is
+linear-in-state or associative. An {\ct emit()} outputs the current state of
+the aggregation function, which assumes the current state is always available
+in the router's on-chip cache. This is only possible if flows are never
+evicted, effectively shrinking the key-value store to its on-chip cache alone.
 
 \subsection{Handling non-scalable aggregations}
 \label{sec:workaround-nonscalable}
 While the linear-in-state and associative conditions capture several
 aggregation functions and enable a scalable implementation, there are two
 practical classes of queries that we cannot scale: (1) queries with aggregation
-functions that are neither associative nor linear-in-state and (2) queries where
-the groupby has an {\ct emit()} statement.
+functions that are neither associative nor linear-in-state and (2) queries
+where the groupby has an {\ct emit()} statement.
 
 An example of the first class is the TCP non-monotonic query discussed earlier.
-An example of the second class is the flowlet size histogram
-query from~\Fig{example-perf-queries}, where the first {\ct groupby} emits
+An example of the second class is the flowlet size histogram query from
+Figure~\ref{fig:example-perf-queries}, where the first {\ct groupby} emits
 flowlet sizes, which are grouped into buckets by the second {\ct groupby}.
 
 There are workarounds for non-scalable queries. One is to rewrite queries to
 remove {\ct emit()}s.  For instance, we can rewrite the loss rate query
-(\Fig{example-perf-queries}) to independently record the per-flow counts for
-dropped packets and total number of packets in separate key-value stores, and
-have an operator consult both key-value stores every time they need the loss
-rate. Each key-value store can be scaled, but the implementation comes at a
-transient loss of accuracy relative to precisely tracking the loss rate after
-every packet using a {\ct zip.} Second, an operator may be content with flow
-values that are accurate for each time period between two evictions, but not
-across evictions (\Fig{accuracy-time}). Third, an operator may want to run a
-query to collect data until the on-chip cache fills up and then stop data
-collection.  Finally, if the number of keys is small enough to fit in the cache
-(\eg if the key is an application type), the system can provide accurate
-results without evicting any keys.
+(Figure~\ref{fig:example-perf-queries}) to independently record the per-flow
+counts for dropped packets and total number of packets in separate key-value
+stores. An operator can then consult both key-value stores every time they need
+the loss rate. Each key-value store can be scaled, but the implementation comes
+at a transient loss of accuracy relative to precisely tracking the loss rate
+after every packet using a {\ct zip.} Second, an operator may be content with
+flow values that are accurate for each time period between two evictions, but
+not across evictions (Figure~\ref{fig:accuracy-time}). Third, an operator may
+want to run a query to collect data until the on-chip cache fills up and then
+stop data collection.  Fourth, if the number of keys is small enough to fit in
+the cache (\eg if the key is an application type), the system can provide
+accurate results without evicting any keys.
 
+%resume
 \subsection{A unified condition for mergeability}
 \label{sec:unifies}
 We present a general condition that separates mergeable functions from
