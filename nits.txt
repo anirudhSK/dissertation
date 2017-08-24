@@ -55,3 +55,4 @@ We should just stick with single pipeline throughout and make the shared memory 
 * make sure tildes render properly
 * language-hardware co-design is more accurate than language-directed hardware design.
 * Do we really need table* and figure* or can we use table and figure everywhere?
+* stream vs. sequence. Be careful about what is used where.
