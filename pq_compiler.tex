@@ -6,7 +6,7 @@ model~\cite{p4-bmv2}, configured by emitting P4 code~\cite{p4_16}, and the
 Banzai machine model, configured by emitting Domino code
 (Chapter~\ref{chap:domino}).  In both cases, the emitted code configures a
 router pipeline, where each stage is a match-action table or our key-value
-store. Our current compiler does not consider the problem of reconfiguring the
+store. Our compiler does not consider the problem of reconfiguring the
 router pipeline on the fly as queries change.
 
 A preliminary pass of the compiler over the input query converts the query to

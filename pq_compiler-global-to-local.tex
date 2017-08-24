@@ -2,58 +2,54 @@
 \label{sec:network-to-router-local}
 
 The compiler partitions a network-wide query written over all packets at all
-queues in the network (\Sec{language}) into router-local queries to generate
-router-specific configurations. We achieve this in two steps. First, we
-determine the {\em stream location}, \ie the set of routers that contribute
-tuples to a stream, for the final output stream of query. For instance, the
-output stream of a query that filters by router id $s$ has a stream location
-equal to the singleton set $s$. Second, we determine how to partition queries
-with aggregation functions written over the entire network into router-local
-queries.
-\Anirudh{Mohammad said he didn't get some sentence here. I don't know if it was
-the first or second :). NG, can you read the above paragraph once carefully.}
+queues in the network (\S\ref{sec:language}) into router-local queries, which
+are then transformed into router-specific configurations. We achieve this in
+two steps. First, we determine the {\em stream location}, \ie the set of
+routers that contribute tuples to a stream, for the final output stream of
+query. For instance, the output stream of a query that filters by router id $s$
+has a stream location equal to the singleton set $s$. Second, we determine how
+to partition queries with aggregation functions written over the entire network
+into router-local queries.
 
-
-\Para{Determining stream location for the final output stream.} The stream
-location of {\ct \pktlog} is the set of all routers in the network. The stream
-location of the output of a {\ct filter} is the set of routers implied by the
-filter's predicate. Concretely, we evaluate the set of routers contributing
+\Para{Determining stream location for the final output stream.} To start with,
+the stream location of {\ct \pktlog} is the set of all routers in the network.
+The stream location of the output of a {\ct filter} is the set of routers
+implied by the filter's predicate. We evaluate the set of routers contributing
 tuples to the output of a {\ct filter} operation through basic syntactic checks
 of the form {\ct router == X} on the {\ct filter} predicate.  We combine router
 sets for boolean combinators ({\ct or} and {\ct and}) inside filter predicates
-using set operations (union and intersection respectively). The stream location
-of the output
-of a {\ct zip} operator is the intersection of the stream locations of the two
-inputs.  Stream locations are unchanged by the {\ct map} and {\ct groupby}
-operators.
+using set union and intersection respectively.  The stream location of the
+output of a {\ct zip} operator is the intersection of the stream locations of
+the two inputs.  Stream locations are unchanged by the {\ct map} and {\ct
+groupby} operators.
 
 The stream locations for the running example are shown in
-\Fig{compiler-ast-manipulations}b. The stream location of {\ct \pktlog} is
-the set of all network routers, but is restricted to just {\ct S1} and {\ct
-S2} by the {\ct filter} in the query (left branch). This location is then propagated
+\Fig{compiler-ast-manipulations}b. The stream location of {\ct \pktlog} is the
+set of all network routers, but is restricted to just {\ct S1} and {\ct S2} by
+the {\ct filter} in the query (left branch). This location is then propagated
 to the root of the AST through the {\ct zip} operator in the query.
 
 \Para{Partitioning network-wide aggregations.}
 As described in \S\ref{sec:language}, we only permit aggregations that satisfy
-one of three conditions: they operate independently on each router, operate
-independently on each packet, or are associative and commutative.
-We describe below how we
-check the first condition, failing which we simply check the last two
-conditions syntactically: either the {\ct groupby} aggregates by {\ct uid}
-(condition 2) or contains programmer annotations {\ct assoc} and {\ct comm}
-(condition 3).
+one of three conditions: (1) they operate independently on each router, (2)
+operate independently on each packet, or (3) are associative and commutative.
+We describe below how we check the first condition, failing which we check the
+last two conditions syntactically: either the {\ct groupby} aggregates by {\ct
+uid} (condition 2) or contains programmer annotations {\ct assoc} and {\ct
+comm} (condition 3).
 
-%TODO: The stuff on top still needs to be rewritten ...
+%TODO: What does operate indep. mean?
+%TODO: Need to explain what partitioned means ...
 To check if an aggregation operates independently on each router, we label each
-AST node with an additional boolean attribute, {\em router-partitioned},
-corresponding to whether the output stream has been partitioned by the router
-at which it appears. Intuitively, if a stream is router-partitioned, we allow
+AST node with a boolean attribute, {\em router-partitioned}, corresponding to
+whether the output stream has been partitioned by the router at which it
+appears. Intuitively, if a stream is router-partitioned, we allow
 packet-order-dependent aggregations over multiple packets of that stream;
 otherwise, we do not.
 
 Determining and propagating {\em router-partitioned} through an AST is
 straightforward. The base {\ct \pktlog} is not router-partitioned. The {\ct
-  filter} and {\ct zip} operators produce a router-partitioned stream if their
+filter} and {\ct zip} operators produce a router-partitioned stream if their
 output only appears at a single router. The {\ct groupby} produces a
 router-partitioned stream if it aggregates by {\ct router.} In all other cases,
 the operators retain the operands' router-partitioned attribute.
@@ -61,6 +57,9 @@ the operators retain the operands' router-partitioned attribute.
 The router-partitioned attributes for our running example are shown in
 \Fig{compiler-ast-manipulations}c. The {\ct filter} produces output streams at
 two routers, hence is not router-partitioned. The {\ct groupby} aggregates by
-{\ct router} and hence is router-partitioned. After the partitioning checks have
-succeeded, we are left with a set of independent router-local ASTs corresponding
-to each router location that the AST root operator appears in, \ie {\ct S1, S2}.
+{\ct router} and hence is router-partitioned.
+
+%TODO: How does the paragraph below happen?
+After the partitioning checks have succeeded, we are left with a set of
+independent router-local ASTs corresponding to each router location that the
+AST root operator appears in, \ie {\ct S1, S2}.
