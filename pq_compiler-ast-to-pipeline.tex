@@ -1,38 +1,38 @@
 \subsection{Query AST to pipeline configuration}
 \label{sec:pipeline-layout}
 
-%TODO: We don't actually say how this router-local query AST was generated.
 This compiler pass first generates a sequence of operators from the
-router-local query AST of \Sec{network-to-router-local}. This sequence of
-operators will then be used in the same order to generate a router pipeline
+router-local query AST of \S\ref{sec:network-to-router-local}. This sequence of
+operators is then used in the same order to generate a router pipeline
 configuration. There are two aspects that require care when constructing a
 pipeline structure: (1) the pipeline should respect read-write dependencies
-between different operators, and (2) repeated subqueries should not create
-additional pipeline stages. We generate a sequence through a post-order
-traversal of the query AST, which guarantees that the operands of a node are
-added into the pipeline before the operator in the node. Further, we
-deduplicate subquery results from the pipeline to avoid repeating stages in the
-final output. For the running example, the algorithm produces the sequence of
-operators: {\ct tcps} ({\ct filter}) $\rightarrow$ {\ct tslots} ({\ct map})
-$\rightarrow$ {\ct joined} ({\ct zip}) $\rightarrow$ {\ct oos} ({\ct groupby}).
+between different streams, and (2) repeated subqueries should not be
+re-executed by creating additional pipeline stages.
 
-%TODO: How do you turn the sequence into a pipeline?
-Next, the compiler emits P4 code for a router pipeline
-from the operator sequence.  The {\ct filter} and {\ct zip} configuration just
-involves checking a predicate and setting a ``valid'' bit on the packet
-metadata. The {\ct map} configuration assigns a packet metadata field to the
-computed expression. The {\ct groupby} configuration uses a register that is
-indexed by the aggregation fields, and is updated through the action specified
-in the aggregation function. We transform \TheSystem aggregation functions into
-straight-line code consisting of C-style conditional operators through a
-standard procedure known as if-conversion~\cite{if-conversion}. This allows us
-to fit the aggregation function into the body of a single P4 action.
+We generate a sequence of operators through a post-order traversal of the query
+AST, which guarantees that the operands of a node are added into the pipeline
+before the operator in the node, thereby respecting read-write dependencies.
+Further, we deduplicate subquery results from the pipeline to avoid repeating
+stages in the final output. For the running example, the algorithm produces the
+sequence of operators: {\ct tcps} ({\ct filter}) $\rightarrow$ {\ct tslots}
+({\ct map}) $\rightarrow$ {\ct joined} ({\ct zip}) $\rightarrow$ {\ct oos}
+({\ct groupby}).
 
-To target the Banzai router pipeline simulator~\cite{domino_sigcomm}, the
-\TheSystem compiler emits Domino code by concatenating C-like code fragments
-from all pipeline stages into a single Domino program. The Domino compiler then
-takes this program and compiles it to a pipeline of Banzai {\em atoms.} Atoms
-are ALUs representing a programmable router's instruction set. Atoms implement
-either stateless (\eg incrementing a packet field) or stateful (\eg atomically
-incrementing a router counter) computations.
+Next, the compiler emits P4 code for a router pipeline from the operator
+sequence.  The {\ct filter} and {\ct zip} configuration just involves checking
+a predicate and setting a ``valid'' bit on the packet metadata. The {\ct map}
+configuration assigns a packet metadata field to the computed expression. The
+{\ct groupby} configuration uses a P4 register that is indexed by the
+aggregation fields. The state located at a particular register index is updated
+through a P4 action representing the aggregation function.
 
+%%We transform
+%%\TheSystem aggregation functions into straight-line code consisting of C-style
+%%conditional operators through a standard procedure known as
+%%if-conversion~\cite{if-conversion}. This allows us to fit the aggregation
+%%function into the body of a single P4 action.
+
+To target the Banzai machine model (\S\ref{s:absmachine}), the \TheSystem
+compiler emits C-like code fragments for each pipeline stage and then
+concatenates these fragments together into a single Domino program. The Domino
+compiler then takes this program and compiles it to a pipeline of Banzai atoms.
