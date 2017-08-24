@@ -8,45 +8,42 @@ groupby}), transform packet fields ({\ct map}), stream only packets matching a
 predicate ({\ct filter}), or merge packets that satisfy two previous queries
 ({\ct zip}).
 
-Of the four language constructs, {\ct map}, {\ct filter},
-and {\ct zip}, are {\em stateless}: they operate on packet fields alone and do not
-modify router state. Such stateless manipulations are already supported on
+Of these four language constructs, three ({\ct map}, {\ct filter}, and {\ct
+zip}) are {\em stateless}: they operate on packet fields alone and do not
+modify router state. Such stateless manipulations are already supported by
 emerging programmable routers that support programmable packet header
 processing~\cite{rmt, xpliant, flexpipe, tofino}. On the other hand, the {\ct
-groupby} construct needs to maintain and update state on routers.
+groupby} construct needs to maintain and update router state on a per-flow
+basis.
 
 %It is the
 %most powerful of our language constructs and captures the kind of complex
 %processing typically seen at end hosts.
 
-Stateful manipulation on a router for a {\ct groupby} is challenging for two reasons. First, the
-time budget to update state before the next packet arrives can be as low as a
-nanosecond on high-end routers~\cite{domino_sigcomm}. Second, the router needs
-to maintain state proportional to the number of aggregated records (\eg per flow), which may grow unbounded
-with time. We address both challenges using a programmable key-value store in
-hardware, where the keys represent aggregation fields and values
-represent the state being updated by the aggregation function.
-Our key-value store has a `split' design: a small and fast
-on-chip key-value store on the router processes packets at line rate, while a
-large and slow off-chip backing store allows us to scale to a large number of
+Stateful manipulation on a router for a {\ct groupby} is challenging for two
+reasons. First, the time budget to update state before the next packet arrives
+at a router can be as low as 1 ns on high speed routers~\cite{domino_sigcomm}.
+Second, the router needs to maintain state proportional to the number of
+aggregated records (\eg per flow), which may grow unbounded with time. We
+address both challenges using a programmable key-value store in hardware. The
+keys represent aggregation fields (\eg the five tuple) and the values represent
+the state being updated by the aggregation function (\eg a packet or byte
+counter). 
+
+However, memories can either be fast and small (SRAM) or slow and large (DRAM),
+but not both. Hence, our key-value store has a `split' design.  A small and
+fast on-chip key-value store on the router's on-chip SRAM processes packets at
+the router's line rate. This on-chip key-value store serves as a cache for a
+large and slow off-chip backing store in DRAM that can hold a large number of
 flows.
 
-High-speed router ASICs typically feature an ingress and egress pipeline
-shared across multiple ports, running at a 1 GHz clock rate to support up to a
-billion 64-byte packets per second of aggregate capacity~\cite{rmt}.  To handle
-state updates from packets arriving at 1 GHz, the on-chip key-value store must
-be in SRAM on the router ASIC. However, the SRAM available for monitoring on an
-ASIC (\Sec{eval:traces}) is restricted to tens of Mbits (about 10K--100K flows).
-
-To scale to a larger number of flows, the on-chip key-value store serves as a
-cache for the larger off-chip backing store. In traditional cache designs,
-cache misses require accessing off-chip DRAM with non-deterministic
-latencies~\cite{unpredictable_cache} to read off the stored state. Because the
-aggregation operation requires us to read the value in order to update it, the
-entire state update operation incurs non-deterministic latencies in the
-process.  This results in stalls in the router pipeline. Unfortunately,
-pipeline stalls affect the ability to provide guarantees on line-rate
-packet processing (10--100 Gbit/s) on all ports.
+ In traditional cache designs, cache misses require accessing off-chip DRAM
+with non-deterministic latencies~\cite{unpredictable_cache} to read out the
+stored state. Because the aggregation operation requires us to read the value
+in order to update it, the entire state update operation incurs
+non-deterministic latencies in the process.  This results in stalls in the
+router pipeline. Unfortunately, pipeline stalls affect the ability to provide
+guarantees on line-rate packet processing (10--100 Gbit/s) on all router ports.
 
 \begin{figure}
 \includegraphics[width=\columnwidth]{pq_kv_store.pdf}
@@ -54,48 +51,54 @@ packet processing (10--100 Gbit/s) on all ports.
 \label{fig:kv}
 \end{figure}
 
-We design our key-value store to process packets at line rate even on cache
-misses (\Fig{kv}). Instead of stalling the pipeline waiting for a result from
-DRAM, we treat the incoming packet as the first packet from a new flow and
-initialize the flow's state to an initial value. Subsequent packets from the
-same flow are aggregated within the newly created flow entry in the key-value
-store, until the flow is evicted. When it is evicted, we merge the flow's value
-just before eviction with its value in the backing-store using a {\em merge
-function}, and write the merged result to the backing store. In our design, the
-router only writes to the backing store but never reads from it, which helps
-avoid non-deterministic latencies.  The backing store may be
-stale relative to the on-chip cache if there have been no recent evictions. We
-remedy this by forcing periodic evictions.
+To avoid such non-determinism, we design our key-value store to process packets
+at the router's line rate even on cache misses (Figure~\ref{fig:kv}). Instead
+of stalling the pipeline waiting for a result from DRAM, we treat the incoming
+packet as the first packet from a new flow and initialize the flow's state to
+an initial value.  Subsequent packets from the same flow are aggregated within
+the newly created flow entry in the key-value store, until the flow is evicted.
+When the flow is eventually evicted, we merge the flow's value just before
+eviction with its value in the backing-store using a {\em merge function}, and
+write the merged result to the backing store.
 
-To merge a flow's new aggregated value in the router cache with its old value in the backing store
-correctly, the cache needs to maintain and send {\em auxiliary state} to the
-backing store.  A \naive usage of auxiliary state is to store relevant fields
-from every packet of a flow, so that the backing store can simply run the
-aggregation function over the entire packet stream when merging.  However, in a
-practical implementation, the auxiliary state should be bounded in size and not
-grow with the number of packets in the flow. Over the next four subsections, we
-describe two classes of queries that are {\em mergeable} with a small amount of
-auxiliary state (\S\ref{sec:associative} and
-\S\ref{sec:linear-in-state-description}), discuss queries that are not
+In our design, the router only writes to the backing store during evictions,
+which is off the critical path of packet processing. Importantly, it never
+reads from the backing store during cache misses, which is on the critical path
+of packet processing. This helps us avoid non-deterministic latencies.  The
+backing store may be stale relative to the on-chip cache if there have been no
+recent evictions. We remedy this by forcing periodic evictions.
+
+To merge a flow's new aggregated value in the cache with its old value in the
+backing store, the cache needs to maintain and send {\em auxiliary state} to
+the backing store during evictions.  A \naive usage of auxiliary state is to
+store relevant fields from every packet of a flow, so that the backing store
+can simply run the aggregation function over all the newly received packets when
+merging.  However, in a practical implementation, the auxiliary state should be
+bounded in size and not grow with the number of packets in the flow.
+
+Over the next four subsections, we describe two classes of queries that are
+{\em mergeable} with a small amount of auxiliary state (\S\ref{sec:associative}
+and \S\ref{sec:linear-in-state-description}), discuss queries that are not
 mergeable (\S\ref{sec:workaround-nonscalable}), and provide a general condition
-for mergeability that unifies the two classes of mergeable queries and 
+for mergeability that unifies the two classes of mergeable queries and
 separates them from non-mergeable queries (\S\ref{sec:unifies}).
 %TODO: Consider adding Amy's Venn diagram
 
 \subsection{The associative condition}
 \label{sec:associative}
 
-A simple class of mergeable aggregations is associative functions.
-Suppose the aggregation function on state $s$ is $s = op(s, f)$,
-where $op$ is an associative operation and $f$ is a packet field. Then, if $op$
-has an identity element $I$ and a flow's default value on insertion is $s_0 =
-I$, it is easy to show that this function can be merged using the function
-$op(s_{backing}, \scache)$, where $s_{backing}$ and $\scache$ are the value in
-the backing store and the value just evicted from the cache, respectively. The
-associative condition allows us to merge aggregation functions like addition,
-max, min, set union, and set intersection.
-% \MA{Consider defining identity element as a footnote}
+A simple class of mergeable aggregations is the class of associative functions.
+Suppose the aggregation function on state $s$ is $s = op(s, f)$, where $op$ is
+an associative operation and $f$ is a packet field. Then, if $op$ has an
+identity element $I$\footnote{An identity element $I$ for an operation $op$ is
+an element such that $op(s, I) = s \forall s$.} and a flow's default value on
+insertion is $s_0 = I$, it is easy to show that this function can be merged
+using the function $op(s_{backing}, \scache)$, where $s_{backing}$ and
+$\scache$ are the value in the backing store and the value just evicted from
+the cache, respectively. The associative condition allows us to merge
+aggregation functions like addition, max, min, set union, and set intersection.
 
+% resume at assoc condition
 \subsection{The linear-in-state condition}
 \label{sec:linear-in-state-description}
 
