@@ -2,10 +2,11 @@
 \label{sec:eval}
 
 \input{pq_examples}
+
 We evaluate \TheSystem in three ways. In \Sec{eval:hardware}, we quantify the
-hardware resources required for \TheSystem queries. In
-\Sec{eval:traces}, we measure the memory-eviction tradeoff for the key-value
-store. In \Sec{eval:mininet} and \Sec{eval:mininet-flowlet}, we show two case
+number of Banzai atoms required for \TheSystem queries. In \Sec{eval:traces},
+we quantify the memory size vs. eviction rate tradeoff for the key-value store.
+In \Sec{eval:mininet} and \Sec{eval:mininet-flowlet}, we describe two case
 studies that use \TheSystem compiled to the P4 behavioral model running on
 Mininet: debugging microbursts~\cite{tpp} and computing flowlet size
 distributions.
