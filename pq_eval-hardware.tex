@@ -2,49 +2,36 @@
 \label{s:eval:hardware}
 \label{sec:eval:hardware}
 
-\Fig{example-perf-queries} shows several \TheSystem queries. Alongside each
-query, we show (1) whether all its aggregations are linear-in-state, (2)
+Table~\ref{tab:example-perf-queries} shows several \TheSystem queries.  Next to
+each query, we show (1) whether all its aggregations are linear-in-state, (2)
 whether it can be scaled by merging correctly with a backing store, and (3) the
 router resources required, measured through the pipeline depth (number of
-stages), width (maximum number of parallel computations per stage), and
-number of Banzai atoms (total number of computations) required.
-%
-%% Atoms are processing units or ALUs representing a programmable router's
-%% instruction set.
-%
-%% An atom models an atomic unit of computation provided natively by a
-%% programmable router and can implement either a stateless (\eg incrementing a
-%% packet field) or stateful (\eg incrementing a router counter) computation.
+stages), pipeline width (maximum number of parallel computations per stage),
+and the number of Banzai atoms (total number of computations).
 
-\Fig{example-perf-queries} shows that many useful queries contain only
-linear-in-state aggregations, and most of them scale to a large number of keys
+Table~\ref{tab:example-perf-queries} shows that many useful queries contain
+only linear-in-state aggregations, and many of them can be implemented scalably
 (\Sec{linear-in-state-description}). Notably, the flowlet size histogram and
 lossy connection queries are not scalable despite being linear-in-state, since
 they contain {\ct emit()} statements.  In \Sec{workaround-nonscalable}, we
-showed how to rewrite some of these queries (\eg lossy connections) to scale, at
-the cost of losing some accuracy.
+showed how to rewrite some of these queries (\eg lossy connections) to scale,
+at the cost of losing some accuracy.
 
-We compute the pipeline's depth and width by compiling each query to the Banzai
-router pipeline simulator. Banzai is supplied
-with stateless atoms, which perform binary operations (arithmetic, logic, and
-relational) on pairs of packet fields, and one stateful atom. For the
-linear-in-state operations, we use the multiply-accumulate atom as the stateful
-atom, while for the other operations, we use Banzai's own NestedIf atom~\cite{domino_sigcomm}. The Domino compiler determines whether the input
-program can be mapped to a pipeline with the specified atoms. As expected, all
-the linear-in-state queries map to a pipeline with the multiply-accumulate
-atom.
+We compute the pipeline's depth and width by compiling each query to Banzai
+using the Domino compiler. When compiling each query, Banzai is supplied with a
+single stateless atom type, which perform binary operations (arithmetic, logic,
+and relational) on pairs of packet fields, and a stateful atom type depending
+on the type of the query.  For the linear-in-state queries, we use the
+multiply-accumulate atom as the stateful atom, while for the other operations,
+we use the NestedIf atom (Table~\ref{tab:templates}). As expected, all the
+linear-in-state queries compile to a pipeline with the multiply-accumulate
+atom; for all the queries that are not linear-in-state, the NestedIf atom turns
+out to be sufficiently expressive.
 
 The computational resources required for \TheSystem queries are modest.  All
-queries in \Fig{example-perf-queries} require a pipeline shorter than 11 stages.
-This is feasible, \eg the
-RMT architecture offers 32 stages~\cite{rmt}. Further, functionality other than
-measurement can run in parallel
-because the number of atoms required per stage is at most 6, while
-programmable routers provide \textasciitilde{}100 parallel instructions per stage
-(\eg RMT provides 224~\cite{rmt}).
-
-%\Anirudh{the sentence below is redundant because once you know that you're well within
-%the stage depth and stage width limits, you know it's feasible.}
-%The atom count across all queries is at most 31.  Atom
-%circuits occupy small areas relative to the chip overall, so hundreds of atoms
-%can easily fit on a router~\cite{domino_sigcomm}.
+queries in Table~\ref{tab:example-perf-queries} require a pipeline shorter than
+11 stages.  This is feasible, \eg the RMT architecture offers 32
+stages~\cite{rmt}. Further, functionality other than measurement can run in
+parallel in each stage because the number of atoms required per stage is at
+most 6, while programmable routers provide a few 100 parallel instructions per
+stage (\eg RMT provides 224~\cite{rmt}).
