@@ -1,32 +1,34 @@
 \subsection{Handling linear-in-state aggregations}
 \label{sec:linear-in-state-compilation}
 
-We now consider the problem of detecting if an aggregation function is
-linear-in-state (\ie updates to all state variables within the aggregation
-function can be written as
-$S = \boldsymbol{A}(\mathbf{p}) \cdot S + \boldsymbol{B}(\mathbf{p})$).
-A general solution to
-this problem is challenging because the aggregation function can take varied
-forms. For instance, the assignment $S = \frac{S^2 - 1}{S -1}$ is
-linear-in-state but needs algebraic simplifications to be detected.
+We now consider the problems of detecting if an aggregation function is
+linear-in-state and setting up auxiliary state for such linear-in-state
+aggregation functions (Figure~\ref{fig:compiler-steps}). Recall that an
+aggregation function is linear-in-state if the updates to all state variables
+within the aggregation function can be written as $S =
+\boldsymbol{A}(\mathbf{p}) \cdot S + \boldsymbol{B}(\mathbf{p})$).  A general
+solution to this problem is challenging because the aggregation function can
+take varied forms. For instance, the assignment $S = \frac{S^2 - 1}{S -1}$ is
+linear-in-state, but detecting that it is linear-in-state needs the compiler to
+perform algebraic simplifications.
 
 We take a pragmatic approach and sacrifice completeness, but still cover useful
 functions. Specifically, we only detect linear-in-state state updates through
-simple syntactic pattern matching in the compiler (\ie 
-without algebraic transformations).  Despite these simplifications, the \TheSystem
-compiler correctly identifies all the linear-in-state aggregations in
-\Fig{example-perf-queries} and targets the multiply-accumulate
-instruction that we added to the Banzai pipeline.
+simple syntactic pattern matching in the compiler (\ie without any algebraic
+transformations).  Despite these simplifications, the \TheSystem compiler
+correctly identifies all the linear-in-state aggregations in
+Figure~\ref{fig:example-perf-queries} and targets the multiply-accumulate atom
+that we added to the Banzai pipeline.
 
-To describe how linear-in-state detection works, we introduce some
-terminology.  Recall that an aggregation function takes two arguments
-(\S\ref{sec:language}): a list of state variables (\eg a counter) and a list of
-tuple fields (\eg the TCP sequence number). We use the term variable in this
-subsection to refer to either a state variable or a tuple field. These are the only variables that can appear within the body
-of the aggregation function.\footnote{\TheSystem supports local variables within
-  the function body, but the more general algorithm is not materially
-  different from the simpler version we present here.}
-%% local variables defined within the body of the function.
+To describe how linear-in-state detection works, we introduce some terminology.
+Recall that an aggregation function takes two arguments (\S\ref{sec:language}):
+a list of state variables (\eg a counter) and a list of tuple fields (\eg the
+TCP sequence number). We use the term variable in this subsection to refer to
+either a state variable or a tuple field. These are the only variables that can
+appear within the body of the aggregation function.\footnote{\TheSystem
+supports local variables within the function body, but the more general
+algorithm is not materially different from the simpler version we present
+here.}
 
 \begin{figure}
 \centering
@@ -36,6 +38,8 @@ of the aggregation function.\footnote{\TheSystem supports local variables within
 \caption{Steps for compiling linear-in-state updates.}
 \label{fig:compiler-steps}
 \end{figure}
+
+%resume
 
 We carry out a three-step procedure for linear-in-state
 detection, summarized in \Fig{compiler-steps}.  First, for each variable in an
