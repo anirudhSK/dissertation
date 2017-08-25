@@ -39,45 +39,45 @@ here.}
 \label{fig:compiler-steps}
 \end{figure}
 
-%resume
-
-We carry out a three-step procedure for linear-in-state
-detection, summarized in \Fig{compiler-steps}.  First, for each variable in an
-aggregation function we assign a {\em history}.  This history tells us how many
-previous packets we need to look at to determine a variable's value accurately
-(history = 1 means the current packet). For instance, for the value of a byte
-counter, we need to look back to the beginning of the packet stream (history =
-$\infty$), while for a variable that tracks the last TCP sequence number
-we need to only look back to the previous packet (history = 2). Consistent with
-the definition of history, constants are assigned a history value of 0, and
-variables in the tuple field list are assigned a history of 1. For state
-variables, we use \Alg{history} to determine each variable's history.
+We carry out a three-step procedure, summarized in
+Figure~\ref{fig:compiler-steps}.  First, for each variable in an aggregation
+function, we assign a {\em history}.  This history tells us how many previous
+packets we need to look at to determine a variable's value accurately (history
+= 1 means the current packet). For instance, for the value of a byte counter,
+we need to look back to the beginning of the packet stream (history =
+$\infty$), while for a variable that tracks the last TCP sequence number we
+need to only look back to the previous packet (history = 2). Consistent with
+the definition of history, constants are assigned a history of 0, and variables
+in the tuple field list are assigned a history of 1. For state variables, we
+use \Alg{history} to determine each variable's history.
 
 Second, once each variable has a history, we look at the history of each state
 variable $s$. If the history of $s$ is a finite number $k$, then $s$ only
-depends on the last $k$ packets and the state update for that variable is
+depends on the last $k$ packets. In this case, the state update for $s$ is
 trivially linear-in-state, by setting $A$ to 0 and $B$ to the aggregation
 function itself.\footnote{More precisely, the parts of the aggregation function
 that update $s$.} If $s$ has an infinite history, we use syntactic pattern
 matching to check if the update to $s$ is linear-in-state.
 
 Third, if all state variables have linear-in-state state updates, the
-aggregation function is linear-in-state, and we generate the auxiliary state
-that permits merging of the aggregation function (\S\ref{sec:aggregation}). If
-not, we use the set of stateful instructions developed in Domino~\cite{domino_sigcomm}
-to implement the aggregation function. We now describe each of the three steps
-in detail.
+aggregation function is linear-in-state. For such linear-in-state aggregations,
+we generate the auxiliary state that permits merging of the aggregation
+function (\S\ref{sec:aggregation}). If not, we use the set of stateful atoms
+developed in Domino (Table~\ref{tab:templates}) to implement the aggregation
+function. We now describe each of the three steps in detail.
 
-\Para{Determining history of variables.} To understand \Alg{history}, observe that if all
-assignments to a state variable only use variables that have a finite history,
-then the state variable itself has a finite history. For instance, in
-\Fig{running-example-code}, right after it is assigned, {\ct lastseq} has a history of 1 because it only
-depends on the current packet's fields {\ct tcpseq} and {\ct payload\_len}. To
-handle branching in the code, \ie {\ct if (predicate) \{...\}} statements, we
-generalize this observation. A state variable has finite history if  (1) it 
-has finite history in all its assignments in all branches of the program,
-and (2) each branching condition {\ct predicate} itself only depends on
-variables with a finite history.
+%resume here ...
+\Para{Determining history of variables.} We now describe \Alg{history} that
+assigns a history for every state variable. To motivate this algorithm, observe
+that if all assignments to a state variable only use variables that have a
+finite history, then the state variable itself has a finite history. For
+instance, in \Fig{running-example-code}, right after it is assigned, {\ct
+lastseq} has a history of 1 because it only depends on the current packet's
+fields {\ct tcpseq} and {\ct payload\_len}. To handle branching in the code,
+\ie {\ct if (predicate) \{...\}} statements, we generalize this observation. A
+state variable has finite history if  (1) it has finite history in all its
+assignments in all branches of the program, and (2) each branching condition
+{\ct predicate} itself only depends on variables with a finite history.
 
 Concretely, {\sc computeHistory} (line \ref{line:computeHistoryStart}) assigns each
 variable a history corresponding to an upper bound on the number of past
