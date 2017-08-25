@@ -11,32 +11,33 @@ In this section, we answer the following questions:
 
 \Para{Experimental setup.}  We simulate a \TheSystem query over three unsampled
 packet traces: two traces from \tenglink core Internet routers, one from
-Chicago (\textasciitilde{}150M packets) from 2016~\cite{caida2016}
-and one from San Jose (\textasciitilde{}189M packets) from
-2014~\cite{caida2014}; and a 2.5 hour university data-center trace
-(\textasciitilde{}100M packets) from 2010~\cite{bensonDC}. We refer to
-these traces as Core16, Core14, and DC respectively.
+Chicago (\textasciitilde{}150M packets) from 2016~\cite{caida2016} and one from
+San Jose (\textasciitilde{}189M packets) from 2014~\cite{caida2014}; and a 2.5
+hour university data-center trace (\textasciitilde{}100M packets) from
+2010~\cite{bensonDC}. We refer to these traces as Core16, Core14, and DC
+respectively.
 
 We evaluate the impact of memory size on cache evictions for a \TheSystem query
-that aggregates by \txtftuple.  As discussed in \Sec{hardware-feasibility}, our
-hardware design uses an 8-way LRU cache.  We also evaluate two other
-geometries: a hash table, which evicts the incumbent key upon a collision, and
-a fully associative LRU. Comparing our 8-way LRU with other hardware designs
-demonstrates the tradeoff between hardware complexity and eviction rate.
+that aggregates by \txtftuple.  As discussed in
+\S\ref{sec:hardware-feasibility}, our hardware design uses an 8-way LRU cache.
+We also evaluate two other geometries for the cache: a hash table, which evicts
+the incumbent key upon a collision, and a fully associative LRU. Comparing our
+8-way LRU with other hardware designs demonstrates the tradeoff between
+hardware complexity and eviction rate.
 
 \Para{Eviction ratios.}
-%TODO: Vikram, proof read paragraph under eviction ratios alone
-% I thought the parts about how a larger cache size reduced eviction rates for mergeable
-% and non-mergeable was a little tangential to our point here.
 Each evicted key-value pair is streamed to a backing store.  This requires the
-backing store to be able to process packets as quickly as they are evicted,
-which depends on the incoming packet rate and the eviction ratio, \ie the ratio
-of evicted packets to incoming packets.  The eviction ratio depends on the
-geometry of the on-chip cache, the packet trace, and the cache size (\ie the
-number of key-value pairs it stores). Hence, we measure eviction ratios over
-(1) the three geometries for the Core16 trace (\Fig{eviction-geo}), (2) the
-three traces using the 8-way LRU geometry (\Fig{eviction-traces}), and (3) for
-caches sizes between $2^{16}$ (65K) and $2^{21}$ (2M) key-value pairs.
+backing store to process packets as quickly as they are evicted, which depends
+on the incoming packet rate and the eviction ratio, \ie the ratio of evicted
+packets to incoming packets.  The eviction ratio depends on the geometry of the
+on-chip cache, the packet trace, and the cache size (\ie the number of
+key-value pairs it stores). Hence, we measure eviction ratios over (1) the
+three geometries for the Core16 trace (Figure~\ref{fig:eviction-geo}), (2) the
+three traces using the 8-way LRU geometry (Figure~\ref{fig:eviction-traces}),
+and (3) for caches sizes between $2^{16}$ (65K) and $2^{21}$ (2M) key-value
+pairs.
+
+% resume here
 
 \begin{figure}[!t]
 \centering
