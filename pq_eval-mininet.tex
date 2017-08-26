@@ -4,8 +4,7 @@
 
 To demonstrate \TheSystem in practice, we present a case study of diagnosing
 microbursts, which are spikes in latency caused by bursty transmissions of
-packets into a queue. We use the topology shown in
-Figure~\ref{fig:mininet-topo}.  Our setup in Mininet~\cite{mininet} consists of
+packets into a queue.  Our setup in Mininet~\cite{mininet} consists of
 four hosts ({\ct h1, h2, h3, h4}) and two routers ({\ct S1, S2}) in a dumbbell
 topology.  Router {\ct S1} is connected to {\ct h1} and {\ct h3}, and {\ct S2}
 to {\ct h2} and {\ct h4}.  The routers are connected via a single link and
@@ -20,12 +19,13 @@ diagnose the problem, she suspects a queue buildup in the routers and measures
 the queue depths seen by the traffic by writing: {\ct result = filter(\pktlog,
 srcip == h1 and dstip == h2).}
 
-\begin{figure}[ht]
-\centering
-\includegraphics[width=0.4\columnwidth]{mininet-topo.pdf}
-\caption{Mininet topology used for microburst case study}
-\label{fig:mininet-topo}
-\end{figure}
+%TODO: This is the wrong figure
+%%%\begin{figure}[ht]
+%%%\centering
+%%%\includegraphics[width=0.4\columnwidth]{mininet-topo.pdf}
+%%%\caption{Mininet topology used for microburst case study}
+%%%\label{fig:mininet-topo}
+%%%\end{figure}
 
 \begin{figure}[!t]
 \centering
