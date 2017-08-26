@@ -57,3 +57,4 @@ We should just stick with single pipeline throughout and make the shared memory 
 * Do we really need table* and figure* or can we use table and figure everywhere?
 * stream vs. sequence. Be careful about what is used where.
 * Remove \Alg
+* Either have periods at the end of captions or not. Be consistent.
