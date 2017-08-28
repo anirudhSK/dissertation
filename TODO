@@ -1,6 +1,6 @@
 High:
 ==========
-2. e2e pass on figures, tables, etc. Everything that's not visible from the .tex files
+2. e2e pass on figures, tables, etc. Also look at nits.txt
 
 3. PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
 
@@ -17,8 +17,6 @@ in Marple more clearly.
 
 Low:
 ==========
-Everything: Future proofness of these designs (or) will the ideas hold in ten years?
-
 Domino: Distinguish computational capabilities of a pipeline from information not
 being available. For instance, RED needs queue depth that is not available, but
 the EWMA operation itself is rather straightforward.
