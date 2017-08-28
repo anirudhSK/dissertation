@@ -148,8 +148,13 @@ We now explain why the requirement of bounded packet history is important using
 real queries.  Consider the TCP non-monotonic query from
 Table~\ref{tab:example-perf-queries}, which counts the number of packets with
 sequence numbers smaller than the maximum sequence number seen so far. The
-aggregation can be expressed as \begin{lstlisting} count = count + (maxseq >
-tcpseq) ? 1 : 0 \end{lstlisting} While the update superficially resembles
+aggregation can be expressed as:
+
+\begin{lstlisting}
+count = count + (maxseq > tcpseq) ? 1 : 0
+\end{lstlisting}
+
+While the update superficially resembles
 $\boldsymbol{A}(\mathbf{p}) \cdot \boldsymbol{S} + \boldsymbol{B}(\mathbf{p})$,
 the coefficient $\boldsymbol{B}(\mathbf{p})$ is a function of {\ct maxseq}, the
 maximum sequence number so far. This could be arbitrarily far back in the
@@ -160,8 +165,13 @@ large. We formalize this intuition in \S\ref{sec:unifies}.
 
 In contrast, the slightly modified TCP out-of-sequence query from
 Table~\ref{tab:example-perf-queries} {\em is} linear-in-state because it can
-be written as \begin{lstlisting} count = count + (lastseq > tcpseq) ? 1 : 0
-\end{lstlisting} where {\ct lastseq}, the previous packet's sequence number,
+be written as:
+
+\begin{lstlisting}
+count = count + (lastseq > tcpseq) ? 1 : 0
+\end{lstlisting}
+
+{\ct lastseq}, the previous packet's sequence number,
 depends only on the last 2 packets: the current and the previous packet. Here,
 $\boldsymbol{A}(\mathbf{p})$ and $\boldsymbol{B}(\mathbf{p})$ are functions of
 bounded packet history, with $k = 2$. This is in contrast to {\ct maxseq},
