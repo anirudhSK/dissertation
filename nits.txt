@@ -58,3 +58,4 @@ We should just stick with single pipeline throughout and make the shared memory 
 * stream vs. sequence. Be careful about what is used where.
 * Remove \Alg
 * Either have periods at the end of captions or not. Be consistent.
+* \tengrouter and 10G should be consitent
