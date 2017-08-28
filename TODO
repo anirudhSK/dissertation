@@ -1,10 +1,10 @@
 High:
 ==========
-1. Make an e2e pass, especially from Chapters 3, 4, and 5, address nits.txt
-
 2. e2e pass on figures, tables, etc. Everything that's not visible from the .tex files
 
 3. PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
+
+4. Maybe add a section on code availability and where to find what code.
 
 Medium:
 ==========

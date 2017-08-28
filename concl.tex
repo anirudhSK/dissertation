@@ -1,35 +1,38 @@
 \chapter{Conclusion}
 \label{chap:concl}
 
-%TODO: multi-cycle atomics?
-%TODO: Maybe add a section on code availability and where to find what code.
-%TODO: Talk about how the instruction set might also dictate the programs that are written
 To conclude this dissertation, we mention broader impact that this dissertation
 has had, outline areas for future work, and discuss the broader implications of
-this work.
+this dissertation.
 
 \section{Broader impact}
 \label{s:impact}
 Several ideas from \pktlanguage have now found their way into P4~\cite{p4}, an
 emerging language for programming network devices with considerable industry
-momentum behind it~\cite{p4org}. We describe enhancements to P4 informed by
+interest~\cite{p4org}. We describe changes to the P4 specification informed by
 \pktlanguage below.
 \begin{CompactEnumerate}
 \item When we began work on \pktlanguage in 2015, P4 was still relatively
-low-level and close to the targets it was programming. For instance, to match
-the underlying router pipeline, P4 expected programmers to specify a
-packet-processing program as a sequence of lookups in a set of match-action
-tables. Each action within a match-action table was made up of a set of
-primitive actions, defined by the P4 language. These primtiive actions within
-an action were expected to execute in parallel. This caused considerable
-confusion to programmers~\cite{p4-semantics} because the P4 program had serial
-semantics between table lookups, while it had parallel semantics within the
-action half of a table lookup. Based on \pktlanguage's sequential semantics, P4
-adopted a more uniform semantics, where primitive actions within a larger
-action also executed sequentially~\cite{p4_sequential_pr, p4_sequential_issue}.
+low-level in the sense of being close to the targets it was programming. For
+instance, to match the underlying router pipeline, P4 expected programmers to
+specify a packet-processing program as a sequence of lookups in a set of
+match-action tables. Each action within a match-action table was made up of a
+set of primitive actions, defined by the P4 language. These primtiive actions
+within an action were expected to execute in parallel to mirror the execution
+model of the underlying hardware.
+
+This caused considerable confusion to programmers~\cite{p4-semantics} because
+the P4 program had serial semantics between table lookups, while it had
+parallel semantics within the action half of a table lookup. Based on
+\pktlanguage's sequential semantics, P4 adopted a more uniform semantics, where
+primitive actions within a larger action also executed
+sequentially~\cite{p4_sequential_pr, p4_sequential_issue}.
+
 \item \pfs (the version of P4 released in 2016)~\cite{p4_16} adopted many
-higher-level language constructs first introduced in \pktlanguage such as
-C-style expressions and the C-style ternary operator.
+high-level language constructs introduced in \pktlanguage such as C-style
+expressions and the C-style conditional operator.
+%TODO: Citation for C-style conditional operator?
+
 \item \pfs also allows programmers to specify atomic blocks of
 code~\cite{p4_atomic_pr, p4_atomic_issue}, which have the same transactional
 semantics as packet transactions. This is especially useful when writing P4
@@ -43,20 +46,21 @@ router's scheduler. Many of them seem interested in a programmable scheduler
 because they can now expressing scheduling algorithms as firmware, and not
 hardware. However, one major concern expressed by them is whether the PIFO
 hardware would scale to a multi-Tbit/s router, which typically features
-multiple ingress and egress pipelines separated by the packet buffer
-(\S\ref{ss:multiple_pipelines}).
+multiple ingress and egress pipelines sharing the packet buffer and scheduling
+logic (\S\ref{ss:multiple_pipelines}).
 
 We have also talked to hardware engineers about the possibility of adding a
 multiply-accumulate instruction to support linear-in-state measurement queries
 efficiently. Based on our conversations, we understand that this is well within
-reach, although there might be limitations on the bit-width of the operands and
+reach, although there might be limitations on the bit width of the operands and
 outputs of the multiply-accumulate instruction.
 
 \section{Future work}
 \label{s:future}
 
-Besides addressing the limitations described earlier (\S\ref{chap:limitations}),
-there are a number of avenues for future work, described below.
+Besides addressing the limitations described earlier
+(\S\ref{chap:limitations}), there are a number of avenues for future work,
+described below.
 
 \Para{Instruction set design for routers.} The first generation of programmable
 router instruction sets, whether those in commercial chips~\cite{xpliant,
@@ -65,8 +69,8 @@ manually through a process of trial and error.
 
 In particular, when designing atoms for \pktlanguage, we use trial and error to
 first guess atoms that we think might be useful and then use our compiler to
-check if those atoms can support useful algorithms.  Formalizing this design
-process and automating it into an atom-design tool would be useful when
+check if those atoms can actually support useful algorithms.  Formalizing this
+design process and automating it into an atom-design tool would be useful when
 designing router instruction sets. For instance, given a corpus of data-plane
 algorithms, this tool would automatically mine the corpus for recurring motifs
 of state and packet header modification. A router hardware engineer could then
@@ -87,43 +91,49 @@ aggregate speeds that are built on top of commodity x86 processors (\eg network
 interface cards, the Linux kernel, middleboxes, proxies, and front-end
 servers). Until now, the steady improvement in x86 performance has allowed
 these devices to be programmable, while still providing sufficient forwarding
-performance for their needs. Going forward, as processor clock frequencies and
-core counts stall, it seems natural to turn to specialized
-hardware~\cite{dark_silicon, four_horsemen}. Can we profile repeatedly used and
-relatively mature networking motifs that run on x86 chips today and measure
-their ``x86 tax'' relative to a pure silicon implementation? Such motifs (\eg
-SSL encryption and data compression) can be hardened as accelerators in
-silicon, providing energy and performance benefits over running on a
-general-purpose processor.
+performance for their needs.
+
+Going forward, as processor clock frequencies and core counts stall, it seems
+natural to turn to specialized hardware~\cite{dark_silicon, four_horsemen} for
+such devices. Can we profile repeatedly used and relatively mature networking
+motifs that run on x86 chips today and measure their ``x86 tax'' relative to a
+pure silicon implementation? Such motifs (\eg SSL encryption and data
+compression) can be hardened as accelerators in silicon, providing energy and
+performance benefits over running on a general-purpose processor.
 
 \Para{Approximate semantics for packet processing.} \pktlanguage provides
 transactional semantics for packet processing. These semantics are
 straightforward, but end up rejecting programs for which transactional
 semantics are not feasible while running at the router's line rate.  Are weaker
-semantics sensible? One possibility is approximating transactional semantics by
-only processing a sampled packet stream.  This provides an increased time
-budget for each packet in the sampled stream, potentially allowing the packet
-to be {\em recirculated} through the pipeline for further packet processing.
+semantics sensible?
+
+One possibility is approximating transactional semantics by only processing a
+sampled packet stream.  This provides an increased time budget for each packet
+in the sampled stream, potentially allowing the packet to be {\em recirculated}
+through the pipeline for further packet processing. An example of such a use
+case is a measurement algorithm that needs a considerable amount of processing
+for each packet, but can still function if run on a sampled stream of packets.
+%TODO: Give an example of this sampled measurement algo.
 
 \Para{A middle plane for networking.} There will always be algorithms that
-cannot run in the data plane because they cannot sustain packet processing at
-the router's line rate. Today, such algorithms can only run on the much slower
-control plane, leading to a performance cliff once an algorithm crosses a
-threshold of complexity. Can we develop a programmable ``middle plane'' that
-sits between the control and data planes? This middle plane would provide
-greater programmability than the data plane, but at lower performance. It could
-be used to run algorithms either on a sample of packets across all ports or at
-full line rate on a subset of ports. For instance, an operator might require
-programmable measurement on a sample of all packets or line-rate scheduling
-support only on the congested ports.
+cannot run in the data plane because the algorithms cannot sustain packet
+processing at the router's line rate. Today, such algorithms can only run on
+the much slower control plane, leading to a performance cliff once an algorithm
+crosses a threshold of complexity. Can we develop a programmable ``middle
+plane'' that sits between the control and data planes? This middle plane would
+provide greater programmability than the data plane, but at lower performance.
+It could be used to run algorithms either on a sample of packets across all
+ports or at full line rate on a subset of ports. For instance, an operator
+might require programmable measurement on a sample of all packets or line-rate
+scheduling support only on the congested ports.
 
 \Para{Average case designs for routers.} Routers have historically been
-designed to handle worst-case traffic patterns (\ie the smallest packet size at
-100\% utilization on all ports). This worst-case design mindset has several
+designed to handle worst-case traffic patterns, \ie the smallest packet size at
+100\% utilization on all ports. This worst-case design mindset has several
 advantages. For instance, it obviates the need for performance profiling
 because routers guarantee line-rate performance regardless of packet size or
-utilization. It also guards routers against denial-of-service attacks that flood
-the router with small packets.
+utilization. It also guards routers against denial-of-service attacks that
+flood the router with small packets.
 
 But it also leads to overengineering. A recent study found that the average
 packet size in datacenters is around 850 bytes (relative to a minimum packet
@@ -138,9 +148,7 @@ environment for programmable router chips is still quite rudimentary. This
 gives us an opportunity to revisit many traditional software engineering
 questions in the context of programmable routers. To name a few, developing
 better verifiers, debuggers, test generators, and exception handling
-mechanisms. While prior work addresses this in the context of a programmable
-control plane~\cite{test_gen, hsa}, more work is needed to extend these ideas
-to a programmable data plane.
+mechanisms.
 
 \Para{Evaluating ideas end-to-end on programmable router chips.} Programmable
 router chips are just becoming available~\cite{tofino}. While they do not
@@ -151,24 +159,20 @@ allow us to evaluate the benefits of our ideas end-to-end. For instance, if we
 could program a new active queue management scheme on a programmable router,
 what would be the effect on the completion time of a data analytics job?
 
-\Para{Design-space exploration of router architectures.} To evaluate the area
-overheads of our hardware designs in this dissertation, we have relied on
-anectodal estimates of a baseline router chip's area based on private
+\Para{Design-space exploration of router architectures.} To evaluate the
+additional area of our hardware designs in this dissertation, we have relied on
+anectodal estimates of the area of a baseline router chip based on private
 conversations with engineers in industry~\cite{gibb_parsing}. Ideally, we would
 have an open-source hardware design for a router chip that is competitive with
 industry-standard router chips. We could then run synthesis experiments on this
-open-source chip to provide a rigorous baseline area estimate for our
-evaluations.  When adding new hardware functionality, we could add it to this
-open-source chip, and rerun synthesis to estimate the new area of the chip.
-
-%TODO: Replace reference to netfpga with reference to reference router design
-While the NetFPGA platform provides a reference router design~\cite{netfpga},
-the NetFPGA reference router design is designed for an FPGA platform, not an
-ASIC. An open-source chip would also enable design-space exploration of router
+open-source hardware design to provide a rigorous baseline area estimate for
+our evaluations.  When adding new hardware functionality, we could add it to
+this open-source chip, and rerun synthesis to estimate the new area of the
+chip. An open-source chip would also enable design-space exploration of router
 architectures. For instance, given an overall silicon budget, what is the
 Pareto frontier that trades off exact-match table capacity for ternary-match
-table capacity? How does this Pareto frontier move with changes in the
-transistor size (\eg moving from 32 nm to 16 nm)?.
+table capacity? How does this Pareto frontier move with changes in transistor
+size (\eg moving from 32 nm to 16 nm)?
 
 \Para{Network architecture in the age of programmable routers.} We have shown
 that it is technically feasible to build fast and programmable routers,
@@ -192,12 +196,12 @@ from their router, allowing them to simplify their routers' feature sets, which
 in turn could ease troubleshooting when things go wrong.
 
 Besides the benefits to network operators, a programmable router chip has
-benefits for router vendors as well. Router vendors can now add new features in
-firmware and sell different versions of the firmware to different market
-segments. Further, when bugs arise, it is much easier to fix these bugs in
-firmware, as opposed to redoing the hardware design for the router, which could
-easily take years. It also allows vendors to respond to new requests from
-network operators in a period of days--not years.
+benefits for router vendors as well. Router vendors (\eg Arista and Dell) can
+now add new features in firmware and sell different versions of the firmware to
+different market segments. Further, when bugs arise, it is much easier to fix
+these bugs in firmware, as opposed to redoing the hardware design for the
+router, which could easily take years. It also allows vendors to respond to new
+requests from network operators in a period of days instead of years.
 
 Whether the classes of router programmability described here will be sufficient
 remains to be seen, but we are encouraged by the fact that the hardware designs
@@ -205,11 +209,3 @@ proposed here support a wide range of existing use cases and some new use cases
 that we had not anticipated initially. We hope the results of this dissertation
 provide guidance to router chip manufacturers when designing hardware for
 programmable routers.
-
-%TODO: We could try incorporating this last paragraph from pifo into the conclusion
-%%%%We believe the most exciting consequence of PIFOs will be the creation of many
-%%%%new schedulers, invented by network operators, iterated and refined, then
-%%%%deployed for their own needs. No longer will research experiments be limited to
-%%%%simulation and progress constrained by a vendor's choice of scheduling
-%%%%algorithms. Those needing a new algorithm could create their own, or even
-%%%%download one from an open-source repository.
