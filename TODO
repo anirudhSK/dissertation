@@ -6,6 +6,8 @@ High:
 
 1. Address proof reading feedback
 
+4. Try and avoid using the term data plane unless absolutely required
+
 Medium:
 ==========
 1. Marple: Proof and explanation of fixed-point algorithm in Marple. Explain compiler

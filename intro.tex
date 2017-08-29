@@ -3,7 +3,6 @@
 
 \section{Background}
 \label{s:intro_background}
-%TODO: Try and tone down emphasis on design philosophy paper
 Computer networks contain two types of elements: {\em end hosts} that generate
 packets and {\em routers}\footnote{We use the term router to refer to both
 switches and routers in this dissertation.} that forward these packets between
@@ -477,8 +476,9 @@ scheduling tree} (Figure~\ref{fig:scheduling_tree}) has three attributes: (1) a
 predicate that determines which packets are handled by that node, (2) a
 scheduling transaction that determines a packet's rank in a scheduling PIFO
 attached to that node, and (3) an optional shaping transaction that determines
-a packet's rank in an optional shaping PIFO attached to that node.
-%TODO: Maybe remove the optional shaping PIFO from the intro
+a packet's rank in an optional shaping PIFO attached to that node. The shaping
+transaction is optional because it is only relevant to non-work-conserving
+schedulers. It can be disregarded entirely for work-conserving schedulers.
 
 \begin{figure}[!t]
   \centering
