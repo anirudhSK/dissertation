@@ -665,18 +665,31 @@ routers as first-class citizens to perform early filtering, aggregation, and
 packet transformations. The net effect is a substantial reduction in the amount
 of data sent out to and processed by the collection server.
 
-Supporting stateless queries ({\ct map} and {\ct filter}) is relatively
-straightforward. Emerging programmable router chips~\cite{rmt, xpliant,
-flexpipe, tofino} already provide an instruction set that performs stateless
-transformations on packet headers. We leverage this instruction set as is to
-execute stateless queries because a packet-processing pipeline naturally fits
-the streaming model of our queries.
+Many of Marple's constructs (\eg {\ct map} and {\ct filter}) are {\em
+stateless} in the sense that they do not need to maintain any router state. For
+instance, a {\ct map} query could take an input packet stream, round
+off the enqueue timestamp of each packet in the stream to the nearest
+millisecond, and return the result as a new stream.  This query is stateless
+because it can operate independently on each packet without maintaining any
+state on the router that persists between packets. Supporting stateless queries
+ is relatively straightforward. Emerging
+programmable router chips~\cite{rmt, xpliant, flexpipe, tofino} already provide
+an instruction set that performs stateless transformations on packet headers.
+We leverage this instruction set as is to execute stateless queries because a
+packet-processing pipeline naturally fits the streaming model of our queries.
 
-To support \TheSystem's stateful construct, the {\ct groupby}, we design a
-programmable key-value store in hardware. The keys represent the flows and the
-values represent the state being aggregated according to the aggregation
-function as packets are processed. For instance, the key could be a 5-tuple and
-the value could be a count of bytes or packets belonging to that 5-tuple.
+On the other hand, the {\ct groupby} query is {\em stateful}. To see why,
+consider a {\ct groupy} query that (1) partitions the packet stream into
+substreams based on the 5-tuple and (2) counts the number of packets within
+each substream. This query is stateful because it needs to maintain a
+dictionary mapping each 5-tuple to its count as part of the persistent router
+state. To implement the {\ct groubpy} query, this dictionary is updated by
+incrementing some 5-tuple's counter on each packet. To support \TheSystem's
+stateful construct, the {\ct groupby}, we design a programmable key-value store
+in hardware. The keys represent the flows and the values represent the state
+being aggregated according to the aggregation function as packets are
+processed. In the example above, the key would be a 5-tuple and the value would
+be a count of packets belonging to that 5-tuple.
 
 This key-value store has two requirements that are at odds with each other: it
 needs to be fast to process packets at the router's line rate (a packet every
