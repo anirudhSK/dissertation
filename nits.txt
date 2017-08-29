@@ -21,8 +21,6 @@
 * fast vs. high-speed. Be consistent, I like the term fast.
 * some sentences are too long. break them up.
 * groupby with and without ct
-* 90s vs. '90s (contractions in general)
-* WiFi or Wi-Fi?
 * forwarding tables vs. routing tables
 * Be consistent with tenses everywhere
 * base station, with or without space between base and station?
@@ -50,13 +48,11 @@ but not the other way around I think
 We should just stick with single pipeline throughout and make the shared memory point clear as a matter of clarification.
 * Should we call it measuring or monitoring?
 * I overhyphenate compound adjectives
-* Don't use Fig. use Figure and Table everywhere.
 * check that \Sec does the right thing, i.e., is equivalent to \S
 * make sure tildes render properly
 * language-hardware co-design is more accurate than language-directed hardware design.
 * Do we really need table* and figure* or can we use table and figure everywhere?
 * stream vs. sequence. Be careful about what is used where.
-* Remove \Alg
 * Either have periods at the end of captions or not. Be consistent.
 * \tengrouter and 10G should be consitent
 * remove \pfs macro

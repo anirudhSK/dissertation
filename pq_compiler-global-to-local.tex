@@ -24,7 +24,7 @@ the two inputs.  Stream locations are unchanged by the {\ct map} and {\ct
 groupby} operators.
 
 The stream locations for the running example are shown in
-\Fig{compiler-ast-manipulations}b. The stream location of {\ct \pktlog} is the
+Figure~\ref{fig:compiler-ast-manipulations}b. The stream location of {\ct \pktlog} is the
 set of all network routers, but is restricted to just {\ct S1} and {\ct S2} by
 the {\ct filter} in the query (left branch). This location is then propagated
 to the root of the AST through the {\ct zip} operator in the query.
@@ -55,7 +55,7 @@ router-partitioned stream if it aggregates by {\ct router.} In all other cases,
 the operators retain the operands' router-partitioned attribute.
 
 The router-partitioned attributes for our running example are shown in
-\Fig{compiler-ast-manipulations}c. The {\ct filter} produces output streams at
+Figure~\ref{fig:compiler-ast-manipulations}c. The {\ct filter} produces output streams at
 two routers, hence is not router-partitioned. The {\ct groupby} aggregates by
 {\ct router} and hence is router-partitioned.
 
