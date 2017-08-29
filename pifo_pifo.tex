@@ -16,7 +16,7 @@ dequeued first.
 \item The computation of an element's rank before it is enqueued into
   a PIFO. We model this computation as a packet
     transaction~(\S\ref{s:transactions}), an atomically executed block
-  of code that is executed once for each element before enqueuing it
+  of code that is executed once for each element before enqueueing it
   in a PIFO.
 \end{CompactEnumerate}
 
@@ -167,7 +167,7 @@ enqueued, by executing a scheduling transaction at each node in the PIFO tree.
 This is our second programming abstraction: a {\em scheduling tree}.  Each node
 in this tree is a tuple with two attributes. First, a packet predicate that
 specifies which packets execute that node's scheduling transaction before
-enqueuing an element into that node's PIFO; this element is either a packet or
+enqueueing an element into that node's PIFO; this element is either a packet or
 a reference to a child PIFO of the node.  Second, a scheduling transaction that
 specifies how the rank is computed for elements (packet or PIFO references)
 that are enqueued into the node's PIFO. Figure~\ref{fig:hpfq_tree} shows an
@@ -254,7 +254,7 @@ scheduling order as the rank.
 
 Once a reference to the child's scheduling PIFO has been released to the
 parent's scheduling PIFO from the child's shaping PIFO, it is scheduled by
-executing the parent's scheduling transaction and enqueuing it in the parent's
+executing the parent's scheduling transaction and enqueueing it in the parent's
 scheduling PIFO. If a node has no shaping transaction, references to that
 node's scheduling PIFO are immediately enqueued into its parent's scheduling
 PIFO with no deferral.  The dequeue logic during shaping still follows

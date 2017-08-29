@@ -177,9 +177,9 @@ router, but have ended up being able to do almost everything but that!} For
 instance, adding a level of hierarchy with a PIFO tree does not help. Suppose
 we programmed a PIFO tree implementing FIFO at the leaves and picking among
 flows at the root based on the remaining flow size. This would result in the
-scheduling order p1(9), p0(7), p1(8), p1(6), after enqueuing p1(6). The problem
+scheduling order p1(9), p0(7), p1(8), p1(6), after enqueueing p1(6). The problem
 is that there is no way to change the scheduling order for {\em multiple}
-references to flow 1 in the root PIFO by enqueuing only one reference to flow
+references to flow 1 in the root PIFO by enqueueing only one reference to flow
 1.
 %% Mohammad: The above might still be too confusing; I know we don't
 %% have much room, but a figure would really help with this. Let's run

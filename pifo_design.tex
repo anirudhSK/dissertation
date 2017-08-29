@@ -62,7 +62,7 @@ requiring this capability.
   \centering
   \includegraphics[width=0.6\columnwidth]{pifo_pifo_block.pdf}
   \caption{A single PIFO block. Enqueue operations execute transactions in the
-atom pipeline before enqueuing elements into a logical PIFO. Dequeue operations
+atom pipeline before enqueueing elements into a logical PIFO. Dequeue operations
 dequeue elements from logical PIFOs before looking up their next hop in the
 lookup table within each PIFO block.} 
   \label{fig:block}
@@ -132,7 +132,7 @@ has more details).
 
 % Maybe subsection for a PIFO block?
 PIFO blocks run at 1 GHz and contain an atom pipeline to execute scheduling and
-shaping transactions before enqueuing into a logical PIFO. In every clock
+shaping transactions before enqueueing into a logical PIFO. In every clock
 cycle, each PIFO block supports one enqueue and dequeue operation on a logical
 PIFO residing within that block (shaping transactions require more than one
 operation per clock cycle and are discussed in \S\ref{ss:shape_challenge}). We
@@ -151,12 +151,12 @@ The interface to a PIFO block is:
 After a dequeue, besides transmitting a packet, a PIFO block may communicate
 with another PIFO block for two reasons:
  \begin{CompactEnumerate}
- \item To dequeue a logical PIFO in another block, \eg when dequeuing a
+ \item To dequeue a logical PIFO in another block, \eg when dequeueing a
    sequence of PIFOs from the root to a leaf of a scheduling tree to transmit
    packets.
  
  \item To enqueue into a logical PIFO in another block, \eg when
-   enqueuing a packet that has just been dequeued from a shaping
+   enqueueing a packet that has just been dequeued from a shaping
    PIFO.
  \end{CompactEnumerate}
 

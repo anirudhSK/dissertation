@@ -14,38 +14,24 @@
 * onto vs. on to
 * into vs. in to
 * data plane vs. router vs. high-speed router. Be consistent.
-* Harmonize all figures into powerpoint?
-* pq_* uses figure for everything, while we use tables for tables. Make sure we use tables for tables in the dissertation.
 * consider changing paras to subsubsections so that they show up in the TOC?
 * How to get footnotes in tables?
 * fast vs. high-speed. Be consistent, I like the term fast.
-* some sentences are too long. break them up.
-* groupby with and without ct
 * forwarding tables vs. routing tables
 * Be consistent with tenses everywhere
 * base station, with or without space between base and station?
 * ensure that the background is actually contrasted against the dissertation
 * using the vs. a vs. not using it at all
-* replace endpoints with end hosts
-* queueing vs. queuing
 * define high speed formally somewhere?
 * high-speed vs. fast vs. line rate. Be consistent.
 * \em vs. \it for emphasis
 * users vs. programmers vs. operators
 * consider replacing head packet with earliest packet
-* make sure all references are to Trident2, not Trident
 * Should be bring up work conserving vs. non work conserving when introducing scheduling order and/or time?
-* Maybe remove the phrase shared-memory router from pifo_design.tex?
 * uniform names for section and subsection labels
-* mention shared-memory routers once in pifo*, and then don't use the term again. (This is just for someone who is familiar with the term shared-memory router. Technically what we show is a design for a single-pipeline shared-memory router, not a general shared-memory router, where the memory alone can be shared across multiple pipelines.)
-* Also, make a note of terminology (input queued, output queued, shared memory, distributed shared memory etc.)
 * Use numerals instead of spelling them out. This violates S&W, but is much more likely to grab the reader's attention.
 * Do we ever define FIFO?
 * clock cycles vs. cycles
-* single pipeline => shared memory,
-but not the other way around I think
-(multiple pipeline shared memory switches like Trident II).
-We should just stick with single pipeline throughout and make the shared memory point clear as a matter of clarification.
 * Should we call it measuring or monitoring?
 * I overhyphenate compound adjectives
 * check that \Sec does the right thing, i.e., is equivalent to \S

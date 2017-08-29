@@ -96,7 +96,7 @@ the root cause of microbursts with existing monitoring approaches is
 challenging.  Packet sampling and packet captures would miss microbursts
 because of heavy undersampling. Packet counters from routers would have
 disguised the bursty nature of the offending UDP traffic. Finally, probing from
-endpoints would not be able to localize queues with bursty contending flows.
+end hosts would not be able to localize queues with bursty contending flows.
 
 \TheSystem builds on In-band Network Telemetry~\cite{int, barefoot-demo} (INT)
 that exposes queue lengths at routers. However, \TheSystem's on-router
@@ -105,4 +105,4 @@ instance, \TheSystem can determine contending flows at the problematic queue
 through a customized query to measure bursts, without prior knowledge of those
 flows. In comparison, a pure INT-based solution may require a network operator
 to manually identify flows that could contend at the problematic queue, and
-then collect data from the INT endpoints for those flows.
+then collect data from the INT end hosts for those flows.
