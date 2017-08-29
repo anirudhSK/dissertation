@@ -418,11 +418,12 @@ and aggregations {\em directly in routers}.  \TheSystem's data aggregation in
 routers saves the bandwidth needed to collect INT data distributed over many
 end hosts. Besides, with INT alone, performance information may be lost, since
 packets carrying the INT data may be dropped on the way to end hosts. The
-Tetration chip provides flow-level telemetry, exposing a fixed set of metrics
-including latency, window and packet size variation, and a ``burst
-measurement''~\cite{tetration-telemetry}. In contrast, \TheSystem provides
-programmable aggregation functions and flow definitions, \eg input/output port
-versus 5-tuple.
+Tetration chip~\cite{tetration-telemetry} provides flow-level telemetry,
+exposing a fixed set of metrics including latency, window and packet size
+variation, and a ``burst measurement'' at a fixed granularity (\eg 5-tuple).
+In contrast, \TheSystem allows both the metrics and granularity to be flexible
+using programmable aggregation functions and programmer-supplied {\ct groupby}
+fields respectively.
 
 \section{Summary}
 This chapter summarized both the historic background that sets up the context
