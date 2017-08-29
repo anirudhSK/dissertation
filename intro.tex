@@ -207,7 +207,7 @@ the minimum area estimates provided by Gibb et al.~\cite{gibb_parsing}).
 To evaluate if our systems are programmable, we evaluate the expressiveness of
 the programming models in each of our system. If we are able to express a
 diversity of algorithms using the programming models, we say that the
-programming model is expressive. Our approach to expressivness is empirical:
+programming model is expressive. Our approach to expressiveness is empirical:
 beyond specific examples, we do not yet have theoretical characterizations of
 the set of programs that can or cannot be programmed using our programming
 models (\S\ref{ss:limit_completeness}).
@@ -244,7 +244,7 @@ processing a packet, the next packet arriving at that atom will see the updated
 value of that state. The processing within atoms is constrained to meet the
 atomicity requirement. We enforce this constraint when designing atoms in
 hardware by ensuring  that the input-to-output latency of the atom's digital
-circuit is under a clock cycle. This gurantees that any state updated by the
+circuit is under a clock cycle. This guarantees that any state updated by the
 atom has been updated to its correct value in time for the next packet arriving
 at the atom a clock cycle later.\footnote{Note that this is a sufficient
 condition for atomicity and may not always be necessary.}
