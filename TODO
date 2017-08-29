@@ -6,6 +6,10 @@ High:
 
 4. Maybe add a section on code availability and where to find what code.
 
+1. Address proof reading feedback
+
+5. Double check generalizability table results
+
 Medium:
 ==========
 1. Marple: Proof and explanation of fixed-point algorithm in Marple. Explain compiler
