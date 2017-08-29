@@ -28,12 +28,12 @@ parallel semantics within the action half of a table lookup. Based on
 primitive actions within a larger action also executed
 sequentially~\cite{p4_sequential_pr, p4_sequential_issue}.
 
-\item \pfs (the version of P4 released in 2016)~\cite{p4_16} adopted many
+\item The version of P4 released in 2016~\cite{p4_16} adopted many
 high-level language constructs introduced in \pktlanguage such as C-style
 expressions and the C-style conditional operator.
 %TODO: Citation for C-style conditional operator?
 
-\item \pfs also allows programmers to specify atomic blocks of
+\item The 2016 version of P4 also allows programmers to specify atomic blocks of
 code~\cite{p4_atomic_pr, p4_atomic_issue}, which have the same transactional
 semantics as packet transactions. This is especially useful when writing P4
 code for algorithms similar to the ones considered by \pktlanguage, which

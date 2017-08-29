@@ -1,18 +1,12 @@
 * Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
 * Don't keep saying today in the text
 * domino_banzai.tex could use some more work
-* Don't need to overdo the C-like re: Domino. Instead, call it an imperative DSL.
 * router's line rate, or line rate of routers, sounds better than line rate routers
 * Consider substituting line rate with high speed or something similar
-* Make sure P4-16 and P4_{16} are consistent. Use one or the other, not both.
 * Use semicolons as separators with care
 * Be judicious with contractions
 * Be consistent with the project names and abstraction names TODO
 * Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
-* chip vs. ASIC vs. chipsets. Use chips everywhere.
-* overuse of "as opposed to"
-* onto vs. on to
-* into vs. in to
 * data plane vs. router vs. high-speed router. Be consistent.
 * consider changing paras to subsubsections so that they show up in the TOC?
 * How to get footnotes in tables?
@@ -24,7 +18,6 @@
 * using the vs. a vs. not using it at all
 * define high speed formally somewhere?
 * high-speed vs. fast vs. line rate. Be consistent.
-* \em vs. \it for emphasis
 * users vs. programmers vs. operators
 * consider replacing head packet with earliest packet
 * Should be bring up work conserving vs. non work conserving when introducing scheduling order and/or time?

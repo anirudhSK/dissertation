@@ -33,6 +33,6 @@ through a P4 action representing the aggregation function.
 %%function into the body of a single P4 action.
 
 To target the Banzai machine model (\S\ref{s:absmachine}), the \TheSystem
-compiler emits C-like code fragments for each pipeline stage and then
+compiler emits imperative code fragments for each pipeline stage and then
 concatenates these fragments together into a single Domino program. The Domino
 compiler then takes this program and compiles it to a pipeline of Banzai atoms.
