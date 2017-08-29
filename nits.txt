@@ -31,3 +31,4 @@
 * stream vs. sequence. Be careful about what is used where.
 * Either have periods at the end of captions or not. Be consistent.
 * \tengrouter and 10G should be consitent
+* harmonize atom names in source code repositories and text
