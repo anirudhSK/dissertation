@@ -648,19 +648,6 @@ order-independent aggregation functions like counts and averages. SQL does not
 allow general, user-defined, and potentially order-dependent aggregation
 functions. 
 
-\TheSystem allows operators to express both queries that do and do not require
-router state. For instance, a stateless {\ct map} query could take an input
-packet stream, round off the enqueue timestamp of each packet in the stream to
-the nearest millisecond, and return the result as a new stream.  This query is
-stateless because it can operate independently on each packet without
-maintaining any state on the router that persists between packets. On the other
-hand, consider a {\ct groubpy} query that (1) partitions the packet stream into
-substreams based on the 5-tuple and (2) counts the number of packets within
-each substream. This query is stateful because it needs to maintain a
-dictionary mapping each 5-tuple to its count as part of the persistent router
-state. To implement the {\ct groubpy} query, this dictionary is updated by
-incrementing some 5-tuple's counter on each packet.
-
 \subsection{Router hardware for performance queries}
 \label{ss:intro_pq_hardware}
 
