@@ -719,13 +719,18 @@ for.
 Instead, as Figure~\ref{fig:hw_diff} shows, we treat a cache miss as the
 arrival of a packet from a new flow and initialize the cache entry as though we
 have just started aggregating packets from a new flow. When this cache entry is
-eventually evicted, we merge it against the old value for that entry in the
-backing store. It is easy to see that this would work if the value in the
-key-value store was a counter; the merge operation would then simply add up the
-old and new counts.  But is it always possible to merge an aggregation function
-accurately \ie the value after the merge should be the same as the value that
-would be obtained in an ideal system with an infinitely large cache that needs
-no merging?
+eventually evicted, we {\em merge} it against the old value for that entry in the
+backing store. The merge operation requires reading and writing from DRAM, which does
+incur unpredictable access latencies. But, it happens off the critical path
+during evictions alone. Importantly, it does not affect the critical path of
+packet processing in the router's chip.
+
+What exactly does this merge operation look like? As a simple example, if the
+value in the key-value store was a counter; the merge operation would then
+simply add up the old and new counts.  But is it always possible to merge an
+aggregation function accurately \ie the value after the merge should be the
+same as the value that would be obtained in an ideal system with an infinitely
+large cache that needs no merging?
 
 We can prove (\S\ref{ss:proofs}) that there are aggregation functions for which
 it is not possible to merge efficiently without losing accuracy. However, we
