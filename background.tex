@@ -154,7 +154,7 @@ The goal of OpenFlow was to serve as a minimum common denominator across
 interfaces to routing tables in different forwarding chips. This was so that
 existing chips could immediately support the OpenFlow API.
 
-While the OpenFlow API made it possible to program the network's contol plane,
+While the OpenFlow API made it possible to program the network's control plane,
 it did not necessarily make it easy. Hence, the development of SDN also led to
 the development of many high-level programming languages to program a router's
 control plane~\cite{frenetic, pyretic}. While SDN saw a considerable amount of
@@ -272,7 +272,7 @@ router chip. This router chip would have a minimal instruction set that would
 permit a network operator to express OpenFlow-like forwarding rules for {\em
 any} new protocol format. This is in contrast to OpenFlow, which only supports
 a restricted and fixed set of actions as part of the forwarding rules (drop,
-decrement TTL, forward, etc.) on a resticted and fixed set of packet headers
+decrement TTL, forward, etc.) on a restricted and fixed set of packet headers
 (UDP, TCP, IP, etc.).
 
 Recent academic work~\cite{rmt} and commercial router chips~\cite{tofino,
@@ -451,7 +451,7 @@ emulation on high-speed router hardware.
 
 \Para{Hardware support for counters.} Many router hardware designs optimize for
 the fixed software requirement of per-flow counters~\cite{counter_shah}.
-\TheSystem devlops an expressive programming language for measurements in
+\TheSystem develops an expressive programming language for measurements in
 software along with hardware support for this language. This allows \TheSystem
 to support a wider range of queries beyond counters.
 
