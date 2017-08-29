@@ -104,8 +104,8 @@ software. Second, since the mid 1990s, growing demands for higher link speeds,
 fueled by the Internet's growth, have meant that the fastest routers are now
 built out of dedicated hardware.
 
-Hardware specialization gives these routers a 10--100 $\times$ performance
-improvement relative to software routers.  This performance improvement is the
+Hardware specialization gives today's fastest routers a 10--100 $\times$ performance
+improvement relative to the fastest software routers.  This performance improvement is the
 result of fully exploiting the abundant parallelism available in packet
 processing. First, data parallelism, the ability to simultaneously process
 either different parts of the same packet or packets belonging to different
@@ -124,7 +124,7 @@ and on to a logically centralized programmable server running on a CPU.
 Programmable router chips allow operators to program parts of the data plane:
 the part of the network that forwards packets based on the routing tables. For
 instance, these chips allow an operator to program the router's parser to
-recognize a new protocol format, such as a new overlay format~\cite{nvgre}.
+recognize new packet headers, such as a new overlay format~\cite{nvgre}.
 They also allow the operator to program packet header transformations (\eg
 decrementing the IP TTL field) so long as these transformations do not modify
 router state.
@@ -132,17 +132,19 @@ router state.
 However, both SDN and programmable router chips are still insufficient to
 express the grayed-out algorithms shown in Figure~\ref{fig:router_algos}
 because (1) these algorithms programmatically manipulate router state and (2)
-they require flexibility in packet scheduling.  Both router state and the
-router's scheduler are largely ignored by both SDN and programmable router
-chips.
+they require flexibility in packet scheduling.  State modification on routers
+and the router's scheduler are largely ignored by both SDN and programmable
+router chips.
 
 \begin{figure}
 \centering
 \includegraphics[width=\columnwidth]{router_evolution.pdf}
-\caption{Aggregate capacity of routers since the first router on the ARPANET in
-1969~\cite{imp}. Until the mid 1990s, software routers were sufficient. Since
-then, however, the fastest routers have largely been fixed-function devices,
- built out of dedicated non-programmable hardware.}
+\caption{Aggregate capacity of software routers since the first router on the
+ARPANET in 1969~\cite{imp}. Until the mid 1990s, software routers were
+sufficient. Since then, however, the fastest routers have largely been
+fixed-function devices, built out of dedicated non-programmable hardware, which
+gives these routers a 10--100x performance improvement relative to the best
+software routers.}
 \label{fig:router_evolution}
 \end{figure}
 
