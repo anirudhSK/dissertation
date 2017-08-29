@@ -555,8 +555,12 @@ comparators, one for each element in the PIFO.
 
 Instead, we exploit the observation that in most practical scheduling
 algorithms, scheduling is performed across flows and not individual packets.
-This is because packet ranks increase monotonically within a flow to prevent
-packet reordering within a flow. Because ranks increase monotonically within a
+This is because, in most schedulers, packet ranks increase monotonically across
+consecutive packets within a flow. This ensures that packets within a flow are
+transmitted in the order in which they arrive, thereby preventing packet
+reordering within a flow.
+
+Because ranks increase monotonically within a
 flow, we only need to look at the first packet of each flow to determine which
 packet to dequeue next. This reduces the number of elements that need to be
 sorted from 60K packets in the naive implementation to around 1K flows in the
