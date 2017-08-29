@@ -225,7 +225,7 @@ An algorithm may run either on the ingress pipeline (\eg load balancing
 algorithms like flowlet switching), egress pipeline (\eg active queue
 management algorithms like CoDel), or both (\eg packet sampling algorithms like
 sampled NetFlow). An algorithm's location depends on what information the
-algorithm needs to execute and what other router functionlity depends on this
+algorithm needs to execute and what other router functionality depends on this
 algorithm. For instance, CoDel needs access to a packet's queueing delay, which
 is only available after the packet is dequeued from the scheduler and sent to
 the egress pipeline. On the other hand, flowlet switching is a load balancing
