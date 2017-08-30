@@ -271,9 +271,35 @@ shield programmers from the router's data and pipeline parallelism.
 %%@atomic annotation around a block of statements to specify that the block must
 %%execute atomically.
 
+\begin{figure}[!t]
+\begin{minipage}{0.48\textwidth}
+\centering
+\vspace{0.38in}
+\includegraphics[width=0.85\textwidth]{atom.pdf}
+\caption{An atom that either adds either a constant or a packet field to a
+piece of state x and writes it back to x.}
+\label{fig:simple_atom}
+\end{minipage}
+\hfill
+\begin{minipage}{0.48\textwidth}
+\centering
+\includegraphics[width=0.75\textwidth]{packet_transaction.pdf}
+\caption{A packet transaction that samples the source IP address of every 10th
+packet. State variables (count) are in red.}
+\label{fig:simple_transaction}
+\end{minipage}
+\end{figure}
+
 \subsection{The compiler} The Domino compiler compiles packet transactions
 written in the Domino DSL to a pipeline of atoms provided by the router. It
 rejects the code if the router's atoms cannot support the packet transaction.
+
+\begin{figure}[!t]
+\includegraphics[width=\textwidth]{compiler_passes_example.pdf}
+\caption{The three passes of Domino's compiler shown on the packet transaction
+from Figure~\ref{fig:simple_transaction}.}
+\label{fig:compiler_passes_example}
+\end{figure}
 
 The compiler has three phases (Figure~\ref{fig:compiler_passes_example}). First
 (\S\ref{ss:preprocessing}), it preprocesses the code to make it easier to infer
@@ -311,32 +337,6 @@ is especially important for a programmable router because, in contrast to a
 general-purpose CPU, there is no way to ``emulate'' functionality in software
 when hardware support is not available: recall that if an atom does not exist
 to support a program's operations, the program will be rejected.
-
-\begin{figure}[!t]
-\begin{minipage}{0.48\textwidth}
-\centering
-\vspace{0.38in}
-\includegraphics[width=0.85\textwidth]{atom.pdf}
-\caption{An atom that either adds either a constant or a packet field to a
-piece of state x and writes it back to x.}
-\label{fig:simple_atom}
-\end{minipage}
-\hfill
-\begin{minipage}{0.48\textwidth}
-\centering
-\includegraphics[width=0.75\textwidth]{packet_transaction.pdf}
-\caption{A packet transaction that samples the source IP address of every 10th
-packet. State variables (count) are in red.}
-\label{fig:simple_transaction}
-\end{minipage}
-\end{figure}
-
-\begin{figure}[!t]
-\includegraphics[width=\textwidth]{compiler_passes_example.pdf}
-\caption{The three passes of Domino's compiler shown on the packet transaction
-from Figure~\ref{fig:simple_transaction}.}
-\label{fig:compiler_passes_example}
-\end{figure}
 
 \begin{figure}
 \centering
@@ -451,9 +451,8 @@ rank.}
 \end{figure}
 
 A single PIFO coupled with a scheduling or shaping transaction can express many
-classical scheduling algorithms, \eg token bucket shaping
-(Figure~\ref{fig:tbf_trans}) and weighted fair queueing
-(Figure~\ref{fig:wfq_trans}). But, a single PIFO is still restricted to
+classical scheduling algorithms, \eg Weighted Fair Queueing (Figure~\ref{fig:wfq_trans})
+and Token Bucket Shaping (Figure~\ref{fig:tbf_trans}). But, a single PIFO is still restricted to
 scheduling algorithms with the property that the relative order of packets that
 are already buffered does not change in response to new packet arrivals. A
 canonical class of scheduling algorithms that violate this relative order
@@ -516,7 +515,7 @@ transaction and the rest of the leaf-to-root path is resumed.  The shaping PIFO
 thus provides an optional mechanism for a node to {\em defer} enqueues into its
 parent's scheduling PIFO, which is useful when combining hierarchical
 scheduling with traffic shaping (Figure~\ref{fig:hshaping} in
-Chapter~\ref{chap:pifo} shows an example).
+Chapter~\ref{chap:pifo} shows an example.).
 
 \subsection{Expressiveness of PIFOs}
 
