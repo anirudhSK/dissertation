@@ -268,7 +268,7 @@ dequeues its packets into multiple egress pipelines. To support the ability to
 handle inputs and outputs from multiple pipelines, the scheduler's memory is
 multi-ported.  This is possible without considerable area overhead by
 exploiting the fact that most of the scheduler's memory is structured as a set
-of first-in first-out queues with a limited set of operations (\eg enqueues and
+of First In First Out Queues with a limited set of operations (\ie enqueues and
 dequeues). The limited set of operations on the scheduler memory allows the
 development of multi-ported memory for the scheduler without considerable area
 expense.
