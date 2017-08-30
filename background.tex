@@ -297,6 +297,34 @@ next, and the ability to program what per-flow statistics a router must measure
 for a large number of flows. We hope this dissertation suggests directions for
 the future evolution of such programmable router chips.
 
+\subsection{Programmable traffic management}
+
+In an early position paper~\cite{nosilverbullet}, we argued for the ability to
+program a router's traffic management algorithms: active queue management and
+packet scheduling algorithms. We presented a quantitative case for such
+programmability by considering a set of three router configurations and showing
+that none of the three configurations was unilaterally the best. This was
+because there were workloads and application objectives for which one
+configuration was better than the other, while for other workloads and
+application objectives, the situation was reversed. In other words, there did
+not seem to be a single ``silver bullet'' algorithm, making a case for multiple
+algorithms to be programmed based on a network operator's objectives.
+
+As part of the same paper, we proposed that router designers add a small FPGA
+to each router, which could be programmed to support new traffic management
+algorithms. We estimated that this FPGA could run the CoDel~\cite{codel} and
+RED~\cite{red} algorithms at the full line rate of a single 10 Gbit/s
+port---even with minimum-size packets.
+
+The results in this dissertation realize the goals outlined in our earlier
+position paper at speeds approaching the fastest routers today. We do so by
+developing dedicated hardware that avoids the area, performance, and power
+penalties associated with an FPGA~\cite{fpga_asic_gap}. For instance, it is
+hard to clock an FPGA beyond 100 MHz, while custom hardware can run at 1 GHz or
+more. Using multiple FPGAs (\eg one for each port, like our position paper
+did~\cite{nosilverbullet}) adds considerable area, power, and cost to a
+high-speed router chip.
+
 \subsection{Centralized data planes}
 Fastpass~\cite{fastpass} manages a datacenter network at fine time scales using
 a logically centralized arbiter server that regulates packet transmissions from all

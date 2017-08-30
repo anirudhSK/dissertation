@@ -13,8 +13,6 @@ in Marple more clearly.
 
 3. Marple: Maybe call it language-hardware codesign, instead of language-directed hardware design.
 
-4. Try and weave in a reference to the HotNets 2013 paper.
-
 Low:
 ==========
 Domino: Distinguish computational capabilities of a pipeline from information not
