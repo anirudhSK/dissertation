@@ -300,9 +300,11 @@ packet. State variables (count) are in red.}
 \end{figure}
 
 \subsection{Compiling from packet transactions to atoms}
-The Domino compiler compiles packet transactions
-written in the Domino DSL to a pipeline of atoms provided by the router. It
-rejects the code if the router's atoms cannot support the packet transaction.
+The Domino compiler compiles packet transactions written in the Domino DSL to a
+pipeline of atoms provided by the router. It rejects the code if the router's
+atoms cannot support the packet transaction.  The compiler bridges the gap between
+the serial single-threaded execution model seen by the programmer
+and the data-parallel and pipeline-parallel execution model of the router.
 
 \begin{figure}[!t]
 \includegraphics[width=\textwidth]{compiler_passes_example.pdf}
@@ -316,12 +318,13 @@ The compiler has three passes (Figure~\ref{fig:compiler_passes_example}). First
 dependencies between packet-processing operations. Second
 (\S\ref{ss:pipelining}), the compiler transforms the preprocessed, but still
 serial, packet transaction into a parallel pipeline of {\em codelets}.  When
-pipelining, the compiler maintains the invariant that if each codelet executes
-atomically and passes off its results to the next codelet, the behavior will be
-indistinguishable from the packet transaction itself executing atomically on
-each packet. Third (\S\ref{ss:code_gen}), the compiler maps each codelet
-one-to-one to an atom provided by the underlying router, rejecting the code if
-the codelet cannot be supported by the atom.
+pipelining, the compiler maintains the following invariant: if each codelet executes
+atomically and passes off its results (\eg pkt.tmp in
+Figure~\ref{fig:compiler_passes_example}) to the next codelet, the behavior
+will be indistinguishable from the packet transaction itself executing
+atomically on each packet. Third (\S\ref{ss:code_gen}), the compiler maps each
+codelet one-to-one to an atom provided by the underlying router, rejecting the
+code if the codelet cannot be supported by an atom.
 
 The compiler provides an {\em all-or-nothing} guarantee: if the compiler
 compiles a program, the program will run at the line rate of the
