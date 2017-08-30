@@ -8,10 +8,6 @@ High:
 
 * language-hardware co-design is more accurate than language-directed hardware design.
 
-* router's line rate, or line rate of routers, sounds better than line rate routers
-
-* data plane vs. router vs. high-speed router. Be consistent.
-
 * How to get footnotes in tables?
 
-* define high speed formally somewhere? high-speed vs. fast vs. line rate. Be consistent.
+* be careful about using the term line rate because it is confusing. Use high-speed or fast after defining it once up front.
