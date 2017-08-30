@@ -296,10 +296,11 @@ preferable because it offers more predictable performance: if an output port
 has a large backlog of packets it only affects that output port and no other
 ports.
 
-One way to implement an output-queued router is using memory that is shared
-across all output ports of the router. This memory needs to support enqueues
-from any of the input ports and dequeues from any of the output ports every
-clock cycle~\cite{sundar_shared_memory, dctcp}.  In addition to emulating an
+One implementation of an output-queued router is a {\em shared memory} router,
+where the scheduler's memory for buffering packets is shared across all output
+ports of the router. This memory needs to support enqueues from any of the
+input ports and dequeues from any of the output ports every clock
+cycle~\cite{sundar_shared_memory, dctcp}.  In addition to emulating an
 output-queued router, a shared memory implementation has the benefit that the
 memory pool can be allocated to output ports on demand depending on the
 congestion at each output port, without committing memory to output ports at
@@ -311,7 +312,7 @@ dequeues once every clock cycle, which can be supported by single-ported
 memory. With multi-pipeline routers, this requires specialized multi-ported
 memories in the scheduler as discussed earlier. 
 
-Routers with single and multiple pipelines are instances of a single chip
+Routers with single and multiple pipelines are instances of a {\em single chip}
 router, where a single chip provides aggregate forwarding capacity for the full
 line rate at all ports, while emulating an output-queued router. For even
 higher aggregate speeds, such as those seen in core routers, multiple such
