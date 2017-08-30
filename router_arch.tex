@@ -133,7 +133,7 @@ different processors.
 \label{s:router_pipeline_arch}
 
 To avoid having to use multi-ported memories, high-speed routers are typically
-architected as a shared-nothing {\em pipeline}. Each pipeline stage is
+architected as a shared-nothing {\em pipeline} (Figure~\ref{fig:pipeline}). Each pipeline stage is
 dedicated to a fixed functionality, such as destination address lookup,
 tuneling, measurement, or access control. Each pipeline stage has its own
 dedicated local memory to store its own match-action tables, corresponding to
