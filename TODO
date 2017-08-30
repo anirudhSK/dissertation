@@ -1,8 +1,8 @@
 High:
 ==========
-* e2e pass on figures, tables, etc. Also look at nits.txt
+* Add performance numbers wherever possible
 
-* PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
+* e2e pass on figures, tables, etc. Also look at nits.txt
 
 * Try and avoid using the term data plane unless absolutely required
 
