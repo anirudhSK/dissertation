@@ -257,7 +257,6 @@ of the same CoDel packet transaction on the selected packet.
 
 \subsection{Generality or future proofness of atoms}
 %TODO: This is quite brittle
-\input{domino_generalize_table}
 One concern with designing atoms using the trial-and-error method described in
 \S\ref{ss:targets} is the potential for ``overfitting,'' \ie  the atoms only
 work for the algorithms that inspired the design of these atoms and do not
@@ -269,6 +268,8 @@ with time. For instance, \S\ref{sec:hardware-feasibility} describes a new atom
 we added for scalable and programmable measurement. However, to justify a
 programmable router, the rate at which atoms need to change should be slower
 than the rate at which new algorithms are developed.}
+
+\input{domino_generalize_table}
 
 To evaluate the generality of our atoms, we wrote a new set of algorithms in
 Domino after freezing our set of atoms to the set above
@@ -431,6 +432,7 @@ process in Domino.
 
 To conclude our evaluation, we distill some lessons for designing programmable
 routers.
+
 \Para{Atoms that allow modifications to a single state variable support many
 algorithms.} The algorithms from Bloom filters through DNS TTL Change Tracking
 in Table~\ref{tab:algo_atoms} can run at line rate using the Nested Ifs atom
