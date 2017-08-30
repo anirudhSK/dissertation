@@ -228,7 +228,7 @@ time.
 
 In a conflict, only one of the two operations can proceed. We resolve this
 conflict in favor of scheduling PIFOs. Shaping PIFOs are used for rate limiting
-to a rate lower than the line rate. Therefore, they can afford to be delayed by
+flows to a rate lower than the output port's line rate. Therefore, they can afford to be delayed by
 a few clocks until there are no conflicts. By contrast, delaying scheduling
 decisions of a scheduling PIFO would mean that the router would idle and not
 satisfy its line-rate guarantee on the port the scheduling PIFO belongs to.

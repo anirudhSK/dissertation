@@ -1,13 +1,11 @@
 High:
 ==========
-* Add performance numbers wherever possible
-
 * e2e pass on figures, tables, etc.
+
+* Add performance numbers wherever possible
 
 * Try and avoid using the term data plane unless absolutely required
 
 * language-hardware co-design is more accurate than language-directed hardware design.
 
 * How to get footnotes in tables?
-
-* be careful about using the term line rate because it is confusing. Use high-speed or fast after defining it once up front.

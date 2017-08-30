@@ -71,7 +71,7 @@ clock cycle.
 
 In addition to packet headers, atoms may modify persistent state on the router
 to implement stateful data-plane algorithms. To support such algorithms at
-router's line-rate, the atoms for a \absmachine machine need to be
+router's line rate, the atoms for a \absmachine machine need to be
 substantially richer (Table~\ref{tab:templates}) than the simple RISC-like
 stateless instruction sets for programmable routers~\cite{rmt}. We explain why
 below.
@@ -88,7 +88,7 @@ incremented to 2.
 
 Locks over the shared counter are a potential solution.  However, locking
 causes packet $B$ to wait during packet $A$'s increment, and the router no
-longer sustains the line rate of one packet every clock cycle. CPUs employ
+longer provides a deterministic throughput of one packet every clock cycle. CPUs employ
 micro-architectural techniques such as operand forwarding for this problem. But
 these techniques still suffer pipeline stalls, which prevents line-rate
 performance from being achieved under worst-case conditions. Instead,
@@ -98,11 +98,11 @@ multi-cycle atomic operations are rejected because line-rate performance cannot
 be guaranteed for them under worst-case conditions.
 
 For instance, in the case of the counter, \absmachine provides an atomic
-increment operation at line rate with an {\em atom} to read a counter,
-increment it, and write it back in a single stage within one clock cycle. It
-uses the same approach of reading, modifying, and writing back to implement a
-limited set of other stateful atomic operations at line rate
-(Table~\ref{tab:templates} provides one representative set of atoms.).
+increment operation with an {\em atom} to read a counter, increment it, and
+write it back in a single stage within one clock cycle. It uses the same
+approach of reading, modifying, and writing back to implement a limited set of
+other stateful atomic operations that complete within a clock cycle.
+Table~\ref{tab:templates} provides one representative set of atoms.
 
 Unlike stateful atomic operations, stateless atomic operations are easier to
 support with simple instructions for binary operations on a pair of packet
@@ -220,8 +220,9 @@ architectures~\cite{lavanya_compiler, rmt}.
 packet headers and carry out small amounts of computation per packet.
 Data-plane algorithms like deep packet inspection and WAN optimization require
 a router to parse and process the packet payload as well, effectively parsing a
-large ``header'' consisting of each byte in the payload. This is challenging at
-line rates of 1 GHz, and such algorithms are best left to CPUs~\cite{e2}.  Some
+large ``header'' consisting of each byte in the payload. This is challenging to
+implement on a router that processes packets at 1 GHz, and such algorithms are best left to
+general-purpose, but slower, CPUs~\cite{e2}.  Some
 algorithms require complex computations, but not on every packet, \eg a
 measurement algorithm that periodically scans a large table to perform garbage
 collection.  \absmachine's atoms model small operations that occur on every

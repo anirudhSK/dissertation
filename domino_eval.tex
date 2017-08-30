@@ -6,7 +6,7 @@
 We evaluate \pktlanguage's expressiveness by using it to program several
 data-plane algorithms (Table~\ref{tab:algorithms}), and comparing it to writing
 them in P4~(\S\ref{ss:expressiveness}). To validate that these algorithms can
-run at line rate, we design a concrete set of \absmachine machines
+run at the router's line rate, we design a concrete set of \absmachine machines
 (Table~\ref{tab:templates}) as compiler targets for
 \pktlanguage~(\S\ref{ss:targets}).  We estimate that these machines are
 feasible in hardware because their atoms incur modest chip area overhead.  We
@@ -454,7 +454,7 @@ host receiving it and executing CONGA.} and vice versa. These two state
 variables cannot be separated into different stages and still guarantee a
 packet transaction's semantics because they are mutually dependent on each
 other.  The Pairs atom, where the update to a state variable is conditioned on
-a predicate of a pair of state variables, allows CONGA to run at line rate.
+a predicate of a pair of state variables, allows CONGA to run at a router's line rate.
 
 \begin{table}[!t]
   \centering
@@ -507,7 +507,7 @@ critical-path delay under 1 ns (1 GHz), it is conceivable that they can be
 extended with functionality that causes the atom to violate timing at 1 GHz.
 
 In summary, for a router designer, the critical path of atoms is the most
-important metric to optimize. The most programmable line-rate routers will have
+important metric to optimize. The most programmable routers will have
 the highest density of useful stateful functionality squeezed into a critical
 path budget of 1 clock cycle.
 
