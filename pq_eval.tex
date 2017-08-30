@@ -1,8 +1,6 @@
 \section{Evaluation}
 \label{sec:eval}
 
-\input{pq_examples}
-
 We evaluate \TheSystem in three ways. In \Sec{eval:hardware}, we quantify the
 number of Banzai atoms required for \TheSystem queries. In \Sec{eval:traces},
 we quantify the memory size vs. eviction rate tradeoff for the key-value store.
@@ -11,6 +9,7 @@ studies that use \TheSystem compiled to the P4 behavioral model running on
 Mininet: debugging microbursts~\cite{tpp} and computing flowlet size
 distributions.
 
+\input{pq_examples}
 \input{pq_eval-hardware}
 \input{pq_eval-traces}
 \input{pq_eval-mininet}

@@ -36,7 +36,7 @@ tables and then chaining these tables together.
 
 % TODO: What about the new heavy hitters algorithm from the tutorial?
 Of the algorithms in Table~\ref{tab:algorithms}, flowlet switching has a
-publicly available P4 implementation~\cite{p4_flowlet} that we can directly
+publicly available and manually written P4 implementation~\cite{p4_flowlet} that we can directly
 compare against. This implementation requires 231 lines of uncommented P4,
 compared to only 37 lines of \pktlanguage code in
 Figure~\ref{fig:flowlet_code}. Furthermore, using P4 also requires the
@@ -159,9 +159,9 @@ combining both stateless and stateful atoms for all our targets is at most
 \begin{table}[!t]
   \centering
   \begin{small}
-  \begin{tabular}{|p{0.26\textwidth}|p{0.36\textwidth}|p{0.08\textwidth}|p{0.04\textwidth}|}
+  \begin{tabular}{|p{0.26\textwidth}|p{0.36\textwidth}|p{0.08\textwidth}|p{0.12\textwidth}|}
     \hline
-    Atom & Description & Area (\si{\micro\metre\squared}) at 1 GHz & Min. delay (ps) \\
+    Atom & Description & Area (\si{\micro\metre\squared}) at 1 GHz & Minimum critical-path delay (ps) \\
     \hline
     Stateless & Arithmetic, logic, relational, and conditional operations on packet/constant operands & 1384 & 387 \\
     \hline
