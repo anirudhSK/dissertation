@@ -235,7 +235,7 @@ challenges, we develop a system for data-plane programming, Domino, which
 contains three main components: an instruction set (atoms), a programming model
 (packet transactions), and a compiler from packet transactions to atoms.
 
-\subsection{Atoms}
+\subsection{Atoms: Hardware for high-speed state manipulation}
 \label{ss:intro_atoms}
 \textit{Atoms} capture a router's instruction set. They specify atomic units of
 packet processing provided by the router hardware, \eg an atomic counter or an
@@ -252,7 +252,9 @@ condition for atomicity and may not always be necessary.}
 %TODO: If I write out the multi-cycle atomics in concl.tex, I can reference that
 %in the footnote.
 
-\subsection{Packet transactions} \textit{Packet transactions} provide a
+\subsection{Packet transactions: A programming model for stateful algorithms}
+
+\textit{Packet transactions} provide a
 programming model for data-plane algorithms. A packet transaction is an atomic
 and isolated block of code capturing an algorithm's logic written in a
 domain-specific language (DSL) called Domino.
@@ -290,7 +292,8 @@ packet. State variables (count) are in red.}
 \end{minipage}
 \end{figure}
 
-\subsection{The compiler} The Domino compiler compiles packet transactions
+\subsection{Compiling from packet transactions to atoms}
+The Domino compiler compiles packet transactions
 written in the Domino DSL to a pipeline of atoms provided by the router. It
 rejects the code if the router's atoms cannot support the packet transaction.
 
@@ -519,7 +522,7 @@ parent's scheduling PIFO, which is useful when combining hierarchical
 scheduling with traffic shaping (Figure~\ref{fig:hshaping} in
 Chapter~\ref{chap:pifo} shows an example.).
 
-\subsection{Expressiveness of PIFOs}
+\subsection{Expressiveness of our programming model}
 
 The PIFO-based programming model unifies several scheduling algorithms and
 allows us to program a wide variety of scheduling algorithms using the single
@@ -528,7 +531,7 @@ Shaping~\cite{tbf}, Hierarchical Packet Fair Queueing~\cite{hpfq}, Least-Slack
 Time-First~\cite{lstf}, the Rate-Controlled Service Disciplines~\cite{rcsd},
 and fine-grained priority scheduling (\eg Shortest Job First).
 
-\subsection{Hardware for PIFOs}
+\subsection{Hardware for programmable scheduling}
 \label{ss:intro_pifo_hardware}
 
 We designed high-speed hardware to support a PIFO-based programming model. When
@@ -654,7 +657,7 @@ order-independent aggregation functions like counts and averages. SQL does not
 allow general, user-defined, and potentially order-dependent aggregation
 functions. 
 
-\subsection{Router hardware for performance queries}
+\subsection{Hardware for programmable network measurement}
 \label{ss:intro_pq_hardware}
 
 A naive implementation of performance queries would stream every packet to a
