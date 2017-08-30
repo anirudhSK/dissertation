@@ -3,7 +3,7 @@
 
 %TODO: Check dates on all subsections
 As background for the rest of this dissertation, we first review several prior
-approaches to programmability in networks (\S\ref{s:bgnd_bgnd}). We then review
+approaches to network programmability (\S\ref{s:bgnd_bgnd}). We then review
 work that is closely related to and concurrent with the work presented in this
 dissertation (\S\ref{s:concurrent}).  This chapter focuses on literature that
 is generally related to the broad themes of this dissertation.
@@ -27,7 +27,7 @@ paper reports that the IMP's maximum throughput was around 700 kbit/s,
 sufficient to service several 50 kbit/s lines in both directions.  Such
 minicomputer-based routers were also eminently programmable: changing the
 functionality of the router simply required upgrading the forwarding software
-and loading the minicomputer with a new piece of software.
+on the minicomputer.
 
 This approach of building production routers using minicomputers continued into
 the mid 1990s.  A notable example of a software router during the 1970s was David
@@ -39,7 +39,7 @@ startup Cisco Systems.
 
 By the mid 1990s, software could no longer keep up with the demand for higher
 link speeds caused by the rapid adoption of the Internet and the World Wide
-Web. Juniper Network's M40 router~\cite{m40} was an early example of a hardware
+Web. Juniper Networks' M40 router~\cite{m40} was an early example of a hardware
 router in 1998.  The M40 contained a dedicated chip to implement the router's
 data plane along with a control processor to implement the router's control
 plane. As we described in Chapter~\ref{chap:intro}, since the mid 1990s, the
@@ -64,13 +64,14 @@ possible that a malicious or erroneous end user program could corrupt the
 entire router.  One way to resolve security concerns was to execute the capsule
 program within an isolated application-level virtual machine like the Java
 virtual machine~\cite{ants, wetherall_thesis, anet_retrospective}. However,
-this came at the cost of degraded forwarding performance. As an example, the
-SNAP~\cite{snap_active_packets} system that prototyped the capsule approach
-reported a forwarding rate of 100 Mbit/s in 2001, about two orders of magnitude
-slower than the Juniper M40 40 Gbit/s hardware router developed in
-1998~\cite{m40}.
-%TODO: SNAP does not use a JVM. I think it uses other isolation techniques.
-%This part could be improved.
+isolation using a virtual machine came at the cost of degraded forwarding performance.
+
+Even with techniques to provide efficient isolation, such as
+SNAP~\cite{snap_active_packets}, there was a significant performance hit when
+carrying out packet forwarding on a general-purpose processor.  For instance,
+SNAP reported a forwarding rate of 100 Mbit/s in
+2001, about two orders of magnitude slower than the Juniper M40 40 Gbit/s
+hardware router developed in 1998~\cite{m40}.
 
 The capsule approach---probably the most ambitious of all active networking
 visions---has not panned out in its most general form due to security concerns.
