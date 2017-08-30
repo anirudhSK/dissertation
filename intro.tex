@@ -331,7 +331,7 @@ compiles a program, the program will run at the line rate of the
 router.\footnote{We use the term line rate in this dissertation to mean both
 the maximum bit/packet rate of a particular router port/line (\eg 10 Gbit/s)
 and the maximum aggregate bit/packet rate of a router: the product of the
-per-port line rate and the number of ports (\eg 64 * 10 Gbit/s = 640 Gbit/s).
+per-port line rate and the number of ports (\eg 64$\times$10 Gbit/s = 640 Gbit/s).
 It should be clear from the context which interpretation of line rate we are
 referring to. } All other programs that cannot run at the router's line rate
 will be rejected. A program may be rejected either because the router's atoms
@@ -625,7 +625,7 @@ result = filter((*\pktlog,*) qid == Q && tout - tin > 1ms)
 \centering
 \begin{lstlisting}
 result = map((*\pktlog,*) [tin/epoch_size], [epoch])
-// Round off packet time stamps to the nearest epoch.
+// Round off packet time stamps to the nearest epoch of size epoch_size.
 \end{lstlisting}
 \end{minipage}
 
@@ -649,7 +649,7 @@ abstraction of a single performance packet stream for the entire network.
 Conceptually, the performance packet stream is a stream of tuples, one for each
 packet, containing information identifying the packet (source and destination
 address and ports) and its performance information (the timestamp at which the
-packet was enqueued into and dequeued from each queue in the network).
+packet was enqueued/dequeued at each network queue).
 
 Network operators can write queries that operate on this performance packet
 stream using a query language called \TheSystem. \TheSystem has functional
@@ -662,23 +662,24 @@ queries can be easily composed.
 
 The output stream either transforms each tuple in the input stream ({\ct map}),
 drops certain tuples from the input stream based on a predicate ({\ct filter}),
-or partitions the input stream into substreams based on a predicate and then
+or partitions the input stream into substreams and then
 aggregates the tuples within each substream based on a user-defined aggregation
 function ({\ct groupby}). \TheSystem's use of user-defined aggregation
 functions differentiates its groupby construct from the groupby construct
 supported by classical query languages like SQL. SQL only supports specific
-order-independent aggregation functions like counts and averages. SQL does not
+order-independent aggregation functions like counts and averages. Unlike Marple, SQL does not
 allow general, user-defined, and potentially order-dependent aggregation
 functions. 
 
 \subsection{Hardware for programmable network measurement}
 \label{ss:intro_pq_hardware}
 
-A naive implementation of performance queries would stream every packet to a
+A naive implementation of performance queries would stream relevant performance information
+for every packet to a
 centralized collection server, which would execute the performance query on the
 incoming packet stream. However, this would require enormous computational
-capacity on the server and a separate measurement network just to stream every
-packet to the server. For instance, modern stream processing systems support a
+capacity on the server and a separate measurement network just to stream per-packet information
+ to the server. For instance, modern stream processing systems support a
 throughput of \textasciitilde100K--1M operations per second per
 core~\cite{kafka_benchmark, redis_benchmark, memcached_benchmark,
 redis_vs_memcached_update, spark-streaming}, but processing every single packet
@@ -708,7 +709,7 @@ each substream. This query is stateful because it needs to maintain a
 dictionary mapping each 5-tuple to its count as part of the persistent router
 state. To implement the {\ct groubpy} query, this dictionary is updated by
 incrementing some 5-tuple's counter on each packet. To support \TheSystem's
-stateful construct, the {\ct groupby}, we design a programmable key-value store
+ {\ct groupby}, we design a programmable key-value store
 in hardware. The keys represent the flows and the values represent the state
 being aggregated according to the aggregation function as packets are
 processed. In the example above, the key would be a 5-tuple and the value would
@@ -765,7 +766,7 @@ the following form:
 S = A(p) * S + B(p)
 \end{equation}
 Here $S$ is the state/value that is being updated by the aggregation function,
-while $A$ and $B$ are functions of a a bounded number of packets into the past
+while $A$ and $B$ are functions of a bounded number of packets into the past
 including the current one. The linear-in-state class captures a variety of
 aggregation functions including counters, predicated counters, moving average
 filters, and arbitrary functions on sliding windows.
@@ -774,7 +775,7 @@ filters, and arbitrary functions on sliding windows.
 to express several diverse performance queries, \eg tracking the loss rate on a
 per-flow basis, measuring the extent of reordering in a TCP flow, measuring a
 moving average of queueing latencies on a per-flow basis, and detecting the
-presence of TCP incast.
+presence of TCP incast~\cite{tcpincast}.
 
 Our \TheSystem compiler compiles queries to two different targets: an atom
 pipeline to determine the hardware feasibility of \TheSystem queries and a
@@ -790,7 +791,7 @@ spikes that occur because of bursty background traffic.
  We determine the eviction rate from the SRAM cache using a trace-driven
 simulation on publicly available packet traces from CAIDA~\cite{caida2016,
 caida2014} and a university data center~\cite{theo_dc}. For a 64 Mbit on-chip
-cache, which occupies about 10\% of the area of a 64×10-Gbit/s router chip, we
+cache, which occupies about 10\% of the area of a 64$\times$10-Gbit/s router chip, we
 estimate that the cache eviction rate from a single top-of-rack router can be
 handled by a single 8-core server running Redis~\cite{redis}. Relative to a
 strawman that sends every packet to the collection server (\ie a 100\% eviction
@@ -807,7 +808,7 @@ specific classes of router functionality.  The three systems in the
 dissertation demonstrate how narrowing our focus to specific router
 functionality allows us to resolve the performance-programmability tradeoff
 that has affected software routers so far. Put differently, it allows us to get
-the best of both worlds, but for restricted classes of router functionalities.
+the best of both worlds, but for restricted classes of router functionality.
 
 More formally, the three systems are specialized in the sense that they are not
 Turing-complete: they cannot simulate a Turing machine, an idealization of the
