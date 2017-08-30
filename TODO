@@ -16,13 +16,9 @@ High:
 
 * How to get footnotes in tables?
 
-* Be consistent with tenses everywhere
-
 * ensure that the background is actually contrasted against the dissertation
 
 * define high speed formally somewhere? high-speed vs. fast vs. line rate. Be consistent.
-
-* users vs. programmers vs. operators
 
 * consider replacing head packet with earliest packet
 
@@ -33,8 +29,6 @@ High:
 * check that \Sec does the right thing, i.e., is equivalent to \S
 
 * make sure tildes render properly
-
-* stream vs. sequence. Be careful about what is used where.
 
 * Either have periods at the end of captions or not. Be consistent.
 
