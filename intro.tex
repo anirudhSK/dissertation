@@ -362,7 +362,7 @@ To develop atoms, we use the Domino compiler to experiment with different atoms
 and iteratively modify the atoms until they support enough algorithms
 (Figure~\ref{fig:iterative_design}).  Using this process, we developed seven
 atoms of increasing complexity (Table~\ref{tab:templates}) that allow us to
-progressively program more and more algorithms from
+progressively program more algorithms from
 Figure~\ref{fig:router_algos}. For instance, measurement using Bloom filters
 only requires simple read and write operations on state. On the other hand,
 heavy-hitter detection~\cite{opensketch} uses a count-min sketch~\cite{cormode}
@@ -395,12 +395,12 @@ appear so different at first brush. This lack of a single unifying abstraction
 is not merely an academic concern. It has practical consequences: in the
 absence of a single abstraction that can then be hardened in hardware, we are
 left with using a general-purpose substrate such as a CPU to program
-scheduling. As we mentioned earlier, this can seriously hurt performance.
+scheduling. As we mentioned earlier, this can hurt performance substantially.
 
  Push In First Out Queues (PIFOs) (Chapter~\ref{chap:pifo}) provide such an
-abstraction.\footnote{PIFOs were first used as a theoretical proof construct to
-establish the equivalence of combined input-output queued routers and purely
-output queued routers~\cite{pifo}. We show here that they can be used
+abstraction.\footnote{PIFOs were used as a theoretical construct to
+establish the equivalence of combined input-output queued routers and output-queued
+routers~\cite{pifo}. We show here that they can be used
 practically for programmable packet scheduling.} They exploit our observation
 that in many practical schedulers the relative order of packets that are
 already buffered does not change in response to new packet arrivals
@@ -423,7 +423,7 @@ absolute wall-clock departure time (for non-work-conserving algorithms such as
 traffic shaping~\cite{tbf}). This program is written as a packet transaction,
 introduced earlier.  Depending on whether the program determines the scheduling
 order or time, the program is called either a scheduling transaction or a
-shaping transaction.
+shaping transaction respectively.
 
 \begin{figure}
 \begin{subfigure}[!h]{0.48\textwidth}
@@ -549,8 +549,8 @@ and fine-grained priority scheduling (\eg Shortest Job First).
 We designed high-speed hardware to support a PIFO-based programming model. When
 designing hardware for PIFOs, we set out to meet performance targets that are
 typical for a single-chip shared-memory router today. These are routers that
-are built out of a single chip (also called an application-specific integrated
-circuit or ASIC), and whose packet buffer and scheduling logic is shared across
+are built out of a single chip,\footnote{Also called an application-specific integrated
+circuit or ASIC} and whose packet buffer and scheduling logic is shared across
 all ports. Sharing the packet buffer and scheduling logic reduces the memory
 and digital logic cost associated with packet scheduling.
 
@@ -571,7 +571,7 @@ elements were greater than or lesser than the incoming element.  Because the
 array is always sorted, the bitmask would have a single 0-to-1 transition.  The
 position of this 0-to-1 transition could be detected using a priority encoder.
 Finally, the new element could be inserted into this position.  However, the
-difficulty with this approach is that it is hard to lay out 60K parallel
+difficulty with this approach of using a flat sorted array is that it is hard to lay out 60K parallel
 comparators, one for each element in the PIFO.
 
 Instead, we exploit the observation that in most practical scheduling
