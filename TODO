@@ -2,7 +2,7 @@ High:
 ==========
 * Add performance numbers wherever possible
 
-* e2e pass on figures, tables, etc. Also look at nits.txt
+* e2e pass on figures, tables, etc.
 
 * Try and avoid using the term data plane unless absolutely required
 
@@ -23,5 +23,3 @@ High:
 * check that \Sec does the right thing, i.e., is equivalent to \S
 
 * make sure tildes render properly
-
-* \tengrouter and 10G should be consitent
