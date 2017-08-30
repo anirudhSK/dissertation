@@ -23,62 +23,6 @@ dequeued first.
 We note that scheduling with the PIFO abstraction does not require packets to
 be stored in per-flow queues.
 
-\begin{figure}
-\begin{lstlisting}[style=customc]
-f = flow(p) # compute flow from packet p
-if f in last_finish:
- p.start = max(virtual_time, last_finish[f])
-else: # p is first packet in f
- p.start = virtual_time
-last_finish[f] = p.start + p.length/f.weight
-p.rank = p.start
-\end{lstlisting}
-\caption{Scheduling transaction for STFQ. {\tt p.x} refers to a packet
-  field {\tt x} in packet {\tt p}.  {\tt y} refers to a state variable
-  that is persisted on the router across packets, \eg {\tt last\_finish}
-  and {\tt virtual\_time} in this snippet. {\tt p.rank} denotes the
-  packet's computed rank.}
-\label{fig:sched_trans}
-\end{figure}
-
-%%% Figure for HPFQ below %%%
-\begin{figure*}
-\begin{subfigure}[b]{.2\textwidth}
-\includegraphics[width=\textwidth]{pifo_hpfq_example.pdf}
-\caption{Algorithm}
-\label{fig:hpfq_algo}
-\end{subfigure}
-\vrule
-\begin{subfigure}[b]{.3\textwidth}
-\includegraphics[width=\textwidth]{pifo_hpfq_program.pdf}
-\caption{Scheduling tree}
-\label{fig:hpfq_tree}
-\end{subfigure}
-\vrule
-\begin{subfigure}[b]{.5\textwidth}
-\begin{lstlisting}[style=customc]
-f = flow(p) # see caption below
-if f in last_finish:
-  p.start = max(virtual_time, last_finish[f])
-else:
-  p.start = virtual_time
-last_finish[f] = p.start + p.length / f.weight
-p.rank = p.start
-\end{lstlisting}
-\caption{Scheduling transaction for WFQ\_Root, WFQ\_Left, and
-  WFQ\_Right.}
-\label{fig:hpfq_trans}
-\end{subfigure}
-\caption{Programming HPFQ using PIFOs. ``Left'' and ``Right'' are
-  classes. A, B, C, and D are flows.  Within each tree node in the scheduling tree, the first
-  line is the packet predicate and the second is the scheduling
-  transaction. All three nodes execute the same code for the scheduling
-  transaction except for their flow() function, which returns a packet's flow/class. For
-  WFQ\_Root, it returns the packet's class: Left/Right. For WFQ\_Left
-  and WFQ\_Right, it returns the packet's flow: A/B or C/D.}
-\label{fig:hpfq}
-\end{figure*}
-
 We now describe the three main abstractions in our programming model. First, we
 show how to use a {\em scheduling transaction} to program simple
 work-conserving scheduling algorithms using a single PIFO~(\S\ref{ss:wfq}).
@@ -120,6 +64,64 @@ discusses how this state variable can be accessed on the enqueue side.} Packets
 are scheduled in order of increasing virtual start times, which is the packet's
 rank in the PIFO.
 %TODO: First sentence above is too wordy.
+
+\begin{figure}[!t]
+\begin{lstlisting}[style=customc]
+f = flow(p) # compute flow from packet p
+if f in last_finish:
+ p.start = max(virtual_time, last_finish[f])
+else: # p is first packet in f
+ p.start = virtual_time
+last_finish[f] = p.start + p.length/f.weight
+p.rank = p.start
+\end{lstlisting}
+\caption{Scheduling transaction for STFQ. {\tt p.x} refers to a packet
+  field {\tt x} in packet {\tt p}.  {\tt y} refers to a state variable
+  that is persisted on the router across packets, \eg {\tt last\_finish}
+  and {\tt virtual\_time} in this snippet. {\tt p.rank} denotes the
+  packet's computed rank.}
+\label{fig:sched_trans}
+\end{figure}
+
+%%% Figure for HPFQ below %%%
+\begin{figure*}[!t]
+\begin{subfigure}[b]{.2\textwidth}
+\includegraphics[width=\textwidth]{pifo_hpfq_example.pdf}
+\caption{Algorithm}
+\label{fig:hpfq_algo}
+\end{subfigure}
+\vrule
+\begin{subfigure}[b]{.3\textwidth}
+\includegraphics[width=\textwidth]{pifo_hpfq_program.pdf}
+\caption{Scheduling tree}
+\label{fig:hpfq_tree}
+\end{subfigure}
+\vrule
+\begin{subfigure}[b]{.5\textwidth}
+\begin{lstlisting}[style=customc]
+f = flow(p) # see caption below
+if f in last_finish:
+  p.start = max(virtual_time, last_finish[f])
+else:
+  p.start = virtual_time
+last_finish[f] = p.start + p.length / f.weight
+p.rank = p.start
+\end{lstlisting}
+\caption{Scheduling transaction for WFQ\_Root, WFQ\_Left, and
+  WFQ\_Right.}
+\label{fig:hpfq_trans}
+\end{subfigure}
+\caption{Programming HPFQ using PIFOs. ``Left'' and ``Right'' are
+  classes. A, B, C, and D are flows.  Within each tree node in the scheduling tree, the first
+  line is the packet predicate and the second is the scheduling
+  transaction. All three nodes execute the same code for the scheduling
+  transaction except for their flow() function, which returns a packet's flow/class. For
+  WFQ\_Root, it returns the packet's class: Left/Right. For WFQ\_Left
+  and WFQ\_Right, it returns the packet's flow: A/B or C/D.}
+\label{fig:hpfq}
+\end{figure*}
+
+
 
 \subsection{Scheduling trees}
 \label{ss:hpfq}

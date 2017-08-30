@@ -30,14 +30,6 @@ together into a 5-block PIFO mesh that can support up to 5 levels of hierarchy
 in a scheduling algorithm, sufficient for all practical hierarchical schedulers
 we know of.
 
-\begin{figure}[!t]
-  \centering
-  \includegraphics[width=0.6\columnwidth]{pifo_pifo_impl.pdf}
-  \caption{Block diagram of PIFO block with a flow scheduler and a
-   rank store. Logical PIFOs and metadata are not shown for simplicity.}
-  \label{fig:pifo_impl}
-\end{figure}
-
 \subsection{A single PIFO block}
 \label{ss:single_block}
 
@@ -93,6 +85,14 @@ scheduler is effectively a PIFO consisting of the head elements of all flows.
 \item A {\em rank store}, a FIFO bank that stores the ranks of elements beyond
 the head for each flow in FIFO order.
 \end{CompactEnumerate}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.6\columnwidth]{pifo_pifo_impl.pdf}
+  \caption{Block diagram of PIFO block with a flow scheduler and a
+   rank store. Logical PIFOs and metadata are not shown for simplicity.}
+  \label{fig:pifo_impl}
+\end{figure}
 
 This decomposition reduces the number of elements requiring sorting from the
 number of packets (64K) to the number of flows (1024). Maintaining a flat
