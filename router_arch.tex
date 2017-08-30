@@ -273,38 +273,51 @@ dequeues). The limited set of operations on the scheduler memory allows the
 development of multi-ported memory for the scheduler without considerable area
 expense.
 
-% TODO: Maybe have a much more explicit terminology subsection that talks about the different terms in routers:
-% Use the terminology subsection to explain the scope of this dissertation
-% chassis routers,
-% line-card routers,
-% shared-memory routers,
-% parallel shared memory routers,
-% distributed shared memory routers,
-% multi-pipeline routers.
-% load-balanced routers.
-% crossbar-buffered routers.
-% input-queued routers,
-% output-queued routers,
-As a matter of terminology, we note that single pipeline routers and
-multi-pipeline routers with multi-ported memories in the scheduler are also
-called {\em shared memory} routers~\cite{dctcp}. The term shared memory is a
-reference to the fact that the memory for the packet buffer is shared across
-all output ports because it behaves like one logically centralized pool of
-memory. Sharing packet buffer memory in a single pipeline router is relatively
-easy. This is because, on every clock cycle, the memory is enqueued into at
-most once (from the single ingress pipeline) and dequeued from at most once
-(from the single egress pipeline). In a multi-pipeline router, this requires
-multi-ported memory, which does reduce the total size of the shared memory
-pool~\cite{dctcp}. In Chapter~\ref{chap:pifo} when we refer to a shared memory
-router, we mean a single pipeline shared memory router. 
+Throughout this dissertation, we assume a single pipeline router. For
+concreteness, we assume the pipeline runs at 1 GHz (\ie every pipeline stage
+handles a new packet every 1 ns), although our concepts generalize to other
+clock frequencies. We discuss how our ideas can be extended to multi-pipeline
+routers later (\S\ref{ss:multiple_pipelines}).
 
-Throughout most of this dissertation, we assume a single pipeline router for
-simplicity. For concreteness, we assume the pipeline runs at 1 GHz (\ie every
-pipeline stage handles a new packet every 1 ns), although our concepts
-generalize to other clock frequencies. We discuss how our ideas can be extended
-to multi-pipeline routers later (\S\ref{ss:multiple_pipelines}). 
+\subsection{Clarifying router terminology}
 
-\section{Conclusion}
+Routers are classified based on several attributes in the literature. In this
+subsection, we briefly discuss some of the major classifications to clarify the
+terminology used in this dissertation.
+
+At a conceptual level, routers are classified into output-queued and
+input-queued routers depending on whether the queues build up at the input
+ports or the output ports of a router~\cite{islip}. An output-queued router is
+preferable because it offers more predictable performance: if an output port
+has a large backlog of packets it only affects that output port and no other
+ports.
+
+One way to implement an output-queued router is using memory that is shared
+across all output ports of the router. This memory needs to support enqueues
+from any of the input ports and dequeues from any of the output ports every
+clock cycle~\cite{sundar_shared_memory, dctcp}.  In addition to emulating an
+output-queued router, a shared memory implementation has the benefit that the
+memory pool can be allocated to output ports on demand depending on the
+congestion at each output port, without committing memory to output ports at
+hardware design time.
+
+With a single ingress and a single egress pipeline shared across all ports,
+sharing memory is relatively straightforward: each pipeline enqueues or
+dequeues once every clock cycle, which can be supported by single-ported
+memory. With multi-pipeline routers, this requires specialized multi-ported
+memories in the scheduler as discussed earlier. 
+
+Routers with single and multiple pipelines are instances of a single chip
+router, where a single chip provides aggregate forwarding capacity for the full
+line rate at all ports, while emulating an output-queued router. For even
+higher aggregate speeds, such as those seen in core routers, multiple such
+chips are put together on a motherboard in a Fat Tree topology~\cite{b4}, but
+such multi-chip routers are not necessarily output-queued anymore.
+
+Unless otherwise mentioned, a router in this dissertation refers to a
+single-chip, single-pipeline, output-queued router.
+
+\section{Summary}
 This chapter provided an overview of the hardware architecture of a high-speed
 router to serve as a mental model of a router chip for the rest of this
 dissertation.  The programmable hardware designs that we propose are intended
