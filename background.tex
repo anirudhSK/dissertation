@@ -92,8 +92,7 @@ Click~\cite{click} used a single-core CPU in 2000.  In the early 2000s, Intel
 introduced a line of processors tailored towards networking called network
 processors, such as the IXP1200~\cite{ixp1200} in 2000 and the
 IXP2800~\cite{ixp2800} in 2002.  The RouteBricks project used a multi-core
-processor~\cite{routebricks} in 2009, the PacketShader project used a graphics
-processor (GPU)~\cite{packetshader} in 2010, and the NetFPGA-SUME project used
+processor~\cite{routebricks} in 2009, the PacketShader project used a GPU~\cite{packetshader} in 2010, and the NetFPGA-SUME project used
 an FPGA in 2014~\cite{netfpga}.
 
 Software routers have found adoption as a means of programming routers at the
@@ -107,7 +106,7 @@ Many domain-specific languages (DSLs) for packet processing were developed in
 parallel with the development of software routers. For instance,
 Click~\cite{click} uses C++ for packet processing on software routers.
 packetC~\cite{packetc} and Microengine C~\cite{microenginec} target network
-processors. When designing the Domino DSL (Chapter~\ref{chap:domino}, our
+processors. When designing the Domino DSL (Chapter~\ref{chap:domino}), our
 syntax and semantics were inspired by these DSLs.  However, because Domino
 targets high-speed routers, it is more constrained. For instance, because
 compiled programs run at the router's line rate, \pktlanguage forbids loops.
@@ -117,12 +116,12 @@ compiled programs run at the router's line rate, \pktlanguage forbids loops.
 
 \subsection{Software-defined networking (2004 to now)}
 Starting in the early 2000s, researchers argued for separating the router's
-control plane (\ie the part of the router that runs a distributed routing
-protocol to computes its routing tables) from the router's data plane (\ie the
+control plane (the part of the router that runs a distributed routing
+protocol to computes its routing tables) from the router's data plane (the
 part of the router that actually forwards packets by looking them up in the
 routing table)~\cite{route_control, case_for, forces, fourd, ethane}. As an
-example, the implementation of a link-state routing protocol would be part of
-the control plane, while the implementation of a longest-prefix-based table
+example, an implementation of a link-state routing protocol would be part of
+the control plane, while an implementation of a longest-prefix-based table
 lookup would be part of the data plane.
 
 The idea behind this approach, which later came to be called software-defined
@@ -144,7 +143,7 @@ This, in turn, allowed those few servers to compute routes for the entire
 network with the benefit of global network visibility. Effectively, SDN
 replaced an error-prone distributed route computation protocol with a much
 simpler centralized graph computation (\eg shortest paths using Dijkstra's
-algorithm) to compute the routes.
+algorithm).
 
 SDN also required a mechanism for the control plane to populate the contents of
 the routing tables once the control plane had computed routes for each router.
@@ -152,16 +151,15 @@ These tables would then be consulted by the data plane when forwarding packets.
 The most well-known of these mechanisms was the OpenFlow API~\cite{openflow},
 which exposed a minimal interface to the routing tables in router hardware.
 The goal of OpenFlow was to serve as a minimum common denominator across
-interfaces to routing tables in different forwarding chips. This was so that
+interfaces to routing tables in different router chips. This was so that
 existing chips could immediately support the OpenFlow API.
 
 While the OpenFlow API made it possible to program the network's control plane,
 it did not necessarily make it easy. Hence, the development of SDN also led to
-the development of many high-level programming languages to program a router's
+the development of high-level programming languages to program a router's
 control plane~\cite{frenetic, pyretic}. While SDN saw a considerable amount of
 research work in programming and verifying rich control plane policies, it saw
-much lesser work in enabling programmability in the data plane or the router
-chip itself.
+much less work in enabling programmability in the data plane.
 
 \subsection{Network functions virtualization (2012 to now)}
 Network functions virtualization (NFV)~\cite{nfv_etsi_2012} sought to move
@@ -178,7 +176,7 @@ cellular base station), where a variety of packet-processing functions run on a
 cluster of processors~\cite{e2} every time a client accesses the Internet.
 Because NFV carries out its packet processing on a software platform, it can
 also be viewed as a practical use case for software routers at the edge where
-the link rate requirements are modest.
+the link rate requirements are relatively modest.
 %TODO: cite domain 2.0
 
 \subsection{Edge/end-host based software-defined networking (2013 to now)}
@@ -199,8 +197,7 @@ overall aggregate traffic into and out of the network.
 As a result, the edge routers had far less demanding performance requirements
 relative to the core, which allowed them to be implemented on general-purpose
 CPUs.  Using a general-purpose CPU for programming edge routers allowed them to
-be far more programmable than the restricted OpenFlow API for routers would
-have allowed. Open Virtual Switch~\cite{openvswitch} is one well-known example
+be far more programmable than the restricted OpenFlow API. Open Virtual Switch~\cite{openvswitch} is one well-known example
 of an edge router; it runs within the hypervisor on an end host and connects
 together multiple virtual machines on a single end host to the network.  More
 recently, increasing performance requirements on the edge have led to
@@ -214,7 +211,7 @@ programming end hosts alone.  Tiny Packet Programs (TPP)~\cite{tpp} allow end
 hosts to embed small programs in packet headers, which are then executed by the
 router in a style similar to capsule-based active networks. TPPs use a
 restricted instruction set to alleviate the performance and security concerns
-of capsule-based active networks. On the measurement and monitoring side, many
+of active networks. On the measurement and monitoring side, many
 systems monitor network performance from end hosts alone~\cite{netpoirot,
 minlan-snap, dapper-sosr, trumpet, azure-smartnic}.
 
@@ -225,9 +222,8 @@ available at the end hosts.  Similarly, many network security applications,
 such as filtering spam are best run on the end hosts because the information
 required to determine what is spam and what is not is best left on the end host
 for privacy reasons. Furthermore, quite a bit of programmable networking
-functionality can be carried out at the edge (\eg network virtualization,
-access control, security policies etc.) with no loss in correctness.
-% TODO: Other examples beside spam detection
+functionality can be carried out with edge programmability alone
+ (\eg network virtualization, access control, security policies etc.).
 
 However, the edge-based approach is inadequate for all network problems. For
 instance, there is a substantial improvement in performance from using network
@@ -238,7 +234,7 @@ recent proposals for improving network performance rely on support from the
 routers within the core of the network~\cite{pFabric, pias, d3, rcp, detail,
 conga, letflow}. There is also a considerable improvement in network visibility
 from direct in-network monitoring, in contrast to ``triangulating'' the root cause of a
-network problem from network measurements from different end host vantage
+network problem using network measurements from different end host vantage
 points.  In summary, the absence of a programmable network core leaves
 significant performance on the table and complicates network debugging.
 
@@ -246,17 +242,17 @@ One could argue for a hybrid network architecture that combines edge-based
 programmability with smarter, but fixed, core routers. Such an architecture
 still puts all the programmability at the edge but augments core routers with a
 small set of fixed features to support programmability from the edge.  Examples
-of this approach include Universal Packet Scheduling~\cite{ups} and in-band
-network telemetry~\cite{int, int_paper}, which augment routers with a
+of this approach include Universal Packet Scheduling~\cite{ups} and In-band
+Network Telemetry~\cite{int, int_paper}, which augment routers with a
 fine-grained priority queue and the ability to export queue size information
 into packets, but otherwise leave all the programmability to the edge.
 
-This hybrid approach would be future proof and general if there existed a small
+This hybrid approach would be future proof and general {\em if} there existed a small
 set of features that could then be deemed sufficient for a fixed-function
 router. If such a small set of fixed features did indeed exist, it would be
 preferable and simpler to build a fixed-function router rather than a
 programmable router. But the last few decades of increasing feature creep in a
-router suggest that such a feature set is quite unlikely. In such a setting,
+router suggest that a ``silver bullet'' feature set is very unlikely. In such a setting,
 where features are constantly under churn, programmability within the network
 provides future proofness and peace of mind for the network operator: the
 ability to quickly add features to a router when required without lengthy
