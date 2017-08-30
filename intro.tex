@@ -288,15 +288,20 @@ one-to-one to an atom provided by the underlying router, rejecting the code if
 the codelet cannot be supported by the atom.
 
 The compiler provides an {\em all-or-nothing} guarantee: if the compiler
-compiles a program, the program will run at the line rate of the router. All
-other programs that cannot run at the router's line rate will be rejected. A
-program may be rejected either because the router's atoms are not expressive
-enough for the program's operations or there aren't enough atoms for all
-operations in the program. A conventional compiler for a general-purpose CPU
-compiles all programs, but a program's run-time performance depends on its
-complexity. In Domino, only programs that are simple enough to run at the
-router's line rate will be compiled, obviating the need for any performance
-profiling.
+compiles a program, the program will run at the line rate of the
+router.\footnote{We use the term line rate in this dissertation to mean both
+the maximum bit/packet rate of a particular router port/line (\eg 10 Gbit/s)
+and the maximum aggregate bit/packet rate of a router: the product of the
+per-port line rate and the number of ports (\eg 64 * 10 Gbit/s = 640 Gbit/s).
+It should be clear from the context which interpretation of line rate we are
+referring to. } All other programs that cannot run at the router's line rate
+will be rejected. A program may be rejected either because the router's atoms
+are not expressive enough for the program's operations or there aren't enough
+atoms for all operations in the program. A conventional compiler for a
+general-purpose CPU compiles all programs, but a program's run-time performance
+depends on its complexity. In Domino, only programs that are simple enough to
+run at the router's line rate will be compiled, obviating the need for any
+performance profiling.
 
 \subsection{Evaluation}
 Developing atoms for a router is a chicken-and-egg problem. A router's atoms
