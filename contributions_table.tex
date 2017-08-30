@@ -1,7 +1,7 @@
 \begin{table}
 \textbf{Stateful data-plane algorithms (Chapter~\ref{chap:domino})}
 \\[-7pt]\rule{\textwidth}{1pt}\\[-7pt]\rule{\textwidth}{1pt} \\
-\textbf{Examples:} in-network congestion control (\eg XCP~\cite{xcp} and
+\textbf{Examples:} In-network congestion control (\eg XCP~\cite{xcp} and
 RCP~\cite{rcp}), active queue management (\eg RED~\cite{red}, BLUE~\cite{blue},
 and CoDel~\cite{codel}) \\
 \textbf{Technical challenge:} How do we allow programmable router state
@@ -33,7 +33,7 @@ packet's priority can express many scheduling algorithms
 \\[-7pt]\rule{\textwidth}{1pt}\\[-7pt]\rule{\textwidth}{1pt} \\
 \textbf{Examples:} Per-flow measurements of moving averages, counters, and loss rates \\
 \textbf{Technical challenge:} Can we allow programmers to flexibly define the
-per-flow statistics they want to measure and also scale to a large number of
+per-flow statistics they want to measure and also scale these measurements to a large number of
 flows?\\
 \textbf{Programming model:} Performance queries (\S\ref{sec:language}) \\
 \textbf{Hardware primitive:} Programmable hardware key-value store. Keys correspond to
