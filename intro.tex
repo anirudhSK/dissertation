@@ -32,7 +32,7 @@ published~\cite{cerf74}, it is clear that routers need to do much more than
 packet forwarding for at least two reasons. First, once the basic goal of
 interconnecting different networks is achieved, other goals like performance,
 security, and monitoring rise in prominence.  Second, many large-scale private
-networks (\eg datacenters, private wide-area networks, enterprise networks) do
+networks (\eg datacenters, private wide-area networks, and enterprise networks) do
 not need to concern themselves with interconnecting diverse networks as the
 Internet had to. Such private networks can expect more from the network. As a
 result, a typical router today implements many features beyond packet
@@ -43,7 +43,7 @@ priority queues).
 While a router's feature set has grown steadily with time, there's little
 consensus between network operators and router vendors on a router's feature
 set. Inevitably, there are network operators whose needs fall outside their
-router's feature set. But because today's fastest routers are built out of
+router's feature set. But, because today's fastest routers are built out of
 specialized forwarding hardware, they are largely {\em
 fixed-function}\footnote{The term fixed-function was first used to describe
 graphics processing units (GPUs) with limited or no
@@ -55,9 +55,8 @@ lag time between the standardization and availability of new overlay
 protocols~\cite{nvgre}.
 
 As a result, the rate of innovation in new router algorithms is outstripping
-our ability to get these algorithms into today's fastest routers. These routers
-have between 10 and 100 ports, each running at between 10 and 100 Gbit/s, \ie
-aggregate speeds in the several hundred Gbit/s to Tbit/s range.
+our ability to get these algorithms into today's fastest routers, \ie routers with
+between 10 and 100 ports, each running at between 10 and 100 Gbit/s.
 Figure~\ref{fig:router_algos} shows a timeline of prominent router algorithms
 that have been developed since the 1980s. Of these, only a handful are
 available in the fastest routers today because there is no way to program a new
@@ -71,8 +70,8 @@ shaded in blue are available on the fastest routers today.}
 \label{fig:router_algos}
 \end{figure}
 
-For an operator wanting to introduce new functionality in their network, what
-are the operator's choices? One is to give up on changing routers altogether
+Against this backdrop, if an operator wants to introduce new network functionality, what
+are her choices? One is to give up on changing routers altogether
 and make all the required changes at the end hosts.  Relying solely on the end
 hosts, however, results in cumbersome or suboptimal solutions. As a first
 example, imagine measuring the queueing latency at a particular hop in the
@@ -91,8 +90,8 @@ a fixed-function router today.
 
 Another alternative is to use a \textit{software router}: a catch-all term for
 a router built on top of some programmable substrate, such as a general-purpose
-CPU~\cite{click, routebricks}, a network processor\footnote{A CPU with an
-instruction set tailored to packet processing~\cite{ixp4xx, ixp2800}.}, a
+CPU~\cite{click, routebricks}, a network processor,\footnote{A CPU with an
+instruction set tailored to packet processing~\cite{ixp4xx, ixp2800}.} a
 graphics processing unit (GPU)~\cite{packetshader}, or a field-programmable
 gate array (FPGA)~\cite{netfpga}.  Figure~\ref{fig:router_evolution} tracks the
 evolution of aggregate capacity of software routers and compares them to the
@@ -111,7 +110,7 @@ either different parts of the same packet or packets belonging to different
 ports. Second, pipeline parallelism, the ability to simultaneously perform
 different operations on different packets. But, hardware specialization carries
 a cost: because routers are built out of specialized hardware, they are
-fixed-function devices that can not be reconfigured or programmed in the field.
+fixed-function devices that can not be programmed in the field.
 
 Recent work in software-defined networking~\cite{sdn_history} (SDN) and
 programmable router chips~\cite{rmt, xpliant, flexpipe} has endowed fast
@@ -157,15 +156,18 @@ that is both fast and programmable, if we restrict ourselves to programming
 specific classes of router functionality}. It is this specificity that allows
 us to resolve the programmability-performance tension; indeed, our designs
 provide a much more restricted form of programmability than a Turing-complete
-processor.  The challenge here is to pick classes of router functionality that
-are simultaneously (1) practically useful to network operators, (2) broad
-enough to cover a range of current and future use cases within that class, and
-yet (3) narrowly focused enough to permit a high-speed hardware implementation.
-We will describe high-speed programmable hardware primitives and their
+processor.
+
+The challenge here is to pick classes of router functionality that are
+simultaneously (1) practically useful to network operators, (2) broad enough to
+cover a range of current and future use cases within that class, and yet (3)
+narrowly focused enough to permit a high-speed hardware implementation.  We
+will describe high-speed programmable hardware primitives and their
 corresponding programming models in software for three classes of router
 functionality: stateful data-plane algorithms, packet scheduling, and scalable
 network measurement.  Table~\ref{tab:contributions} summarizes our
-contributions.
+contributions. \S\ref{s:intro_domino}, \S\ref{s:intro_pifo}, and \S\ref{s:intro_pq}
+expand on each of the three contributions.
 
 \subsection{Evaluation metrics}
 \label{ss:eval_metrics}
@@ -178,18 +180,20 @@ The traditional approach to evaluating performance of a software system is to
 measure the system's throughput on some workloads. This approach does not apply
 to evaluating hardware designs, which are built for a specific clock rate or
 throughput. Hardware designs provide this clock rate or throughput even under
-worst-case conditions, regardless of the workload presented to them. To provide
+worst-case conditions, regardless of the workload presented to them.
+
+To provide
 worst-case guarantees, hardware designs exploit spatial parallelism---by
 chaining together computations in a pipeline (pipeline parallelism) and
 simultaneously performing multiple operations within a pipeline stage (data
 parallelism).  Put differently, hardware designs spend circuit area in return
 for deterministic  high performance. The question then is whether these designs
 consume a large amount of area to provide such performance guarantees and
-whether they can provide an acceptable clock rate.
+whether they can provide acceptable performance, as measured by the design's clock rate.
  
 Hence, to evaluate performance, we estimate if the hardware components of our
 systems can run at a high clock rate while not taking up too much gate and wire
-area. To do so, we code up any new hardware components as programs in the
+area. To do so, we code any new hardware components as programs in the
 Verilog hardware description language.  We then pass this Verilog program to a
 logic synthesis tool~\cite{synopsys_dc, cadence_rc} that produces a gate-level
 implementation from Verilog programs.  The synthesis tool also reports whether
@@ -202,7 +206,8 @@ as is the case with crossbars. Because our designs are dominated by gates, not
 wires, we do not perform this place-and-route step when estimating area.} When
 we say a hardware design is feasible, we mean that it meets timing at a high
 clock frequency (1 GHz in this dissertation) and its gate area is modest
-relative to the area of a router chip (200 \si{\milli\meter\squared} based on
+relative to the area of a router chip (200 \si{\milli\meter\squared} in this
+dissertation based on
 the minimum area estimates provided by Gibb et al.~\cite{gibb_parsing}). 
 
 To evaluate if our systems are programmable, we evaluate the expressiveness of
@@ -219,6 +224,8 @@ computational elements of a programmable router at the level of individual
 clock cycles (\S\ref{s:absmachine}).
 
 \section{Stateful data-plane algorithms}
+\label{s:intro_domino}
+
 In Chapter~\ref{chap:domino}), we consider the problem of programming {\em
 stateful data-plane algorithms} at high packet processing rates. These are
 algorithms that operate on a sequence of packets in a streaming manner, doing
@@ -366,6 +373,8 @@ these atoms are indeed programmable and can generalize to new algorithms beyond
 the initial algorithms that influenced their design in the first place.
 
 \section{Programmable packet scheduling}
+\label{s:intro_pifo}
+
 Packet scheduling is an important determinant of network performance. The
 choice of scheduling algorithm is tied to a network's performance goals. For
 instance, an algorithm that divides link capacity fairly is ideal in a
@@ -586,6 +595,8 @@ relative to a 200 \si{\milli\meter\squared} baseline router
 chip~\cite{glen_parsing}.
 
 \section{Programmable and scalable network measurement}
+\label{s:intro_pq}
+
 Chapter~\ref{chap:perf_query} considers the problem of programmable and
 scalable network measurement. Concretely, can we allow network operators to
 flexibly specify the per-flow statistics they want to measure (\eg a moving
