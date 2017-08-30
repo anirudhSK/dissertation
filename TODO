@@ -7,3 +7,39 @@ High:
 *. Try and avoid using the term data plane unless absolutely required
 
 * language-hardware co-design is more accurate than language-directed hardware design.
+
+* router's line rate, or line rate of routers, sounds better than line rate routers
+
+* Be consistent with the project names and abstraction names
+
+* data plane vs. router vs. high-speed router. Be consistent.
+
+* consider changing paras to subsubsections so that they show up in the TOC?
+
+* How to get footnotes in tables?
+
+* forwarding tables vs. routing tables
+
+* Be consistent with tenses everywhere
+
+* ensure that the background is actually contrasted against the dissertation
+
+* define high speed formally somewhere? high-speed vs. fast vs. line rate. Be consistent.
+
+* users vs. programmers vs. operators
+
+* consider replacing head packet with earliest packet
+
+* Should be bring up work conserving vs. non work conserving when introducing scheduling order and/or time?
+
+* Should we call it measuring or monitoring?
+
+* check that \Sec does the right thing, i.e., is equivalent to \S
+
+* make sure tildes render properly
+
+* stream vs. sequence. Be careful about what is used where.
+
+* Either have periods at the end of captions or not. Be consistent.
+
+* \tengrouter and 10G should be consitent
