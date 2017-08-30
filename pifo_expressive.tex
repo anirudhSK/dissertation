@@ -64,7 +64,7 @@ link capacity. A minimum rate guarantee can be programmed using PIFOs with a
 two-level PIFO tree, where the root of the tree implements strict priority
 scheduling across flows. Flows below their minimum rate are scheduled
 preferentially to flows above their minimum rate. Then, at the next level of
-the tree, the PIFOs implement the First-In First-Out (FIFO) discipline for each
+the tree, the PIFOs implement the First In First Out (FIFO) discipline for each
 flow, by using the packet's arrival time as its rank.
 
 When a packet is enqueued, we execute a scheduling transaction corresponding to

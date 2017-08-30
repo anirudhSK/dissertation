@@ -16,7 +16,7 @@ change in response to new packet arrivals.  Put differently, when a packet
 arrives, it can be pushed into the right location based on a packet priority
 (push in), but packets are always dequeued from the head (first out).  This
 observation suggests a natural primitive for programmable scheduling called a
-push-in first-out queue (PIFO). A PIFO is a priority queue where packets are
+Push In First Out Queue (PIFO). A PIFO is a priority queue where packets are
 pushed in based on a rank field, and the next packet to be dequeued is the
 packet with the earliest rank.
 

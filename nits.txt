@@ -1,4 +1,3 @@
-* Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
 * router's line rate, or line rate of routers, sounds better than line rate routers
 * Be consistent with the project names and abstraction names TODO
 * data plane vs. router vs. high-speed router. Be consistent.
