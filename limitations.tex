@@ -80,7 +80,8 @@ As discussed earlier (\S\ref{s:absmachine}), throughout this dissertation, we
 assume a router architecture with a single ingress pipeline and a single egress
 pipeline shared across all ports. These pipelines can be made to run at a clock
 rate of up to 1 GHz, which at the minimum packet size of 64 bytes, translates
-into an aggregate capacity of \textasciitilde500 Gbit/s.
+into an aggregate capacity of \textasciitilde640 Gbit/s, after accounting for
+minimum inter-packet gaps~\cite{rmt}.
 
 To scale beyond this aggregate capacity, a router needs multiple parallel
 pipelines, each devoted to a subset of the router's ports. This has
