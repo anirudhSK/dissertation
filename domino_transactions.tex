@@ -139,7 +139,7 @@ cycle.
 \end{table}
 
 %TODO: Read this grammar figure in the pdf and check correctness
-\begin{figure}
+\begin{figure}[!t]
 \newcommand{\sep}{~|~}
 \begin{small}
 \begin{eqnarray*}
@@ -162,7 +162,7 @@ sv \in \text{state var inits} &::=& v = e \sep sv~;~sv \\
 p \in \text{\pktlanguage programs} &::=& \{ d ; sv; t \}
 \end{eqnarray*}
 \end{small}
-\caption{\pktlanguage grammar. Type annotations (void, struct, int, and Packet) are elided for simplicity.}
+\caption{\pktlanguage grammar. Types (void, struct, int, and Packet) are elided for simplicity.}
 \label{fig:grammar}
 \end{figure}
 

@@ -31,6 +31,42 @@ used for manipulating packets and/or state in a stage and determine which
 algorithms can or cannot run on the router. We now describe this concept of
 constrained computation in greater detail.
 
+%TODO: We talk about how to represent atoms and then again talk about constraining
+% them using atom templates. They both represent atoms, so it's a bit confusing.
+
+\begin{figure}[!t]
+  \begin{subfigure}{0.5\columnwidth}
+  \centering
+  \includegraphics[width=0.5\textwidth]{domino_circuit.pdf}
+  \caption{Circuit for the atom}
+  \label{fig:alu_diag}
+  \end{subfigure}
+  \hspace{0.1\columnwidth}
+  \begin{subfigure}{0.3\columnwidth}
+  \begin{lstlisting}[belowskip=-0.8 \baselineskip]
+  bit choice = ??;
+  int constant = ??;
+  if (choice) {
+    x = x + constant;
+  } else {
+    x = x - constant;
+  }
+  \end{lstlisting}
+  \hspace{0.1\columnwidth}
+  \caption{Atom template. Each ``??'' represents a configuration parameter that
+  must be instantiated so that the atom implements some computation. For
+  instance, setting choice to 1 and constant to 1 allows us to implement x=x+1
+  using this atom.}
+  \label{fig:alu_in_sketch}
+  \end{subfigure}
+  \caption{An atom and its template. The atom above can add or subtract a
+  constant from a state variable {\tt x} based on two configurable parameters,
+  {\tt constant} and {\tt choice}.}
+  \label{fig:atom}
+\end{figure}
+%TODO: Ensure the subfigures line up in the above figure.
+
+
 \subsection{The \absmachine machine model}
 
 A programmable router that provides programmability in parsing and match-action
@@ -171,41 +207,6 @@ An example is an ALU with a restricted set of primitive operations
 with \absmachine machines with different atoms. As programmable routers evolve,
 we expect that atoms will evolve as well, but constrained by the clock-cycle
 requirement.
-
-%TODO: We talk about how to represent atoms and then again talk about constraining
-% them using atom templates. They both represent atoms, so it's a bit confusing.
-
-\begin{figure}[h]
-  \begin{subfigure}{0.5\columnwidth}
-  \centering
-  \includegraphics[width=0.5\textwidth]{domino_circuit.pdf}
-  \caption{Circuit for the atom}
-  \label{fig:alu_diag}
-  \end{subfigure}
-  \hspace{0.1\columnwidth}
-  \begin{subfigure}{0.3\columnwidth}
-  \begin{lstlisting}[belowskip=-0.8 \baselineskip]
-  bit choice = ??;
-  int constant = ??;
-  if (choice) {
-    x = x + constant;
-  } else {
-    x = x - constant;
-  }
-  \end{lstlisting}
-  \hspace{0.1\columnwidth}
-  \caption{Atom template. Each ``??'' represents a configuration parameter that
-  must be instantiated so that the atom implements some computation. For
-  instance, setting choice to 1 and constant to 1 allows us to implement x=x+1
-  using this atom.}
-  \label{fig:alu_in_sketch}
-  \end{subfigure}
-  \caption{An atom and its template. The atom above can add or subtract a
-  constant from a state variable {\tt x} based on two configurable parameters,
-  {\tt constant} and {\tt choice}.}
-  \label{fig:atom}
-\end{figure}
-%TODO: Ensure the subfigures line up in the above figure.
 
 \Para{Resource limits.} We also limit the number of atoms in each stage
 (\textit{pipeline width}) and the number of stages in the pipeline

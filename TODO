@@ -1,3 +1,5 @@
 High:
 ==========
 * e2e pass on figures, tables, etc.
+
+* Either use a and b for subfigures or actual numerals. Don't mix both.
