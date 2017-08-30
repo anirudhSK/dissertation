@@ -79,6 +79,8 @@ processors and digital signal processors) have lower clock speeds in the 1 GHz
 range.
 
 \section{Strawman 2: an array of processors with shared memory}
+\label{ss:strawman2}
+
 An obvious solution to this problem is to have many scalar in-order processors
 operate in parallel on different packets. In this architecture, when a packet
 comes in, a distributor sends the packet to a free in-order processor. This
@@ -271,7 +273,9 @@ exploiting the fact that most of the scheduler's memory is structured as a set
 of First In First Out Queues with a limited set of operations (\ie enqueues and
 dequeues). The limited set of operations on the scheduler memory allows the
 development of multi-ported memory for the scheduler without considerable area
-expense.
+expense.\footnote{By contrast, our strawman design for routers based on an
+array of processors with shared memory (\S\ref{ss:strawman2}) requires a more
+general-purpose, and hence expensive, form of multi-ported memory.}
 
 Throughout this dissertation, we assume a single pipeline router. For
 concreteness, we assume the pipeline runs at 1 GHz (\ie every pipeline stage
