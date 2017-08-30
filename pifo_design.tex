@@ -211,7 +211,7 @@ with Shaping (Figure~\ref{fig:hshaping_path}). When the shaping transaction
 enqueues elements into TBF\_Right, these elements will be released into
 WFQ\_Root at a future time $T$. The external enqueue into WFQ\_Root may also
 happen at $T$, if a packet arrives exactly at $T$. This creates a conflict
-because there are two enqueue operations in the same cycle.  Conflicts may also
+because there are two enqueue operations in the same clock cycle.  Conflicts may also
 occur on dequeues.  For instance, if TBF\_Right shared its PIFO block with
 another logical PIFO, dequeue operations to the two logical PIFOs could occur
 at the same time because TBF\_Right can be dequeued at any arbitrary wall-clock

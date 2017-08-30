@@ -1,22 +1,9 @@
 High:
 ==========
-2. e2e pass on figures, tables, etc. Also look at nits.txt
+*. e2e pass on figures, tables, etc. Also look at nits.txt
 
-3. PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
+*. PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
 
-4. Try and avoid using the term data plane unless absolutely required
+*. Try and avoid using the term data plane unless absolutely required
 
-Medium:
-==========
-1. Marple: Proof and explanation of fixed-point algorithm in Marple. Explain compiler
-in Marple more clearly.
-
-3. Marple: Maybe call it language-hardware codesign, instead of language-directed hardware design.
-
-Low:
-==========
-Domino: Distinguish computational capabilities of a pipeline from information not
-being available. For instance, RED needs queue depth that is not available, but
-the EWMA operation itself is rather straightforward.
-
-PIFO: Try and express the other PIFO scheduling transactions as Domino programs as well
+* language-hardware co-design is more accurate than language-directed hardware design.

@@ -99,7 +99,7 @@ cycle.
 The memory containing the match-action tables needs to support 10 billion
 matches (reads) per second. Memory designs typically run at the same clock
 frequency as the processor (1 GHz) and support a single read or write operation
-per cycle (single-ported memory). Supporting 10 billion matches per second at a
+per clock cycle (single-ported memory). Supporting 10 billion matches per second at a
 1 GHz clock requires a {\em multi-ported} memory that can handle multiple reads
 every clock cycle. Multi-ported memory consumes considerably more area than
 single-ported memory.  Further, there is a substantial increase in wiring delay
@@ -198,7 +198,7 @@ plane CPU of the router.
 
 This whole processing sequence within a pipeline stage: extracting relevant
 headers for a match, looking them up in a match-action table, and then carrying
-out the appropriate action on a table hit or miss, can take tens of clock
+out the appropriate action on a table hit or miss, can take 10s of clock
 cycles for any given packet. At the same time, the pipeline stage must be ready
 to accept a new packet every clock cycle. To allow this, the pipeline stage is
 itself internally pipelined, \ie the header extraction for one packet proceeds

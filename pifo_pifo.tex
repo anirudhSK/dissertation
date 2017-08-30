@@ -267,7 +267,7 @@ schedule a packet.
 % It just mandates that even rate limiting a single flow will now need three PIFOs, as given below, but that's fine
 % Child: shaping PIFO releases references to Child's scheduling PIFO to parent
 % Child: scheduling PIFO holds packets.
-% Parent's scheduling PIFO executes FIFO across references of Child's scheduling PIFO.
+% Parent's scheduling PIFO executes First-in First-Out across references of Child's scheduling PIFO.
 % This is a complicated way of implementing shaping at one level, but it simplifies semantics
 % because only PIFO references can now be enqueue into the parent's scheduling PIFO, not packets.
 

@@ -1,34 +1,20 @@
 * Push In First Out, no hyphenation anywhere, or hyphenate throughout: be consistent
-* Don't keep saying today in the text
 * router's line rate, or line rate of routers, sounds better than line rate routers
-* Consider substituting line rate with high speed or something similar
-* Use semicolons as separators with care
-* Be judicious with contractions
 * Be consistent with the project names and abstraction names TODO
-* Consider using the term streaming algorithms instead of data-plane algorithms? (WISH LIST)
 * data plane vs. router vs. high-speed router. Be consistent.
 * consider changing paras to subsubsections so that they show up in the TOC?
 * How to get footnotes in tables?
-* fast vs. high-speed. Be consistent, I like the term fast.
 * forwarding tables vs. routing tables
 * Be consistent with tenses everywhere
-* base station, with or without space between base and station?
 * ensure that the background is actually contrasted against the dissertation
-* using the vs. a vs. not using it at all
 * define high speed formally somewhere? high-speed vs. fast vs. line rate. Be consistent.
 * users vs. programmers vs. operators
 * consider replacing head packet with earliest packet
 * Should be bring up work conserving vs. non work conserving when introducing scheduling order and/or time?
-* Use numerals instead of spelling them out. This violates S&W, but is much more likely to grab the reader's attention.
-* Do we ever define FIFO?
-* clock cycles vs. cycles
 * Should we call it measuring or monitoring?
-* I overhyphenate compound adjectives
 * check that \Sec does the right thing, i.e., is equivalent to \S
 * make sure tildes render properly
-* language-hardware co-design is more accurate than language-directed hardware design.
 * Do we really need table* and figure* or can we use table and figure everywhere?
 * stream vs. sequence. Be careful about what is used where.
 * Either have periods at the end of captions or not. Be consistent.
 * \tengrouter and 10G should be consitent
-* harmonize atom names in source code repositories and text

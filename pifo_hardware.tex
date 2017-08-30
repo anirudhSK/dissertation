@@ -159,10 +159,10 @@ this element by shifting the array.  The rank store implementation does not
 change when introducing logical PIFOs; however, we do require that a flow
 belong to exactly one logical PIFO.
 
-Recall that to support one enqueue and one dequeue every cycle, the flow
-scheduler needs to support 2 pushes and 1 pop every cycle. To concurrently
-issue 2 pushes and 1 pop every cycle, we provision 3 parallel digital circuits
-(Figure~\ref{fig:flow_scheduler}). Both the push and pop require 2 cycles to
+Recall that to support one enqueue and one dequeue every clock cycle, the flow
+scheduler needs to support 2 pushes and 1 pop every clock cycle. To concurrently
+issue 2 pushes and 1 pop every clock cycle, we provision 3 parallel digital circuits
+(Figure~\ref{fig:flow_scheduler}). Both the push and pop require 2 clock cycles to
 complete and need to be pipelined to maintain the required throughput
 (Figure~\ref{fig:2stage}). For pushes, the first stage of the pipeline executes
 the parallel comparison and priority encoder steps to determine an index; the
@@ -172,17 +172,17 @@ priority encoder steps to compute an index; the second stage pops the head
 element out of the array using the index.
 
 Our implementation meets timing at 1 GHz and supports up to one enqueue/dequeue
-operation on a logical PIFO within a PIFO block every cycle. Because a reinsert
+operation on a logical PIFO within a PIFO block every clock cycle. Because a reinsert
 operation requires a pop, followed by an access to the rank store for the next
 element, followed by a push, our implementation supports a dequeue from the
-same logical PIFO only once every 4 cycles. This is because if a dequeue is
+same logical PIFO only once every 4 clock cycles. This is because if a dequeue is
 initiated in clock cycle 1, the pop for the dequeue completes in 2, the rank
-store is accessed in 3, and the push is initiated in 4. This makes cycle 5 the
+store is accessed in 3, and the push is initiated in 4. This makes clock cycle 5 the
 earliest time to reissue a dequeue.  This restriction is inconsequential in
-practice.  A dequeue every 4 cycles from a logical PIFO is sufficient to
+practice.  A dequeue every 4 clock cycles from a logical PIFO is sufficient to
 service the highest link speed today, 100 Gbit/s, which requires a dequeue at
 most once every 5 clock cycles for a minimum packet size of 64 bytes. Dequeues
-to distinct logical PIFO IDs are still permitted every cycle.
+to distinct logical PIFO IDs are still permitted every clock cycle.
 
 \begin{figure}[!t]
   \centering
