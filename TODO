@@ -15,9 +15,3 @@ High:
 * How to get footnotes in tables?
 
 * define high speed formally somewhere? high-speed vs. fast vs. line rate. Be consistent.
-
-* Should we call it measuring or monitoring?
-
-* check that \Sec does the right thing, i.e., is equivalent to \S
-
-* make sure tildes render properly

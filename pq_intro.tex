@@ -71,7 +71,7 @@ system: the query language, the router hardware, and the query compiler.
 constructs like {\ct map}, {\ct filter}, {\ct groupby}, and {\ct zip} for
 performance monitoring.  \TheSystem provides the abstraction of a stream that
 contains performance information for {\em every packet at every queue} in the
-network (\Sec{language}).  Programmers can focus their attention on traffic
+network (\S\ref{ss:pq_perf_stream}).  Programmers can focus their attention on traffic
 experiencing interesting performance using {\ct filter} (\eg packets with high
 queueing latencies), aggregate information across packets in flexible ways
 using {\ct groupby} (\eg compute a moving average over queueing latency per
