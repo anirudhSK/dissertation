@@ -148,6 +148,24 @@ implemented by executing the three steps below
 \end{CompactEnumerate}
 A pop is implemented by shifting the head element out of the sorted array.
 
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.6\columnwidth]{pifo_flow_scheduler_hardware.pdf}
+  \caption{Hardware implementation of flow scheduler. Each element in the flow
+  scheduler is connected to two > comparators (2 pushes) and one == comparator (1
+  pop).}
+  \label{fig:flow_scheduler}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.6\columnwidth]{pifo_2stage_pipeline.pdf}
+  \caption{2-stage pipeline for flow scheduler}
+  \label{fig:2stage}
+\end{figure}
+
+
+
 So far, we have focused on a flow scheduler implementation handling a single
 logical PIFO. We can extend this to handle multiple logical PIFOs backed by the
 same underlying physical hardware. To do so, we keep elements sorted by rank,
@@ -183,22 +201,6 @@ practice.  A dequeue every 4 clock cycles from a logical PIFO is sufficient to
 service the highest link speed today, 100 Gbit/s, which requires a dequeue at
 most once every 5 clock cycles for a minimum packet size of 64 bytes. Dequeues
 to distinct logical PIFO IDs are still permitted every clock cycle.
-
-\begin{figure}[!t]
-  \centering
-  \includegraphics[width=0.6\columnwidth]{pifo_flow_scheduler_hardware.pdf}
-  \caption{Hardware implementation of flow scheduler. Each element in the flow
-  scheduler is connected to two > comparators (2 pushes) and one == comparator (1
-  pop).}
-  \label{fig:flow_scheduler}
-\end{figure}
-
-\begin{figure}[!t]
-  \centering
-  \includegraphics[width=0.6\columnwidth]{pifo_2stage_pipeline.pdf}
-  \caption{2-stage pipeline for flow scheduler}
-  \label{fig:2stage}
-\end{figure}
 
 \subsection{Interconnecting PIFO blocks}
 \label{ss:interconnect}

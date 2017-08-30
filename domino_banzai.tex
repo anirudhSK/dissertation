@@ -53,15 +53,15 @@ constrained computation in greater detail.
   }
   \end{lstlisting}
   \hspace{0.1\columnwidth}
-  \caption{Atom template. Each ``??'' represents a configuration parameter that
-  must be instantiated so that the atom implements some computation. For
-  instance, setting choice to 1 and constant to 1 allows us to implement x=x+1
-  using this atom.}
+  \caption{Atom template.}
   \label{fig:alu_in_sketch}
   \end{subfigure}
   \caption{An atom and its template. The atom above can add or subtract a
-  constant from a state variable {\tt x} based on two configurable parameters,
-  {\tt constant} and {\tt choice}.}
+constant from a state variable {\tt x} based on two configurable parameters,
+{\tt constant} and {\tt choice}. Each ``??'' in the template represents a
+configuration parameter that must be instantiated so that the atom implements
+some computation. For instance, setting choice to 1 and constant to 1 allows us
+to implement x=x+1 using this atom.}
   \label{fig:atom}
 \end{figure}
 %TODO: Ensure the subfigures line up in the above figure.
