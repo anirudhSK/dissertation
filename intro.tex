@@ -362,7 +362,7 @@ To develop atoms, we use the Domino compiler to experiment with different atoms
 and iteratively modify the atoms until they support enough algorithms
 (Figure~\ref{fig:iterative_design}).  Using this process, we developed seven
 atoms of increasing complexity (Table~\ref{tab:templates}) that allow us to
-progressively program more algorithms from
+progressively program more and more algorithms from
 Figure~\ref{fig:router_algos}. For instance, measurement using Bloom filters
 only requires simple read and write operations on state. On the other hand,
 heavy-hitter detection~\cite{opensketch} uses a count-min sketch~\cite{cormode}
@@ -550,7 +550,7 @@ We designed high-speed hardware to support a PIFO-based programming model. When
 designing hardware for PIFOs, we set out to meet performance targets that are
 typical for a single-chip shared-memory router today. These are routers that
 are built out of a single chip,\footnote{Also called an application-specific integrated
-circuit or ASIC} and whose packet buffer and scheduling logic is shared across
+circuit or ASIC.} and whose packet buffer and scheduling logic is shared across
 all ports. Sharing the packet buffer and scheduling logic reduces the memory
 and digital logic cost associated with packet scheduling.
 
