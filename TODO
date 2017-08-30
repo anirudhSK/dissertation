@@ -1,10 +1,10 @@
 High:
 ==========
-*. e2e pass on figures, tables, etc. Also look at nits.txt
+* e2e pass on figures, tables, etc. Also look at nits.txt
 
-*. PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
+* PIFO: Clear up terminology about shared-memory, single-pipeline etc., early on.
 
-*. Try and avoid using the term data plane unless absolutely required
+* Try and avoid using the term data plane unless absolutely required
 
 * language-hardware co-design is more accurate than language-directed hardware design.
 
@@ -14,11 +14,7 @@ High:
 
 * data plane vs. router vs. high-speed router. Be consistent.
 
-* consider changing paras to subsubsections so that they show up in the TOC?
-
 * How to get footnotes in tables?
-
-* forwarding tables vs. routing tables
 
 * Be consistent with tenses everywhere
 

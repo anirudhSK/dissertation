@@ -21,7 +21,7 @@ Table~\ref{tab:language-constructs-table}.
 
 \input{pq_constructs}
 
-\Para{Packet performance stream.} As part of the base input stream, which we
+\subsection{Packet performance stream} As part of the base input stream, which we
 call {\ct \pktlog}, \TheSystem provides one tuple for each packet at each queue
 with the following fields.
 
@@ -54,7 +54,7 @@ time-valued fields {\ctfoot tin} and {\ctfoot tout} across routers.} If a
 packet is dropped, {\ct tout} and {\ct qsize} are {\ct infinity.} Tuples
 corresponding to dropped packets may be processed in an arbitrary order.
 
-\Para{Restricting packet performance metadata of interest.} Consider the
+\subsection{Restricting packet performance metadata of interest} Consider the
 example of tracking packets that experience high queueing latencies at a
 specific queue ({\ct Q}) and router ({\ct S}). This is expressed by the query:
 
@@ -70,7 +70,7 @@ filter(R, pred)} where {\ct R} is some stream containing performance metadata
 headers, performance metadata, or both. The result of a {\ct filter} is another
 stream that contains only tuples satisfying the predicate.
 
-\Para{Computing stateless functions over packets.} \TheSystem lets users
+\subsection{Computing stateless functions over packets} \TheSystem lets users
 compute functions of the fields available in the incoming stream, to express
 new quantities of interest. A simple example is rounding packet timestamps to
 an `epoch':
@@ -85,7 +85,7 @@ epoch}. The general form of this construct is {\ct map(R, [expression],
 [field])} where a list of {\ct expression}s over fields in the input stream
 {\ct R} creates a list of new {\ct field}s in the {\ct map} output stream.
 
-\Para{Aggregating statefully over multiple packets.} \TheSystem allows
+\subsection{Aggregating statefully over multiple packets} \TheSystem allows
 aggregating statistics over multiple tuples at user-specified granularities.
 For example, the following query counts packets belonging to each
 transport-level flow (\ie 5-tuple):
@@ -149,7 +149,7 @@ new\_flow} consists of the first packet of every new transport-level
 connection. If the function has no {\ct emit()}s, the user can still read the
 aggregated fields and their current aggregated state values as a table.
 
-\Para{Chaining together multiple queries.}
+\subsection{Chaining together multiple queries}
 Because all \TheSystem constructs produce and consume streams, \TheSystem
 allows users to write queries that take in the results of previous queries as
 inputs. A stream of tuples flows from one query to the next, and each query may
@@ -183,7 +183,7 @@ The map {\ct fl\_bkts} bins the flowlet size emitted by {\ct fl\_track} into a
 bucket index, which is used to count the number of flowlets in the
 corresponding bucket in {\ct fl\_hist}.
 
-\Para{Joining results across queries.} \TheSystem provides a {\ct zip} operator
+\subsection{Joining results across queries} \TheSystem provides a {\ct zip} operator
 that ``joins'' (in the database sense of the word) the results of two queries
 to check whether two conditions hold simultaneously. Consider the example of
 detecting the fan-in of packets from many connections into a single queue,
@@ -233,7 +233,7 @@ connections, flows with high end-to-end network latencies, and TCP fan-in.
 %(\Sec{compiler}) rejects queries that require processing multiple packets in
 %order across multiple routers.
 
-\Para{Restrictions on \TheSystem queries.}
+\subsection{Restrictions on \TheSystem queries}
 Some aggregations are challenging to implement over a network-wide stream. For
 example, consider an EWMA over some packet field across all packets seen
 anywhere in the entire network, while processing packets in the order of their
