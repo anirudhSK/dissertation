@@ -173,7 +173,7 @@ field {\tt x} within a packet {\tt p} and a bare {\tt x} to represent a state
 variable {\tt x} that persists across packets. The ?? notation is used to
 denote a configuration parameter.}
 \begin{lstlisting}[style=customc, numbers=none, frame=none]
-C = ??
+int C = ??
 if (counter < C)
   counter = counter + p.x;
 else
@@ -183,7 +183,7 @@ else
 Similarly, a stateless operation like setting a packet field to a configurable
 constant value C can be written as the atom:
 \begin{lstlisting}[style=customc, numbers=none, frame=none]
-  C = ??
+  int C = ??
   pkt.field = C;
 \end{lstlisting}
 
@@ -202,7 +202,7 @@ only be carried forward, not backward.
 
 \Para{Computational limitations.} Atoms need to execute atomically from one
 packet to the next, so any state internal to the atom must be updated before
-the next packet arrives.  Because packets may be separated by as little as one
+the next packet arrives at that atom.  Because packets may be separated by as little as one
 clock cycle, we mandate that atom templates finish execution within one clock
 cycle, and constrain them at hardware design time to do so.
 
