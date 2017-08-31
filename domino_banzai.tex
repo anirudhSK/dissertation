@@ -153,8 +153,8 @@ fields. These instructions can then be composed into larger stateless
 operations, without designing atoms specifically for each stateless operation.
 
 \Para{Representing atoms.}
-An atom is represented by a body of sequential code
-(Figure~\ref{fig:alu_in_sketch}) that captures the atom's behavior. When
+An atom is represented by an {\em atom template} (Figure~\ref{fig:alu_in_sketch}): a
+body of sequential code that captures the atom's behavior. When
 executing, this body of code can make use of (1) a small number of packet
 fields, (2) internal state local to the atom, and (3) configuration parameters
 that provide the atom with its programmability.
