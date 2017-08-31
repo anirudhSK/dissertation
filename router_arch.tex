@@ -29,7 +29,7 @@ particular output port (action) if the packet has a certain destination IP addre
 
 The data plane is responsible for reading the match-action table and carrying
 out the appropriate action operation on every packet.  The data plane matches
-the relevant packet headers against the match part of a match-action table
+the relevant packet headers against the match half of a match-action table
 rule. If the packet matches a particular rule, the data plane carries out the
 action half of that rule on the packet's headers. If the packet does not match
 any rule, some default action is carried out.
@@ -58,7 +58,7 @@ implemented in fixed-function hardware, \ie the data plane of the router.
 Hence, we focus on the hardware architecture of the data plane here.  To
 understand the hardware architecture of the router chip that implements the
 router's data plane, it is useful to have a sense of the performance
-requirements of a high-speed router.
+requirements of a router.
 
 For illustration, let's consider a 1 Tbit/s router, representative of many
 high-speed routers today~\cite{trident2, tomahawk, tomahawk2}. Let's assume
@@ -133,9 +133,7 @@ To avoid having to use multi-ported memories, high-speed routers are typically
 architected as a shared-nothing {\em pipeline} (Figure~\ref{fig:pipeline}). Each pipeline stage is
 dedicated to a fixed functionality, such as destination address lookup,
 tuneling, measurement, or access control. Each pipeline stage has its own
-dedicated local memory to store its own match-action tables, corresponding to
-destination address lookup, tuneling, measurement, or access control, as the
-case may be. This architecture provides parallelism: at any point, each
+dedicated local memory to store its own match-action tables. This architecture provides parallelism: at any point, each
 pipeline stage is working on a different packet. It also does so without
 sharing memory between processors: each match-action table is local and can be
 accessed only by the pipeline stage to which it belongs.
@@ -152,7 +150,7 @@ up any time two input ports have a packet for the same output port during the
 same clock cycle. Once the scheduler dequeues the packet, it is processed by a
 similar egress pipeline before it is transmitted.\footnote{In practice, the
 ingress and egress pipeline can be time multiplexed on top of a single shared
-physical pipeline to improve utilization~\cite{rmt}.}
+physical pipeline to improve hardware utilization~\cite{rmt}.}
 
 \begin{figure}[!t]
 \includegraphics[width=\textwidth]{pipeline.pdf}
@@ -172,8 +170,8 @@ Each pipeline stage
 implements the match-action model at high speed. Packets are received at a
 pipeline stage at the clock rate of the pipeline (\textasciitilde1 GHz).
 Within a pipeline stage, the match unit extracts the relevant packet headers
-from the packets so that the extracted headers can be matched against specific
-patterns in a match-action table. For instance, a match unit might extract the
+from the packets so that the extracted headers can be matched against rules
+ in a match-action table. For instance, a match unit might extract the
 TCP headers out of all the packet headers to match the TCP's source port
 against 22 to detect SSH traffic and, as part of the action, prioritize SSH
 traffic by setting the IP ToS field.
@@ -184,11 +182,11 @@ rules stored in an on-chip match-action table. This match can either be exact
 (\eg determining the next hop based on the destination's MAC address) or can
 use wildcards to indicate don't-care bits (\eg matching a destination IP
 address against different possible IP subnets). The memory for the match-action
-table is structured as a hash table in SRAM (for exact matches) and as a
-ternary content-addressable memory (TCAM) (for wildcard matches).
+table is structured as a hash table in SRAM for exact matches and as a
+ternary content-addressable memory (TCAM) for wildcard matches.
 
 If a match is successful, the rule that matched against the headers of the
-incoming packet is returned. This rule contains the relevant information
+incoming packet is returned. This rule contains information
 required for the action, such as the concrete numeric value of the output port
 in the case of a destination-address lookup. If the packet does not match
 successfully against any rule in the match-action table, some default action is
@@ -197,16 +195,16 @@ plane CPU of the router.
 
 This whole processing sequence within a pipeline stage: extracting relevant
 headers for a match, looking them up in a match-action table, and then carrying
-out the appropriate action on a table hit or miss, can take 10s of clock
+out the appropriate action, can take 10s of clock
 cycles for any given packet. At the same time, the pipeline stage must be ready
 to accept a new packet every clock cycle. To allow this, the pipeline stage is
-itself internally pipelined, \ie the header extraction for one packet proceeds
+itself internally pipelined: the header extraction for one packet proceeds
 in parallel with the table lookup for a second packet and the action execution
 for a third packet.
 
 \subsection{Flexible match-action processing}
 Initially the set of fields on which matches could be performed were fixed and
-limited to a small set of a standard header fields (\eg TCP, UDP, and IP).
+limited to a small set of standard header fields (\eg TCP, UDP, and IP).
 Similarly, the actions allowed on the packet headers were restricted to a fixed
 set of actions, such as dropping a packet, forwarding a packet through an
 output port, or setting a priority field on a packet. The common subset of
@@ -222,8 +220,10 @@ embodied in recent high-speed routers~\cite{xpliant, flexpipe, tofino}. In
 these routers, a programmable parser~\cite{gibb_parsing} allows the user to
 specify a new protocol format. Using the programmable parser, the router parses
 bytes into this new protocol format, and the ingress and egress pipelines can
-match on header fields that are part of the new protocol format.  This is
-enabled by a input multiplexer in a match-action stage, which can extract a
+match on header fields that are part of the new protocol format.
+
+This flexible match-action processing is
+enabled by an input multiplexer in a match-action stage, which can extract a
 user-specified field from anywhere in the packet's headers for matching,
 without being constrained to a fixed set of fields available at fixed locations
 in the packet's headers. The net result is the ability to program a router to
