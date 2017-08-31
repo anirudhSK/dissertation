@@ -153,29 +153,36 @@ fields. These instructions can then be composed into larger stateless
 operations, without designing atoms specifically for each stateless operation.
 
 \Para{Representing atoms.}
-An atom is represented by a body of sequential code that captures the atom's
-behavior. It may also contain internal state local to the atom. An atom
-completes execution of this entire body of code, modifying a packet and any
-internal state before processing the next packet. The designer of a
-programmable router would develop these atoms, and expose them to a router
-compiler as the programmable router's instruction set, \eg
-Table~\ref{tab:templates}.
+An atom is represented by a body of sequential code
+(Figure~\ref{fig:alu_in_sketch}) that captures the atom's behavior. When
+executing, this body of code can make use of (1) a small number of packet
+fields, (2) internal state local to the atom, and (3) configuration parameters
+that provide the atom with its programmability.
 
-Using this representation, a router counter that wraps around at a value of 100
-can be written as the atom:\footnote{We use {\tt p.x} to represent field {\tt
-x} within a packet {\tt p} and a bare {\tt x} to represent a state variable
-{\tt x} that persists across packets.}
+When implemented as a digital circuit, an atom completes execution of this
+entire body of code within a clock cycle, modifying a packet and any internal
+state before processing the next packet. The designer of a programmable router
+would develop these atoms, and expose them to a router compiler as the
+programmable router's instruction set, \eg Table~\ref{tab:templates}.
+
+Using this representation, a router counter that wraps around at a configurable
+value C can be written as the atom:\footnote{We use {\tt p.x} to represent
+field {\tt x} within a packet {\tt p} and a bare {\tt x} to represent a state
+variable {\tt x} that persists across packets. The ?? notation is used to
+denote a configuration parameter.}
 \begin{lstlisting}[style=customc, numbers=none, frame=none]
-if (counter < 99)
-  counter++;
+C = ??
+if (counter < C)
+  counter = counter + p.x;
 else
   counter = 0;
 \end{lstlisting}
 
-Similarly, a stateless operation like setting a packet field to a constant
-value can be written as the atom:
+Similarly, a stateless operation like setting a packet field to a configurable
+constant value can be written as the atom:
 \begin{lstlisting}[style=customc, numbers=none, frame=none]
-  pkt.field = value;
+  C = ??
+  pkt.field = C;
 \end{lstlisting}
 
 \subsection{Constraints for line-rate operation}
@@ -198,7 +205,7 @@ clock cycle, we mandate that atom bodies finish execution within one clock
 cycle, and constrain atom bodies to do so.
 
 We constrain atom bodies by defining {\it atom templates}
-(\S\ref{ss:code_gen}).  An atom template is a program with configurable
+(Figure~\ref{fig:alu_in_sketch}).  An atom template is a program with configurable
 parameters that terminates within a clock cycle and specifies the atom's
 behavior.  Termination within a clock cycle is enforced by ensuring that the
 atom's digital circuit meets timing at a given clock rate (\S\ref{ss:targets}).
