@@ -71,7 +71,7 @@ recent evictions. We remedy this by forcing periodic evictions.
 
 To merge a flow's new aggregated value in the cache with its old value in the
 backing store, the cache needs to maintain and send {\em auxiliary state} to
-the backing store during evictions.  A \naive usage of auxiliary state is to
+the backing store during evictions.  A naive usage of auxiliary state is to
 store relevant fields from every packet of a flow, so that the backing store
 can simply run the aggregation function over all the newly received packets when
 merging.  However, in a practical implementation, the auxiliary state should be
