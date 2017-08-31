@@ -239,19 +239,19 @@ associated with the algorithm. For instance, the amount of stateful memory is
 proportional to the size of each array and the number of arrays (hash
 functions) in the case of heavy hitter detection and Bloom filters. On the
 other hand, the amount of stateful memory is proportional to the number of
-output ports for algorithms that run independently for each output port (\eg
-HULL, AVG) or proportional to the number of output queues for algorithms that
-run independently for each output queue (\eg CoDel).
+output ports for algorithms that run independently at each output port (\eg
+HULL, AVQ) or proportional to the number of output queues for algorithms that
+run independently at each output queue (\eg CoDel).
 
 The guard column specifies how packets are selected for execution by an
 algorithm's packet transaction. For instance, the heavy hitter detection
 algorithm runs a single packet transaction on all packets, while the DNS TTL
 change tracking algorithm runs a single packet transaction on all {\em DNS}
-packets. On the other hand, to implement CoDel, the router needs to run a
+packets. To implement CoDel, the router needs to run a
 separate instance of CoDel's packet transaction for either each output port or
-each output queue (depending on whether the CoDel algorithm is running
-independently on a single queue for each output port or independently on
-multiple queues for each output port). In the case of CoDel, the guard selects
+each output queue, depending on whether the CoDel algorithm is running
+on a single queue for each output port or independently on
+multiple queues for each output port. In the case of CoDel, the guard selects
 packets by their output port or output queue and runs the appropriate instance
 of the same CoDel packet transaction on the selected packet.
 
