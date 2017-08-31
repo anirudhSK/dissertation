@@ -21,7 +21,7 @@ because the relative areas consumed by router subsystems on an FPGA may not
 accurately reflect the relative area consumptions on a router chip.
 
 Instead, we paid careful attention to keeping our hardware designs simple, and
-reused standard hardware designs (\eg LRU caches and first-in first-out queues)
+reused standard hardware designs (\eg LRU caches and First In First Out Queues)
 wherever possible. To allow a router chip designer to leverage our results, we
 clearly specified the interfaces between the different hardware blocks in our
 design.
@@ -31,7 +31,7 @@ future work. First, an FPGA implementation allows us to check the correctness
 of the same Verilog code that we use for synthesis experiments, especially to
 test correctness when interfacing a router with the external world. Second, an
 FPGA implementation can serve as a vehicle for end-to-end evaluation of ideas,
-much like our low-bandwidth Mininet evaluation (\S\ref{sec:eval:mininet}).
+much like our Mininet evaluation (\S\ref{sec:eval:mininet}).
 Third, the development of new FPGA technology that allows clock rates of up to
 1 GHz~\cite{hyperflex} suggests a way to prototype hardware at near-ASIC speeds
 while benefiting from the reconfigurability of an FPGA. Note that, even with
@@ -66,11 +66,11 @@ At the same time, some of our results suggest that our abstractions and
 primitives may be general. For instance, as mentioned earlier, the atoms
 developed in Domino (Chapter~\ref{chap:domino}) supported unanticipated use
 cases that were developed after the atom designs were frozen
-(Table~\ref{tab:atoms_generalize}) . Similarly, we did not anticipate the
+(Table~\ref{tab:atoms_generalize}). Similarly, we did not anticipate the
 rate-controlled service disciplines (RCSD) as a use case for PIFOs when first
 designing PIFOs, but later found that PIFOs could express the RCSD class
 (\S\ref{s:expressive}).  Finally, the atomic semantics of  packet transactions
-could be ported into the P4 language (\S\ref{s:impact}), suggesting that the
+are now part of the P4 language (\S\ref{s:impact}), suggesting that the
 packet transaction abstraction might be quite general and natural.
 
 \subsection{Supporting routers with multiple pipelines}
@@ -102,7 +102,7 @@ other pipelines.
 For simple stateful operations like global, router-wide, counters, the
 associativity of addition allows us to update the state separately in each
 pipeline and combine it through addition later. However, we know of no general
-mechanism to combine pipeline-local state into a single router-wide state value
+mechanism to combine pipeline-local state into a single, global, router-wide state value
 in a manner that emulates a single-pipeline router. Using a single state value
 that is accessed by multiple pipelines is a potential solution, but sharing
 state requires multi-ported memory and locking. Multi-ported memory is
@@ -122,9 +122,7 @@ payloads and the scheduling logic for different scheduling algorithms. To
 support enqueues and dequeues from multiple pipelines into the data buffer
 every clock cycle, the data buffer memory in a multi-pipeline router is
 multi-ported to support multiple writes/reads from multiple ingress/egress
-pipelines every clock cycle.\footnote{This multi-porting exploits the fact that
-the data buffer is a bank of first-in first-out queues, allowing it to be
-cheaper than generic multi-ported memory.}
+pipelines every clock cycle.
 
 In multi-pipeline routers, each PIFO block needs to support multiple enqueue
 and dequeue operations per clock cycle (as many as the number of ingress and
@@ -136,7 +134,7 @@ clock cycle, resulting in multiple dequeues every clock cycle.
 We leave a full fledged PIFO design for multi-pipeline routers to future work,
 but observe that our current PIFO design facilitates a multi-pipeline
 implementation.  A rank store supporting multiple pipelines is similar to the
-data buffer of multi-pipeline routers today, which already support multiple
+data buffers of multi-pipeline routers today, which already support multiple
 enqueues and dequeues. Building a flow scheduler to support multiple
 enqueues/dequeues per clock cycle is relatively easy because the flow scheduler
 is maintained in flip flops. A flip-flop-based implementation makes it simpler
