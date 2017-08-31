@@ -226,10 +226,9 @@ This flexible match-action processing is
 enabled by an input multiplexer in a match-action stage, which can extract a
 user-specified field from anywhere in the packet's headers for matching,
 without being constrained to a fixed set of fields available at fixed locations
-in the packet's headers. The net result is the ability to program a router to
-recognize a new packet format, then match on fields within this new format, and
-finally the ability to compose new user-defined actions out of a small set of
-primitive actions that support modifications on individual packet fields.
+in the packet's headers. With this hardware capability, a network operator can now
+ program a router to recognize a new packet format. She can then match on fields within this new format and compose new user-defined actions out of a small set of
+primitive actions that support modifications on individual fields.
 
 However, flexible match-action processing largely ignores the question of
 programmable manipulation of {\em state} in the data plane as part of the
@@ -244,31 +243,31 @@ supports programmable state modification in the data plane of the router.
 
 Both the ingress and egress pipelines are shared across a number of router
 ports.  They handle aggregate traffic belonging to all these ports, regardless
-of packet sizes. When the aggregate traffic requirement is small enough, a
+of packet size. When the aggregate traffic requirement is small enough, a
 single ingress and egress pipeline suffice. For instance, a 64-port router with
-a line rate of 10 Gbit/s per port and a minimum packet size of 64 bytes needs
-to process around a billion packets per second, after accounting for minimum
-inter-packet gaps~\cite{rmt}.  This requirement can be supported by a single
+a line rate of 10 Gbit/s per port and a minimum packet size of 64 bytes
+must process up to 1 billion packets per second, after accounting for minimum
+inter-packet gaps~\cite{rmt}.  This can be supported by a single
 pipeline that runs at 1 GHz and is shared across all 64 ports.
 
 For higher aggregate capacities, multiple 1-GHz pipelines are required because,
 as discussed earlier, it is technically challenging to achieve a clock rate
 higher than 1 GHz in most chips. While having multiple pipelines allows the
 router to scale to higher aggregate speeds, it comes at the cost of fragmenting
-state across different pipelines.  For instance, packets in one pipeline cannot
-access state present in another pipeline. Hence, it is challenging to maintain
-a piece of global state that is accessed by and modified by every packet going
-through a multi-pipeline router.
+memory for lookup tables across different pipelines.  For instance, packets in
+one pipeline cannot access lookup tables present in another pipeline. Hence, if
+a lookup table needs to be accessed by two different pipelines, it must be
+replicated, wasting some memory in the process. 
 %TODO: consider multi-pipeline diagram?
 
-Even in a multi-pipeline router, there is a single shared piece of hardware for
-the scheduler that enqueues packets from multiple ingress pipelines and
-dequeues its packets into multiple egress pipelines. To support the ability to
-handle inputs and outputs from multiple pipelines, the scheduler's memory is
+Even in a multi-pipeline router, the scheduler memory that stores packet payloads is
+typically shared to reduce the overall memory requirement. This memory needs to handle packet enqueues from multiple ingress pipelines and
+packet dequeues from multiple egress pipelines. To support the ability to
+handle enqueues and dequeues from multiple pipelines, the scheduler's memory is
 multi-ported.  This is possible without considerable area overhead by
-exploiting the fact that most of the scheduler's memory is structured as a set
+exploiting the fact that the scheduler's memory is structured as a set
 of First In First Out Queues with a limited set of operations (\ie enqueues and
-dequeues). The limited set of operations on the scheduler memory allows the
+dequeues). The limited set of operations on the scheduler's memory allows the
 development of multi-ported memory for the scheduler without considerable area
 expense.\footnote{By contrast, our strawman design for routers based on an
 array of processors with shared memory (\S\ref{ss:strawman2}) requires a more
@@ -299,8 +298,8 @@ ports of the router. This memory needs to support enqueues from any of the
 input ports and dequeues from any of the output ports every clock
 cycle~\cite{sundar_shared_memory, dctcp}.  In addition to emulating an
 output-queued router, a shared memory implementation has the benefit that the
-memory pool can be allocated to output ports on demand depending on the
-congestion at each output port, without committing memory to output ports at
+memory pool can be allocated to output ports on demand, without
+committing memory to output ports at
 hardware design time.
 
 With a single ingress and a single egress pipeline shared across all ports,
@@ -317,7 +316,7 @@ chips are put together on a motherboard in a Fat Tree topology~\cite{b4}, but
 such multi-chip routers are not necessarily output-queued anymore.
 
 Unless otherwise mentioned, a router in this dissertation refers to a
-single-chip, single-pipeline, output-queued router.
+single-chip, single-pipeline, shared-memory, output-queued router.
 
 \section{Summary}
 This chapter provided an overview of the hardware architecture of a high-speed
@@ -328,11 +327,10 @@ presented here.
 
 For instance, atoms, introduced in \S\ref{ss:intro_atoms} and detailed in
 \S\ref{s:absmachine}, replace fixed action units within a match-action stage.
-Atoms also provide the ability to programmatically manipulate state as part of
-the action.  Our hardware design for PIFOs, introduced in
+ Our hardware design for PIFOs, introduced in
 \S\ref{ss:intro_pifo_hardware} and detailed in \S\ref{s:design}, replaces the
-first-in first-out queues usually found in a scheduler. Finally, the on-chip
-cache of our programmable key-value store, introduced in
+First In First Out Queues usually found in a scheduler. Finally, the on-chip
+cache for our programmable key-value store, introduced in
 \S\ref{ss:intro_pq_hardware} and detailed in \S\ref{sec:aggregation}, takes the
 place of a match-action table within a match-action stage. The off-chip backing
 store in our key-value store runs on the control plane: either on the
