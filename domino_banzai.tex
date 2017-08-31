@@ -107,7 +107,7 @@ clock cycle.
 
 In addition to packet headers, atoms may modify persistent state on the router
 to implement stateful data-plane algorithms. To support such algorithms at
-router's line rate, the atoms for a \absmachine machine need to be
+a router's line rate, the atoms for a \absmachine machine need to be
 substantially richer (Table~\ref{tab:templates}) than the simple RISC-like
 stateless instruction sets for programmable routers~\cite{rmt}. We explain why
 below.
@@ -141,7 +141,7 @@ other stateful atomic operations that complete within a clock cycle.
 Table~\ref{tab:templates} provides one representative set of atoms.
 
 Unlike stateful atomic operations, stateless atomic operations are easier to
-support with simple instructions for binary operations on a pair of packet
+support with simple RISC-like instructions for binary operations on a pair of packet
 fields.  Consider, for instance, the operation {\tt pkt.f1 = pkt.f2 + pkt.f3 -
 pkt.f4}.  This operation does not modify any persistent router state and only
 accesses packet fields. It can be implemented atomically by using 2 atoms in a
