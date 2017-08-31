@@ -208,7 +208,7 @@ that we do not need a more expressive atom to run this algorithm.}
 
 As Table~\ref{tab:algo_atoms} shows, the choice of stateful atom determines
 what algorithms can run on a router. For instance, with only the ability to
-read or write state, only Bloom filters can run at line rate, because it only
+read or write state, only the Bloom filter algorithm can run at line rate, because it only
 requires the ability to test and set membership bits.  Adding the ability to
 increment state (the RAW atom) permits heavy hitter detection to run at line
 rate, because it employs a count-min sketch that is incremented on each packet.
