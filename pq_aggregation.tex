@@ -294,8 +294,8 @@ the aggregation $f$ on all the packets seen in the interim. However, if $s$ is
 \emph{not} known, we can instead use the packets seen to compute a {\em function}
 that tells us how to get from \emph{a symbolic} state $s$ to the final desired
 state $s'$. That is, given a sequence of packets $\{p_k\}$, we can compute an
-\emph{iterated} function $f_i \in \{0,1\}^n \rightarrow \{0,1\}^n$, such that
-for any state $s$, $f_i(s) = f(s, \{p_k\})$.
+\emph{iterated} function $f_{iter} \in \{0,1\}^n \rightarrow \{0,1\}^n$, such that
+for any state $s$, $f_{iter}(s) = f(s, \{p_k\})$.
 
 For an empty sequence, the corresponding iterated function is the identity
 function.  Our goal is to store some compact representation of the iterated
@@ -306,17 +306,16 @@ identifier for the updated iterated function is sent to the backing store.  The
 backing store then applies this iterated function to the state $s_{backing}$
 stored from a previous eviction to get the new value.
 
-%TODO: f_i looks like the ith function. Could use better notation?
 How does one update the iterated function stored on the router? The vertices of
-the closure graph of $f$ are iterated functions $f_i$, and we let $|G(f)|$
+the closure graph of $f$ are iterated functions $f_{iter}$, and we let $|G(f)|$
 indicate the number of vertices. Since there are a finite number of functions
 $\{0, 1\}^n \rightarrow \{0, 1\}^n$, the size of the graph is bounded.  Each
 vertex has an outgoing edge corresponding to every possible packet. For a given
-packet $p$, the iterated function $f_i$ has an edge to the function $f_j$
+packet $p$, the iterated function $f_i$ has an edge to the iterated function $f_j$
 satisfying $f(f_i(s), p) = f_j(s)$ for all $s$.
 
 The closure graph thus has the following property: given a sequence of packets
-$\{p_1, \ldots p_k\}$, start at the identity function and, on the $i$th packet
+$\{p_1, \ldots p_k\}$, start at the identity function and, on the packet \# $i$
 in the sequence, follow the edge corresponding to packet $p_i$. The ending
 vertex of this process is the iterated function that captures the effect of
 this packet sequence on any starting state. We say that this ending vertex is
@@ -334,7 +333,7 @@ the merge to be possible.
 
 As an example, consider a simple counter, where $f(s, p) = s + 1$ and $s_0 =
 0$. If the counter has $n$ bits, the closure graph is a ring of size $2^n$,
-where vertex $i$ represents the iterated function $f_i(s) = s + i$. Note
+where vertex $i$ represents the iterated function $f_{iter}(s) = s + i$. Note
 that all edges from vertex $i$ point to vertex $i+1$. For every
 observed packet, the router walks one step further around the ring. This is
 implemented efficiently via adding 1 to an $n$-bit counter. After $K$ packets,
@@ -350,13 +349,13 @@ A merge function exists to successfully merge an aggregation function $f$,
 provided it can use up to $n2^n$ auxiliary bits.
 \end{theorem}
 \begin{proof}
-We can represent each iterated function $f_i$ in $n2^n$ bits, using a list of
+We can represent each iterated function $f_{iter}$ in $n2^n$ bits, using a list of
 $2^n$ $n-$bit numbers. This list enumerates the output of the iterated function
-on every possible input, \ie the $k$th item in the list is $f_i(k)$. The router
+on every possible input, \ie the $k$th item in the list is $f_{iter}(k)$. The router
 stores this representation. For each new packet $p$, the router computes the
-update to each item $k$ in the list: $f_i(k) \rightarrow f(f_i(k), p)$. Upon a
+update to each item $k$ in the list: $f_{iter}(k) \rightarrow f(f_{iter}(k), p)$. Upon a
 merge, the router sends this representation to the backing store, which can
-then evaluate $f_i(s_{backing})$, where $s_{backing}$ is the value stored in
+then evaluate $f_{iter}(s_{backing})$, where $s_{backing}$ is the value stored in
 the backing store.
 \end{proof}
 
@@ -404,7 +403,7 @@ We present a family of packet sequences, such that there is an injection from th
  sequences to the vertices in the closure graph of $f$. In other words, starting from the identity, updating the identity iterated function by each sequence in this family will result in a distinct iterated function. 
 
 Consider a family of packet sequences parameterized by a tuple $(a_0, a_1, \ldots a_{2^n-1})$: the sequence consists of $a_i$ packets with sequence number $i$, in increasing order of $i$. For each such tuple, performing an update $U$ of the identity iterated function by the sequence for that tuple results in the following final iterated function:
-\[ U(a_0, \ldots, a_{2^n-1}) = f\quad\quad \text{such that} \quad\quad f(x,y) = \left(2^n - 1, (y + \sum_{i=0}^{x-1} a_i) \mod 2^n\right) \]
+\[ U(a_0, \ldots, a_{2^n-1}) = f_{iter}\quad\quad \text{such that} \quad\quad f_{iter}(x,y) = \left(2^n - 1, (y + \sum_{i=0}^{x-1} a_i) \mod 2^n\right) \]
 where $x$ and $y$ are the max sequence number and count, respectively. To see why this is the case, recall that the iterated function is taking some \emph{previous} max seq. number and count and trying to update it by the packet sequence. If the max sequence number was $x = k$ before, then the count will increase by the number of packets with sequence number $< k$, which is $\sum_0^{k-1} a_i$.
 \begin{lemma}
 $U$ is an injection.
@@ -412,9 +411,9 @@ $U$ is an injection.
 \begin{proof}
 If $(a_0, \ldots, a_{2^n-1}) \neq (a_0', \ldots, a_{2^n-1}')$, then there is
 some $k$ (including $k=0$) such that $a_k \neq a_k'$ but $a_j = a_j'$ for all
-$j < k$. Let $U(a_0, \ldots, a_{2^n-1}) = f$ and $U(a_0', \ldots, a_{2^n-1}') =
-f'$. Then, for any $y$: \[ f(k+1, y) - f'(k+1,y) = \left(0, \sum_{i = 0}^k a_i
-- \sum_{i = 0}^k a_i'\right) = (0, a_k - a_k') \neq (0, 0) \] Hence, $f \neq f'$,
+$j < k$. Let $U(a_0, \ldots, a_{2^n-1}) = f_{iter}$ and $U(a_0', \ldots, a_{2^n-1}') =
+f'_{iter}$. Then, for any $y$: \[ f_{iter}(k+1, y) - f'_{iter}(k+1,y) = \left(0, \sum_{i = 0}^k a_i
+- \sum_{i = 0}^k a_i'\right) = (0, a_k - a_k') \neq (0, 0) \] Hence, $f_{iter} \neq f'_{iter}$,
 making $U$ an injection.
 \end{proof}
 There are $2^{n2^n}$ such packet sequences because each packet sequence is
