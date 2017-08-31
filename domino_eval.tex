@@ -258,7 +258,7 @@ of the same CoDel packet transaction on the selected packet.
 \subsection{Generality or future proofness of atoms}
 %TODO: This is quite brittle
 One concern with designing atoms using the trial-and-error method described in
-\S\ref{ss:targets} is the potential for ``overfitting,'' \ie  the atoms only
+\S\ref{ss:targets} is the potential for ``overfitting:'' the atoms only
 work for the algorithms that inspired the design of these atoms and do not
 generalize to new and unseen algorithms. The main argument for a programmable
 router is the ability to change its functionality without hardware redesign.
@@ -272,8 +272,8 @@ than the rate at which new algorithms are developed.}
 \input{domino_generalize_table}
 
 To evaluate the generality of our atoms, we wrote a new set of algorithms in
-Domino after freezing our set of atoms to the set above
-(Table~\ref{tab:templates}). Using the Domino compiler, we again evaluated the
+Domino after freezing our set of atoms to the set in
+Table~\ref{tab:templates}. Using the Domino compiler, we again evaluated the
 most expressive atom required to run each of these algorithms at the router's
 line rate.
 
@@ -308,8 +308,8 @@ $A \ \{>/</==/!=\} \ B$. The conditional check above is the of the form $A - B
 algorithm to precompute p.now - FREEZE\_TIME in a previous stage:
 
 \begin{verbatim}
-p.now_plus_free = p.now - FREEZE_TIME;
-if (p.now_plus_free > last_update) {
+p.tmp = p.now - FREEZE_TIME;
+if (p.tmp > last_update) {
    p_mark = p_mark + DELTA1;
    last_update = p.now;
 }
@@ -338,7 +338,7 @@ hardware without losing performance.  It may also be sufficient to use
 fixed-point or integer arithmetic instead of floating point arithmetic for some
 of these operations. We leave these investigations to future work.
 
-Another class of algorithms are algorithms that fall outside the boundary of
+The other class of unsupported algorithms falls outside the boundary of
 our atoms, as determined by the SKETCH-based code generator within the Domino
 compiler (\S\ref{ss:code_gen}). An example is the two-color three-rate
 meter~\cite{trTCM} (trTCM), which does not compile to Pairs, our most
@@ -414,7 +414,7 @@ if (tc > CBS) tc = CBS;
 
 Based on these observations, we conjecture that the reason that trTCM does not
 compile is that it requires one more conditional check than is supported by the
-Pairs atom. We concede that it would be helpful to have a more precise
+Pairs atom. We admit that it would be helpful to have a more precise
 explanation along with suggestions on how to fix trTCM so that it compiles.
 
 Our method of paring down an algorithm to find a non-compilable subset of the
