@@ -334,8 +334,8 @@ the merge to be possible.
 
 As an example, consider a simple counter, where $f(s, p) = s + 1$ and $s_0 =
 0$. If the counter has $n$ bits, the closure graph is a ring of size $2^n$,
-where the $i$th vertex represents the iterated function $f_i(s) = s + i$. Note
-that all edges from the $i$th vertex point to the $i+1$st vertex. For every
+where vertex $i$ represents the iterated function $f_i(s) = s + i$. Note
+that all edges from vertex $i$ point to vertex $i+1$. For every
 observed packet, the router walks one step further around the ring. This is
 implemented efficiently via adding 1 to an $n$-bit counter. After $K$ packets,
 the iterated function on the router is $s + k$, where $k = K \mod 2^n$. Upon
