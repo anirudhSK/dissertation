@@ -33,8 +33,7 @@ Conceptually, when programming with packet transactions, there is no overlap in
 packet processing across packets---akin to an infinitely fast single-threaded
 processor carrying out packet processing on each packet. The code within a
 packet transaction is written in {\em \pktlanguage{}}, a new imperative
-domain-specific language (DSL). To our knowledge, \pktlanguage is the first to
-offer such a high-level programming abstraction for high-speed routers.
+domain-specific language (DSL).
 
 Packet transactions let the programmer focus on the operations needed for each
 packet without worrying about other concurrent packets. Packet transactions
@@ -55,7 +54,9 @@ transaction if the atom cannot execute the codelet.
 We evaluate \pktlanguage's expressiveness by programming a variety of
 data-plane algorithms (Table~\ref{tab:algorithms}) in \pktlanguage. We find
 that \pktlanguage provides a concise and natural programming model for stateful
-data-plane algorithms.  Next, we design a set of small set of atoms that can
+data-plane algorithms.
+
+Next, we design a small set of atoms that can
 express these algorithms (\S\ref{ss:targets}).  We show that compiler targets
 with these atoms are feasible at a 1 GHz clock rate in a 32-nm standard-cell
 library with $< 2\%$ cost in area relative to a 200 \si{\milli\metre\squared}
