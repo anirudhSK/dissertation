@@ -65,7 +65,7 @@ high-speed routers today~\cite{trident2, tomahawk, tomahawk2}. Let's assume
 that the router needs to forward 1000 bit packets. Finally, let's assume that
 on each packet, the router needs to carry out \textasciitilde10 operations,
 such as determining the output port based on the destination address, access
-control, tuneling, measurement, and decrementing the IP TTL field. These
+control, tunneling, measurement, and decrementing the IP TTL field. These
 requirements imply that the router needs to support about 10 operations on a
 billion packets per second, or 10 billion operations per second.
 
@@ -132,7 +132,7 @@ different processors.
 To avoid having to use multi-ported memories, high-speed routers are typically
 architected as a shared-nothing {\em pipeline} (Figure~\ref{fig:pipeline}). Each pipeline stage is
 dedicated to a fixed functionality, such as destination address lookup,
-tuneling, measurement, or access control. Each pipeline stage has its own
+tunneling, measurement, or access control. Each pipeline stage has its own
 dedicated local memory to store its own match-action tables. This architecture provides parallelism: at any point, each
 pipeline stage is working on a different packet. It also does so without
 sharing memory between processors: each match-action table is local and can be
