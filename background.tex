@@ -268,8 +268,8 @@ the difficulty of repeatedly extending OpenFlow was to develop a programmable
 router chip. This router chip would have a minimal instruction set that would
 permit a network operator to express OpenFlow-like forwarding rules for {\em
 any} new protocol format. This is in contrast to OpenFlow, which only supports
-a restricted and fixed set of actions as part of the forwarding rules (drop,
-decrement TTL, forward, etc.) on a restricted and fixed set of packet headers
+a fixed set of actions as part of the forwarding rules (drop,
+decrement TTL, forward, etc.) on a fixed set of packet headers
 (UDP, TCP, IP, etc.).
 
 Recent academic work~\cite{rmt} and commercial router chips~\cite{tofino,
@@ -280,8 +280,8 @@ compilers~\cite{lavanya_compiler} then compile these P4 programs to
 programmable router architectures such as the RMT~\cite{rmt} and
 FlexPipe~\cite{flexpipe} architectures.
 
-To the extent that we know from publicly available documents, these chips
-provide flexibility on only two counts: recognizing user-specific header
+To the extent that we know based on publicly available documents, these chips
+provide flexibility on two counts: recognizing user-specific header
 formats and programmatically manipulating packet headers for functions such as
 forwarding, tunneling, and access control, \ie functions that do not modify
 router state.
@@ -291,8 +291,9 @@ many of the grayed-out algorithms in Figure~\ref{fig:router_algos}.  These
 algorithms require the ability to programmatically manipulate router state on
 every packet, the ability to program which packet a router link must schedule
 next, and the ability to program what per-flow statistics a router must measure
-for a large number of flows. We hope this dissertation suggests directions for
-the future evolution of such programmable router chips.
+for a large number of flows.
+%We hope this dissertation suggests directions for
+%the future evolution of such programmable router chips.
 
 \subsection{Programmable traffic management}
 
@@ -353,7 +354,7 @@ approach has been benchmarked on (in the Flexplane paper~\cite{flexplane}) is a
 network of 40 10-Gbit/s servers connected to a single top-of-rack router.
 
 In summary, by leveraging a centralized data plane implemented on a commodity
-CPU, Fastpass provides far more flexibility than a restricted interface exposed
+CPU, Fastpass provides more flexibility than a restricted interface exposed
 by a programmable router chip---but at a significant scalability cost.
 
 \subsection{Stateful packet processing}
@@ -366,7 +367,7 @@ compile these router-local rules to a router's pipeline and can use
 to study the generality of our atoms in Table~\ref{tab:atoms_generalize}.
 FAST~\cite{fast} provides router support and software abstractions for state
 machines. As \S\ref{s:eval} shows, atoms support more general stateful
-processing beyond state machines that enable a much wider class of data-plane
+processing beyond state machines. In turn, this enables a much wider class of data-plane
 algorithms.
 
 \subsection{Universal Packet Scheduling (UPS)} UPS~\cite{ups} shares our goal
@@ -382,7 +383,7 @@ express:
 \begin{CompactEnumerate}
 \item Hierarchical scheduling algorithms such as HPFQ, because it uses only one
 priority queue.
-\item Non-work-conserving algorithms. For such algorithms LSTF must know the
+\item Non-work-conserving algorithms. For such algorithms, LSTF must know the
 departure time of each packet up-front, which is not practical.
 \item Short-term bandwidth fairness in fair queueing, because LSTF maintains no
   router state except one priority queue. As shown earlier in
@@ -424,22 +425,23 @@ contrast, \TheSystem enables expressive {\em performance} questions on data
 collected with purpose-built router hardware. \TheSystem shares some language
 constructs with Gigascope~\cite{gigascope} and
 Sonata~\cite{streaming-monitoring}, but supports aggregations directly in the
-router.
+router chip.
 
-\subsection{Router-based monitoring} Traditionally, router-based monitoring
-has focused on per-flow counts, not performance measurement. For example,
-NetFlow~\cite{netflow} and sFlow~\cite{sflow} provide traffic summaries through
-flow and packet sampling. Packet-capture systems~\cite{cisco-span, niksun,
-netsight, everflow, pathdump, path_query} collect entire packets or digests.
-These approaches sample extensively to lower collection overheads and are
-useful for posthoc traffic analysis. However, they do not capture details of
-{\em performance} phenomena (\eg TCP incast) as specified by a flexible
-language like \TheSystem.
+%%
+%%\subsection{Router-based monitoring} Traditionally, router-based monitoring
+%%has focused on per-flow counts, not performance measurement. For example,
+%%NetFlow~\cite{netflow} and sFlow~\cite{sflow} provide traffic summaries through
+%%flow and packet sampling. Packet-capture systems~\cite{cisco-span, niksun,
+%%netsight, everflow, pathdump, path_query} collect entire packets or digests.
+%%These approaches sample extensively to lower collection overheads and are
+%%useful for posthoc traffic analysis. However, they do not capture details of
+%%{\em performance} phenomena (\eg TCP incast) as specified by a flexible
+%%language like \TheSystem.
 
 \subsection{Recent router support for measurement} In-band Network Telemetry
 (INT)~\cite{int, int_paper} exposes queue lengths to end hosts by stamping it
 on the packet itself. \TheSystem builds on INT and provides flexible filters
-and aggregations {\em directly in routers}.  \TheSystem's data aggregation in
+and aggregations directly in routers.  \TheSystem's data aggregation in
 routers saves the bandwidth needed to collect INT data distributed over many
 end hosts. Besides, with INT alone, performance information may be lost, since
 packets carrying the INT data may be dropped on the way to end hosts. The
@@ -457,9 +459,8 @@ dissertation. The main difference in approach between this dissertation and
 prior approaches to router programmability is the joint design of both
 hardware and software.
 
-Jointly designing hardware and software provides us more leverage than treating
-either as unchangeable. In the process, it also allows us to obtain both
-programmability and performance for some classes of router functionality.  Past
+Jointly designing hardware and software provides us with more leverage than treating
+either as unchangeable. Past
 approaches either propose hardware or software improvements, while treating the
 other as fixed. We briefly describe 5 examples of how this additional leverage
 helps the systems in this dissertations relative to systems in prior work.
@@ -483,14 +484,14 @@ software along with hardware support for this language. This allows \TheSystem
 to support a wider range of queries beyond counters.
 
 \Para{CONGA.} CONGA~\cite{conga} is a load-balancing algorithm that uses
-congestion-aware flowlet-based load balancing to respond better to asymmetry in
+congestion-aware flowlet-based load balancing to handle asymmetry in
 the network topology. CONGA is implemented on a custom chip by developing new
-router hardware for the sole purpose of load balancing. In contrast, we
+router hardware specifically for load balancing. In contrast, we
 developed a programming model in software as part of Domino in addition to the
 atom hardware. This allows us to reuse the same programmable atoms for many
 different algorithms including CONGA.
 
 \Para{SONATA.} SONATA~\cite{streaming-monitoring} is a measurement system that
-sources its measurements from statistics exported by OpenFlow. By designing new
+sources its measurements from statistics exported by OpenFlow and NetFlow. By designing new
 router hardware for programmable measurement, \TheSystem can express a wider
-range of measurements than what is supported by OpenFlow.
+range of measurements than what is supported by either OpenFlow or NetFlow.
