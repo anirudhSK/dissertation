@@ -59,7 +59,7 @@ packet as the first packet from a new flow and initialize the flow's state to
 an initial value.  Subsequent packets from the same flow are aggregated within
 the newly created flow entry in the key-value store, until the flow is evicted.
 When the flow is eventually evicted, we merge the flow's value just before
-eviction with its value in the backing-store using a {\em merge function}, and
+eviction with its value in the backing store using a {\em merge function}, and
 write the merged result to the backing store.
 
 In our design, the router only writes to the backing store during evictions,
