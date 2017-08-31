@@ -12,14 +12,14 @@ distribution of flowlet sizes.
 
 Our setup uses Mininet with a single router connecting five hosts: a single
 client and four servers. Flow sizes are drawn from an empirical distribution
-computed from a trace of a real data center~\cite{empirical-flow-data}.  The
+computed from a trace of a real datacenter~\cite{empirical-flow-data}.  The
 router runs the ``flowlet size histogram'' query from
 Table~\ref{tab:example-perf-queries} for six values of {\ct delta}, the
 flowlet threshold.
 
 Figure~\ref{fig:flowletcdf} shows the CDF of flowlet sizes for various values
 of {\ct delta}. Note that the actual values of {\ct delta} are a consequence of
-the bandwidth allowed by the Mininet setup; a data center deployment would
+the bandwidth allowed by the Mininet setup; a datacenter deployment would
 likely use much lower {\ct delta} values.
 
 \begin{figure}[!t]
