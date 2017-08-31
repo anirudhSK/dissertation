@@ -153,14 +153,16 @@ fields. These instructions can then be composed into larger stateless
 operations, without designing atoms specifically for each stateless operation.
 
 \Para{Representing atoms.}
-An atom is represented by an {\em atom template} (Figure~\ref{fig:alu_in_sketch}): a
-body of sequential code that captures the atom's behavior. When
-executing, the atom template can make use of (1) a small number of packet
-fields, (2) internal state local to the atom, and (3) configuration parameters
-that provide the atom with its programmability.
+An atom is represented by an {\em atom template}
+(Figure~\ref{fig:alu_in_sketch}): a body of sequential code that captures the
+atom's behavior. When executing, the atom template can make use of (1) a small
+number of packet fields, (2) internal state local to the atom, and (3)
+configuration parameters that provide the atom with its programmability. Atom
+templates allow us to create and experiment with \absmachine machines with
+different atoms.
 
-When implemented as a digital circuit, an atom completes execution of this
-entire body of code within a clock cycle, modifying a packet and any internal
+When implemented as a digital circuit, an atom completes execution of the entire
+atom template within a clock cycle, modifying a packet and any internal
 state before processing the next packet. The designer of a programmable router
 would develop these atoms, and expose them to a router compiler as the
 programmable router's instruction set, \eg Table~\ref{tab:templates}.
@@ -179,7 +181,7 @@ else
 \end{lstlisting}
 
 Similarly, a stateless operation like setting a packet field to a configurable
-constant value can be written as the atom:
+constant value C can be written as the atom:
 \begin{lstlisting}[style=customc, numbers=none, frame=none]
   C = ??
   pkt.field = C;
@@ -201,17 +203,12 @@ only be carried forward, not backward.
 \Para{Computational limitations.} Atoms need to execute atomically from one
 packet to the next, so any state internal to the atom must be updated before
 the next packet arrives.  Because packets may be separated by as little as one
-clock cycle, we mandate that atom bodies finish execution within one clock
-cycle, and constrain atom bodies to do so.
+clock cycle, we mandate that atom templates finish execution within one clock
+cycle, and constrain them at hardware design time to do so.
 
-We constrain atom bodies by defining {\it atom templates}
-(Figure~\ref{fig:alu_in_sketch}).  An atom template is a program with configurable
-parameters that terminates within a clock cycle and specifies the atom's
-behavior.  Termination within a clock cycle is enforced by ensuring that the
-atom's digital circuit meets timing at a given clock rate (\S\ref{ss:targets}).
-An example is an ALU with a restricted set of primitive operations
-(Figure~\ref{fig:alu_diag}). Atom templates allow us to create and experiment
-with \absmachine machines with different atoms. As programmable routers evolve,
+Termination within a clock cycle is enforced at hardware design time by ensuring that the atom's
+digital circuit meets timing at a given clock rate (\S\ref{ss:targets}). As
+programmable routers and transistor technology evolve,
 we expect that atoms will evolve as well, but constrained by the clock-cycle
 requirement.
 
