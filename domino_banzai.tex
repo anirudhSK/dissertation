@@ -137,8 +137,8 @@ For instance, in the case of the counter, \absmachine provides an atomic
 increment operation with an {\em atom} to read a counter, increment it, and
 write it back in a single stage within one clock cycle. It uses the same
 approach of reading, modifying, and writing back to implement a limited set of
-other stateful atomic operations that complete within a clock cycle.
-Table~\ref{tab:templates} provides one representative set of atoms.
+other stateful atomic operations that complete within a clock cycle. Figure~\ref{fig:alu_diag}
+shows an example atom. Table~\ref{tab:templates} provides a representative set of atoms.
 
 Unlike stateful atomic operations, stateless atomic operations are easier to
 support with simple RISC-like instructions for binary operations on a pair of packet
