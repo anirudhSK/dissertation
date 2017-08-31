@@ -21,21 +21,22 @@ basis.
 %processing typically seen at end hosts.
 
 Stateful manipulation on a router for a {\ct groupby} is challenging for two
-reasons. First, the time budget to update state before the next packet arrives
-at a router can be as low as 1 ns on high speed routers~\cite{domino_sigcomm}.
-Second, the router needs to maintain state proportional to the number of
-aggregated records (\eg per flow), which may grow unbounded with time. We
-address both challenges using a programmable key-value store in hardware. The
-keys represent aggregation fields (\eg the five tuple) and the values represent
-the state being updated by the aggregation function (\eg a packet or byte
-counter). 
+reasons. First, it needs to be fast: the time budget to update state before the
+next packet arrives at a router can be as low as 1 ns
+(Chapter~\ref{chap:domino}).  Second, it needs large memories: the router needs
+to maintain state proportional to the number of aggregated records (\eg per
+flow), which may grow unbounded with time. 
 
-However, memories can either be fast and small (SRAM) or slow and large (DRAM),
-but not both. Hence, our key-value store has a `split' design.  A small and
-fast on-chip key-value store on the router's on-chip SRAM processes packets at
-the router's line rate. This on-chip key-value store serves as a cache for a
-large and slow off-chip backing store in DRAM that can hold a large number of
-flows.
+However, memories can either be fast and small (SRAM) or slow and large (DRAM).
+ To address this mismatch, we turn to the standard technique of
+caching. We build a two-level programmable key-value store in hardware, where
+the keys represent aggregation fields (\eg the five tuple) and the values
+represent the state being updated by the aggregation function (\eg a packet or
+byte counter).  To address both the fast and large requirements, our key-value
+store has a `split' design.  A small and fast on-chip key-value store on the
+router's on-chip SRAM processes packets at the router's line rate. This on-chip
+key-value store serves as a cache for a large and slow off-chip backing store
+in DRAM that can hold a large number of flows.
 
  In traditional cache designs, cache misses require accessing off-chip DRAM
 with non-deterministic latencies~\cite{unpredictable_cache} to read out the
